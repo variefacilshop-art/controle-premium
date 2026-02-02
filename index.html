@@ -1,11 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <title>Controle Premium</title>
-</head>
-<body>
-  <h1>Funcionando 🎉</h1>
-  <p>Deploy feito com sucesso.</p>
-</body>
-</html>
+<div id="auth">
+  <button class="google" onclick="login()">Entrar com Google</button>
+</div>
+
+<div id="app" class="hidden">
+  <p id="user"></p>
+  <div class="row">
+    <input id="descricao" placeholder="Descrição" />
+    <input id="valor" placeholder="Valor (R$)" type="number" step="0.01" />
+  </div>
+  <button class="primary" onclick="salvar()">Salvar</button>
+  <div class="list" id="lista"></div>
+</div>
