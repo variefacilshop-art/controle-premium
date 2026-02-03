@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Controle Premium</title>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -20,29 +19,25 @@
 <body>
   <h1>💎 Controle Premium Pessoal</h1>
   <p>Você está logado.</p>
-
   <button id="logout">Sair</button>
 
   <script>
-    const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
-
     const supabaseClient = supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
+      "https://ssnabfzwfvcmwkgibvec.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
     );
 
-    // 🔒 GARANTE QUE SÓ USUÁRIO LOGADO ENTRA AQUI
-    supabaseClient.auth.getUser().then(({ data }) => {
-      if (!data.user) {
+    // ⛔ BLOQUEIA QUEM NÃO ESTÁ LOGADO
+    supabaseClient.auth.getSession().then(({ data }) => {
+      if (!data.session) {
         window.location.href = "/";
       }
     });
 
-    document.getElementById("logout").addEventListener("click", async () => {
+    document.getElementById("logout").onclick = async () => {
       await supabaseClient.auth.signOut();
       window.location.href = "/";
-    });
+    };
   </script>
 </body>
 </html>
