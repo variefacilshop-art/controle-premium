@@ -1,62 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Controle Premium - Login</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
       margin: 0;
       height: 100vh;
-      background: #020617;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: radial-gradient(circle at top, #0f172a, #020617);
       font-family: Arial, sans-serif;
       color: white;
     }
+
     .card {
+      background: rgba(2, 6, 23, 0.85);
       padding: 40px;
       border-radius: 16px;
-      background: #020617;
-      box-shadow: 0 0 30px rgba(0,0,0,.6);
-      width: 360px;
-      text-align: center;
-    }
-    button {
       width: 100%;
-      padding: 14px;
-      font-size: 16px;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 180, 255, 0.25);
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
       border: none;
       border-radius: 10px;
-      background: #0ea5e9;
+      background: #00c2ff;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
     }
   </style>
 </head>
-
 <body>
+
   <div class="card">
-    <h2>💎 Controle Premium</h2>
-    <button id="login">Entrar com Google</button>
+    <h1>💎 Controle Premium</h1>
+    <p>Entre com sua conta Google</p>
+    <button onclick="loginGoogle()">Entrar com Google</button>
   </div>
 
   <script>
-    const supabaseClient = supabase.createClient(
-      "https://ssnabfzwfvcmwkgibvec.supabase.co",
+    const supabase = window.supabase.createClient(
+      "https://ssnabfzvfcmwkgibvec.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
     );
 
-    document.getElementById("login").onclick = async () => {
-      await supabaseClient.auth.signInWithOAuth({
+    async function loginGoogle() {
+      await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: window.location.origin + "/app.html"
         }
       });
-    };
+    }
+
+    // Se já estiver logado, pula direto pro app
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        window.location.href = "app.html";
+      }
+    });
   </script>
+
 </body>
 </html>
