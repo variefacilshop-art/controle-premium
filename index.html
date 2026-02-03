@@ -1,190 +1,182 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Controle Premium</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>Controle Premium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-    header {
-      background: #020617;
-      padding: 20px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-    }
-
-    main {
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-    }
-
-    .card {
-      background: #020617;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin-top: 0;
-      color: #38bdf8;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 16px;
-    }
-
-    input, select {
-      background: #020617;
-      color: #e5e7eb;
-      border: 1px solid #1e293b;
-    }
-
-    button {
-      background: #38bdf8;
-      color: #020617;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0ea5e9;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #1e293b;
-      text-align: left;
-    }
-
-    .total {
-      font-size: 24px;
-      font-weight: bold;
-      text-align: right;
-      margin-top: 10px;
-      color: #22c55e;
-    }
-  </style>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+header {
+  background: #020617;
+  padding: 20px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+main {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+.card {
+  background: #020617;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+button, input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+}
+button {
+  background: #38bdf8;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:hover { background: #0ea5e9; }
+.hidden { display: none; }
+.total {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: right;
+  color: #22c55e;
+}
+</style>
 </head>
 
 <body>
 
-<header>
-  💎 Controle Premium Pessoal
-</header>
+<header>💎 Controle Premium</header>
 
 <main>
 
-  <div class="card">
-    <h2>Adicionar Lançamento</h2>
+<div class="card" id="login">
+  <h2>Entrar</h2>
+  <button onclick="loginGoogle()">Entrar com Google</button>
+</div>
 
+<div id="app" class="hidden">
+
+  <div class="card">
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <div class="card">
+    <h2>Novo Lançamento</h2>
     <select id="tipo">
       <option value="entrada">Entrada</option>
       <option value="saida">Saída</option>
     </select>
-
-    <input type="text" id="descricao" placeholder="Descrição" />
-    <input type="number" id="valor" placeholder="Valor (R$)" />
-
+    <input id="descricao" placeholder="Descrição">
+    <input id="valor" type="number" placeholder="Valor (R$)">
     <button onclick="adicionar()">Adicionar</button>
   </div>
 
   <div class="card">
     <h2>Movimentações</h2>
-
-    <table>
+    <table width="100%">
       <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Descrição</th>
-          <th>Valor</th>
-        </tr>
+        <tr><th>Tipo</th><th>Descrição</th><th>Valor</th></tr>
       </thead>
       <tbody id="lista"></tbody>
     </table>
-
     <div class="total" id="saldo">Saldo: R$ 0,00</div>
   </div>
+
+</div>
 
 </main>
 
 <script>
-  let movimentacoes = JSON.parse(localStorage.getItem("movimentacoes")) || [];
+const supabase = supabaseJs.createClient(
+  "https://ssnabfzwfvcmwkgibvec.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
+);
 
-  function formatar(valor) {
-    return valor.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
+let user = null;
+
+async function loginGoogle() {
+  await supabase.auth.signInWithOAuth({ provider: "google" });
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  location.reload();
+}
+
+supabase.auth.onAuthStateChange(async (_, session) => {
+  if (session) {
+    user = session.user;
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    carregar();
   }
+});
 
-  function salvar() {
-    localStorage.setItem("movimentacoes", JSON.stringify(movimentacoes));
-  }
+function formatar(v) {
+  return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+}
 
-  function renderizar() {
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
+async function carregar() {
+  const { data } = await supabase
+    .from("movimentacoes")
+    .select("*")
+    .eq("user_id", user.id);
 
-    let saldo = 0;
+  renderizar(data || []);
+}
 
-    movimentacoes.forEach(m => {
-      const tr = document.createElement("tr");
+async function adicionar() {
+  const tipo = tipoEl.value;
+  const descricao = descricaoEl.value;
+  const valor = parseFloat(valorEl.value);
 
-      tr.innerHTML = `
+  if (!descricao || isNaN(valor)) return;
+
+  await supabase.from("movimentacoes").insert({
+    user_id: user.id,
+    tipo, descricao, valor
+  });
+
+  descricaoEl.value = "";
+  valorEl.value = "";
+  carregar();
+}
+
+function renderizar(lista) {
+  listaEl.innerHTML = "";
+  let saldo = 0;
+
+  lista.forEach(m => {
+    saldo += m.tipo === "entrada" ? m.valor : -m.valor;
+    listaEl.innerHTML += `
+      <tr>
         <td>${m.tipo}</td>
         <td>${m.descricao}</td>
         <td>${formatar(m.valor)}</td>
-      `;
+      </tr>`;
+  });
 
-      lista.appendChild(tr);
+  saldoEl.innerText = "Saldo: " + formatar(saldo);
+}
 
-      saldo += m.tipo === "entrada" ? m.valor : -m.valor;
-    });
-
-    document.getElementById("saldo").innerText =
-      "Saldo: " + formatar(saldo);
-  }
-
-  function adicionar() {
-    const tipo = document.getElementById("tipo").value;
-    const descricao = document.getElementById("descricao").value;
-    const valor = parseFloat(document.getElementById("valor").value);
-
-    if (!descricao || isNaN(valor)) {
-      alert("Preencha todos os campos");
-      return;
-    }
-
-    movimentacoes.push({ tipo, descricao, valor });
-    salvar();
-    renderizar();
-
-    document.getElementById("descricao").value = "";
-    document.getElementById("valor").value = "";
-  }
-
-  renderizar();
+const tipoEl = document.getElementById("tipo");
+const descricaoEl = document.getElementById("descricao");
+const valorEl = document.getElementById("valor");
+const listaEl = document.getElementById("lista");
+const saldoEl = document.getElementById("saldo");
 </script>
 
 </body>
