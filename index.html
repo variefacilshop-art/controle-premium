@@ -2,146 +2,89 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Controle Premium</title>
+  <title>Controle Premium Pessoal</title>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- Supabase SDK (apenas UMA vez) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
-      margin: 0;
+      background: radial-gradient(circle at top, #0f172a, #020617);
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #020617, #020024);
       color: white;
-    }
-    .container {
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
     .card {
-      background: rgba(255,255,255,0.05);
-      padding: 20px;
-      border-radius: 12px;
+      background: #020617cc;
+      padding: 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0,0,0,.6);
+    }
+    h1 {
       margin-bottom: 20px;
     }
     button {
       width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 8px;
-      background: #00b7ff;
-      color: black;
+      padding: 15px;
       font-size: 16px;
-      cursor: pointer;
-    }
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border-radius: 6px;
       border: none;
+      border-radius: 10px;
+      background: #00c2ff;
+      color: #000;
+      cursor: pointer;
+      font-weight: bold;
     }
-    .hidden {
-      display: none;
+    button:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
 
-    <h2>💎 Controle Premium</h2>
-
-    <!-- LOGIN -->
-    <div id="login" class="card">
-      <p>Valores em Real (R$)</p>
-      <button onclick="loginGoogle()">Entrar com Google</button>
-    </div>
-
-    <!-- APP -->
-    <div id="app" class="hidden">
-      <div class="card">
-        <h3>Adicionar Lançamento</h3>
-        <select id="tipo">
-          <option value="Entrada">Entrada</option>
-          <option value="Saída">Saída</option>
-        </select>
-        <input id="descricao" placeholder="Descrição">
-        <input id="valor" type="number" placeholder="Valor (R$)">
-        <button onclick="adicionar()">Adicionar</button>
-      </div>
-
-      <div class="card">
-        <h3>Movimentações</h3>
-        <div id="lista"></div>
-        <h3 id="saldo">Saldo: R$ 0,00</h3>
-      </div>
-    </div>
-
+  <div class="card">
+    <h1>💎 Controle Premium</h1>
+    <p>Valores em Real (R$)</p>
+    <br>
+    <button id="googleLogin">Entrar com Google</button>
   </div>
 
-<script>
-  const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const SUPABASE_KEY = ""eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
-";
+  <script>
+    // 🔐 CONFIGURAÇÃO SUPABASE
+    const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
-  const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
-  const loginDiv = document.getElementById("login");
-  const appDiv = document.getElementById("app");
+    // ✅ FUNÇÃO DE LOGIN (AGORA EXISTE)
+    async function loginComGoogle() {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
 
-  async function loginGoogle() {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin
+      if (error) {
+        alert("Erro no login: " + error.message);
       }
-    });
-  }
-
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session) {
-      loginDiv.classList.add("hidden");
-      appDiv.classList.remove("hidden");
-      carregar();
     }
-  });
 
-  async function adicionar() {
-    const tipo = document.getElementById("tipo").value;
-    const descricao = document.getElementById("descricao").value;
-    const valor = Number(document.getElementById("valor").value);
-
-    const { error } = await supabase.from("registros").insert([{
-      tipo,
-      descricao,
-      valor,
-      user_id: (await supabase.auth.getUser()).data.user.id
-    }]);
-
-    if (!error) {
-      document.getElementById("descricao").value = "";
-      document.getElementById("valor").value = "";
-      carregar();
-    }
-  }
-
-  async function carregar() {
-    const { data } = await supabase.from("registros").select("*");
-
-    let saldo = 0;
-    const lista = document.getElementById("lista");
-    lista.innerHTML = "";
-
-    data.forEach(r => {
-      saldo += r.tipo === "Entrada" ? r.valor : -r.valor;
-      lista.innerHTML += `<p>${r.tipo} - ${r.descricao} - R$ ${r.valor.toFixed(2)}</p>`;
-    });
-
-    document.getElementById("saldo").innerText =
-      "Saldo: R$ " + saldo.toFixed(2);
-  }
-</script>
+    // 🔘 BOTÃO
+    document
+      .getElementById("googleLogin")
+      .addEventListener("click", loginComGoogle);
+  </script>
 
 </body>
 </html>
