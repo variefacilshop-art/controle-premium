@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle Premium</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      background: #020617;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 30px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .card {
+      background: #020617;
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,.6);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: none;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: #00c2ff;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e293b;
+      text-align: left;
+    }
+    .saldo {
+      text-align: right;
+      font-size: 18px;
+      font-weight: bold;
+      color: #22c55e;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>💎 Controle Premium</h1>
+
+<div class="card">
+  <h3>Adicionar Lançamento</h3>
+
+  <select id="tipo">
+    <option value="Entrada">Entrada</option>
+    <option value="Saída">Saída</option>
+  </select>
+
+  <input id="descricao" placeholder="Descrição">
+  <input id="valor" type="number" placeholder="Valor (R$)">
+
+  <button onclick="adicionar()">Adicionar</button>
+</div>
+
+<div class="card">
+  <h3>Movimentações</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Descrição</th>
+        <th>Valor (R$)</th>
+      </tr>
+    </thead>
+    <tbody id="lista"></tbody>
+  </table>
+
+  <div class="saldo" id="saldo">Saldo: R$ 0,00</div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
+  const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
+
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  let userId = null;
+
+  // 🔐 VERIFICA LOGIN
+  async function carregarUsuario() {
+    const { data } = await supabaseClient.auth.getUser();
+    if (!data.user) {
+      window.location.href = "index.html";
+      return;
+    }
+    userId = data.user.id;
+    carregarRegistros();
+  }
+
+  // 📥 CARREGAR REGISTROS
+  async function carregarRegistros() {
+    const { data } = await supabaseClient
+      .from("registros")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false });
+
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    let saldo = 0;
+
+    data.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.tipo}</td>
+        <td>${r.descricao}</td>
+        <td>R$ ${Number(r.valor).toFixed(2)}</td>
+      `;
+      lista.appendChild(tr);
+
+      saldo += r.tipo === "Entrada" ? Number(r.valor) : -Number(r.valor);
+    });
+
+    document.getElementById("saldo").innerText =
+      "Saldo: R$ " + saldo.toFixed(2);
+  }
+
+  // ➕ ADICIONAR
+  async function adicionar() {
+    const tipo = document.getElementById("tipo").value;
+    const descricao = document.getElementById("descricao").value;
+    const valor = document.getElementById("valor").value;
+
+    if (!descricao || !valor) {
+      alert("Preencha todos os campos");
+      return;
+    }
+
+    await supabaseClient.from("registros").insert({
+      tipo,
+      descricao,
+      valor,
+      user_id: userId
+    });
+
+    document.getElementById("descricao").value = "";
+    document.getElementById("valor").value = "";
+
+    carregarRegistros();
+  }
+
+  carregarUsuario();
+</script>
+
+</body>
+</html>
