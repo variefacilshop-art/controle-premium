@@ -37,3 +37,198 @@ input, select, button {
   padding: 14px;
   margin-top: 10px;
   border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+button {
+  background: #38bdf8;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:hover {
+  background: #0ea5e9;
+}
+.hidden {
+  display: none;
+}
+table {
+  width: 100%;
+  margin-top: 10px;
+}
+th, td {
+  padding: 8px;
+  text-align: left;
+}
+.positivo { color: #22c55e; }
+.negativo { color: #ef4444; }
+.total {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: right;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>💎 Controle Premium Pessoal</header>
+
+<main>
+
+<div id="login" class="card">
+  <button onclick="login()">Entrar com Google</button>
+</div>
+
+<div id="app" class="hidden">
+
+  <div class="card">
+    <button onclick="logout()">Sair</button>
+  </div>
+
+  <div class="card">
+    <h2>Adicionar Lançamento</h2>
+
+    <select id="tipo">
+      <option value="entrada">Entrada</option>
+      <option value="saida">Saída</option>
+    </select>
+
+    <input id="descricao" placeholder="Descrição">
+    <input id="valor" type="number" placeholder="Valor (R$)">
+
+    <button onclick="adicionar()">Adicionar</button>
+  </div>
+
+  <div class="card">
+    <h2>Resumo do Mês</h2>
+
+    <select id="mesFiltro" onchange="carregar()"></select>
+
+    <div id="resumo"></div>
+  </div>
+
+  <div class="card">
+    <h2>Movimentações</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Descrição</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody id="lista"></tbody>
+    </table>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+const supabase = supabaseJs.createClient(
+  "https://ssnabfzwfvcmwkgibvec.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
+);
+
+const loginDiv = document.getElementById("login");
+const app = document.getElementById("app");
+const lista = document.getElementById("lista");
+const resumo = document.getElementById("resumo");
+const mesFiltro = document.getElementById("mesFiltro");
+
+function login() {
+  supabase.auth.signInWithOAuth({ provider: "google" });
+}
+
+function logout() {
+  supabase.auth.signOut().then(() => location.reload());
+}
+
+supabase.auth.onAuthStateChange((_, session) => {
+  if (session) {
+    loginDiv.classList.add("hidden");
+    app.classList.remove("hidden");
+    carregarMeses();
+    carregar();
+  }
+});
+
+function mesAtual() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+function brl(v) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+async function carregarMeses() {
+  const { data } = await supabase.from("registros").select("mes");
+  const meses = [...new Set((data || []).map(r => r.mes))];
+
+  if (!meses.includes(mesAtual())) meses.push(mesAtual());
+
+  mesFiltro.innerHTML = "";
+  meses.sort().reverse().forEach(m => {
+    mesFiltro.innerHTML += `<option value="${m}">${m}</option>`;
+  });
+}
+
+async function carregar() {
+  const mes = mesFiltro.value || mesAtual();
+
+  const { data } = await supabase
+    .from("registros")
+    .select("*")
+    .eq("mes", mes)
+    .order("id", { ascending: false });
+
+  let entradas = 0;
+  let saidas = 0;
+  lista.innerHTML = "";
+
+  (data || []).forEach(r => {
+    r.valor > 0 ? entradas += r.valor : saidas += r.valor;
+    lista.innerHTML += `
+      <tr>
+        <td>${r.descricao}</td>
+        <td class="${r.valor < 0 ? "negativo" : "positivo"}">
+          ${brl(r.valor)}
+        </td>
+      </tr>
+    `;
+  });
+
+  resumo.innerHTML = `
+    Entradas: ${brl(entradas)}<br>
+    Saídas: ${brl(saidas)}<br>
+    <div class="total">Saldo: ${brl(entradas + saidas)}</div>
+  `;
+}
+
+async function adicionar() {
+  let v = parseFloat(document.getElementById("valor").value);
+  const tipo = document.getElementById("tipo").value;
+  const descricao = document.getElementById("descricao").value;
+
+  if (!descricao || isNaN(v)) return;
+
+  if (tipo === "saida") v = -Math.abs(v);
+
+  await supabase.from("registros").insert({
+    descricao,
+    valor: v,
+    mes: mesAtual()
+  });
+
+  document.getElementById("descricao").value = "";
+  document.getElementById("valor").value = "";
+
+  carregar();
+}
+</script>
+
+</body>
+</html>
