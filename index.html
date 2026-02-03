@@ -2,9 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Controle Premium</title>
+  <title>Controle Premium - Login</title>
 
-  <!-- SUPABASE (APENAS UMA VEZ) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -18,7 +17,6 @@
       font-family: Arial, sans-serif;
       color: white;
     }
-
     .card {
       background: #020617;
       padding: 40px;
@@ -27,7 +25,6 @@
       text-align: center;
       width: 360px;
     }
-
     button {
       width: 100%;
       padding: 14px;
@@ -40,43 +37,30 @@
       margin-top: 20px;
       font-weight: bold;
     }
-
-    button:hover {
-      background: #38bdf8;
-    }
   </style>
 </head>
 
 <body>
-
   <div class="card">
     <h2>💎 Controle Premium</h2>
-    <p>Login com Google</p>
-
-    <!-- BOTÃO LIMPO (SEM ONCLICK) -->
-    <button id="btnLogin" type="button">
-      Entrar com Google
-    </button>
+    <p>Entrar com Google</p>
+    <button id="btnLogin" type="button">Entrar com Google</button>
   </div>
 
   <script>
-    // 🔐 CONFIGURAÇÃO SUPABASE
     const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-    const SUPABASE_ANON_KEY = "COLE_SUA_ANON_KEY_AQUI";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
     const supabaseClient = supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
     );
 
-    // 🔘 LOGIN GOOGLE
     document.getElementById("btnLogin").addEventListener("click", async () => {
-      console.log("CLIQUE DETECTADO - LOGIN GOOGLE");
-
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.origin + "/app.html"
         }
       });
 
@@ -86,6 +70,5 @@
       }
     });
   </script>
-
 </body>
 </html>
