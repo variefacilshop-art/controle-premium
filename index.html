@@ -139,7 +139,12 @@ const resumo = document.getElementById("resumo");
 const mesFiltro = document.getElementById("mesFiltro");
 
 function login() {
-  supabase.auth.signInWithOAuth({ provider: "google" });
+  supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: window.location.origin
+    }
+  });
 }
 
 function logout() {
