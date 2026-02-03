@@ -2,9 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Controle Premium - Login</title>
+  <title>Controle Premium</title>
 
-  <!-- Supabase SDK -->
+  <!-- SUPABASE (APENAS UMA VEZ) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -26,10 +26,6 @@
       box-shadow: 0 0 30px rgba(0,0,0,0.6);
       text-align: center;
       width: 360px;
-    }
-
-    h1 {
-      margin-bottom: 10px;
     }
 
     button {
@@ -54,10 +50,10 @@
 <body>
 
   <div class="card">
-    <h1>💎 Controle Premium</h1>
+    <h2>💎 Controle Premium</h2>
     <p>Login com Google</p>
 
-    <!-- BOTÃO SEM ONCLICK -->
+    <!-- BOTÃO LIMPO (SEM ONCLICK) -->
     <button id="btnLogin" type="button">
       Entrar com Google
     </button>
@@ -73,22 +69,21 @@
       SUPABASE_ANON_KEY
     );
 
-    // 🔘 EVENTO DE CLIQUE GARANTIDO
-    document.addEventListener("DOMContentLoaded", () => {
-      const botao = document.getElementById("btnLogin");
+    // 🔘 LOGIN GOOGLE
+    document.getElementById("btnLogin").addEventListener("click", async () => {
+      console.log("CLIQUE DETECTADO - LOGIN GOOGLE");
 
-      botao.addEventListener("click", async () => {
-        console.log("CLIQUE NO BOTÃO DETECTADO");
-
-        const { error } = await supabaseClient.auth.signInWithOAuth({
-          provider: "google"
-        });
-
-        if (error) {
-          alert("Erro no login: " + error.message);
-          console.error(error);
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin
         }
       });
+
+      if (error) {
+        alert(error.message);
+        console.error(error);
+      }
     });
   </script>
 
