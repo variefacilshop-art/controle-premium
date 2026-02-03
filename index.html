@@ -2,75 +2,182 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Controle Premium - Login</title>
+  <title>Controle Premium</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
       margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at top, #0f172a, #020617);
       font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #020617);
       color: white;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 30px;
     }
 
     .card {
-      background: rgba(2, 6, 23, 0.85);
-      padding: 40px;
+      background: rgba(2, 6, 23, 0.9);
       border-radius: 16px;
-      width: 100%;
-      max-width: 400px;
+      padding: 25px;
+      box-shadow: 0 0 30px rgba(0, 180, 255, 0.25);
+      margin-bottom: 20px;
+    }
+
+    h1, h2 {
       text-align: center;
-      box-shadow: 0 0 40px rgba(0, 180, 255, 0.25);
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 10px;
+      font-size: 15px;
     }
 
     button {
-      margin-top: 20px;
       width: 100%;
-      padding: 15px;
-      border: none;
+      padding: 14px;
       border-radius: 10px;
+      border: none;
       background: #00c2ff;
-      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
+      font-size: 15px;
+      margin-top: 5px;
+    }
+
+    .logout {
+      background: #ef4444;
+      margin-top: 10px;
+    }
+
+    .registro {
+      border-bottom: 1px solid #1e293b;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
-<body>
 
-  <div class="card">
-    <h1>💎 Controle Premium</h1>
-    <p>Entre com sua conta Google</p>
-    <button onclick="loginGoogle()">Entrar com Google</button>
+<body>
+  <div class="container">
+
+    <!-- LOGIN -->
+    <div id="loginCard" class="card">
+      <h1>💎 Controle Premium</h1>
+      <p style="text-align:center">Entre com Google</p>
+      <button onclick="loginGoogle()">Entrar com Google</button>
+    </div>
+
+    <!-- APP -->
+    <div id="appCard" class="card hidden">
+      <h2>Bem-vindo</h2>
+      <p id="userEmail" style="text-align:center"></p>
+
+      <input id="descricao" placeholder="Descrição" />
+      <input id="valor" type="number" placeholder="Valor (R$)" />
+      <select id="mes">
+        <option value="">Mês</option>
+        <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+        <option>Abril</option><option>Maio</option><option>Junho</option>
+        <option>Julho</option><option>Agosto</option><option>Setembro</option>
+        <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+      </select>
+
+      <button onclick="salvarRegistro()">Salvar</button>
+
+      <div id="lista"></div>
+
+      <button class="logout" onclick="logout()">Sair</button>
+    </div>
+
   </div>
 
   <script>
     const supabase = window.supabase.createClient(
-      "https://ssnabfzvfcmwkgibvec.supabase.co",
+      "https://ssnabfzwfvcmwkgibvec.supabase.co",
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
     );
 
+    let userAtual = null;
+
     async function loginGoogle() {
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin + "/app.html"
-        }
+      await supabase.auth.signInWithOAuth({ provider: "google" });
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    async function salvarRegistro() {
+      const descricao = document.getElementById("descricao").value;
+      const valor = document.getElementById("valor").value;
+      const mes = document.getElementById("mes").value;
+
+      if (!descricao || !valor || !mes) {
+        alert("Preencha tudo");
+        return;
+      }
+
+      await supabase.from("registros").insert({
+        descricao,
+        valor,
+        mes,
+        user_id: userAtual.id
+      });
+
+      document.getElementById("descricao").value = "";
+      document.getElementById("valor").value = "";
+      document.getElementById("mes").value = "";
+
+      carregarRegistros();
+    }
+
+    async function carregarRegistros() {
+      const { data } = await supabase
+        .from("registros")
+        .select("*")
+        .eq("user_id", userAtual.id)
+        .order("id", { ascending: false });
+
+      const lista = document.getElementById("lista");
+      lista.innerHTML = "";
+
+      data.forEach(r => {
+        lista.innerHTML += `
+          <div class="registro">
+            ${r.mes} — ${r.descricao} — R$ ${Number(r.valor).toFixed(2)}
+          </div>
+        `;
       });
     }
 
-    // Se já estiver logado, pula direto pro app
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        window.location.href = "app.html";
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        userAtual = session.user;
+        document.getElementById("loginCard").classList.add("hidden");
+        document.getElementById("appCard").classList.remove("hidden");
+        document.getElementById("userEmail").innerText = userAtual.email;
+        carregarRegistros();
+      } else {
+        document.getElementById("loginCard").classList.remove("hidden");
+        document.getElementById("appCard").classList.add("hidden");
       }
     });
   </script>
-
 </body>
 </html>
