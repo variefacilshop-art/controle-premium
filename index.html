@@ -8,257 +8,551 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
+    :root{
+      --bg1:#020617;
+      --bg2:#0b1225;
+      --card: rgba(7, 12, 26, .78);
+      --card2: rgba(7, 12, 26, .60);
+      --stroke: rgba(148, 163, 184, .14);
+      --text: #e5e7eb;
+      --muted: rgba(226, 232, 240, .72);
+      --cyan:#00c2ff;
+      --cyan2:#33d2ff;
+      --red:#ef4444;
+      --green:#22c55e;
+      --shadow: 0 20px 80px rgba(0,0,0,.55);
+      --glow: 0 0 0 1px rgba(0,194,255,.18), 0 0 60px rgba(0,194,255,.12);
+      --radius: 18px;
     }
 
-    .box {
-      background: #020617;
-      padding: 26px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 20% -10%, rgba(0,194,255,.16), transparent 55%),
+        radial-gradient(900px 700px at 90% 20%, rgba(99,102,241,.10), transparent 55%),
+        radial-gradient(900px 700px at 40% 120%, rgba(34,197,94,.08), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      display:flex;
+      justify-content:center;
+      padding: 34px 18px;
+    }
+
+    .wrap{
+      width: 100%;
+      max-width: 980px;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding: 14px 16px;
+      border-radius: 999px;
+      background: rgba(2,6,23,.55);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--glow);
+    }
+    .diamond{
+      width: 34px;
+      height: 34px;
+      display:grid;
+      place-items:center;
       border-radius: 12px;
-      width: 100%;
-      max-width: 460px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.55);
+      background: rgba(0,194,255,.12);
+      border: 1px solid rgba(0,194,255,.25);
     }
-
-    h1 {
-      text-align: center;
-      margin: 0 0 16px 0;
-      font-size: 22px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: none;
+    .brand h1{
+      margin:0;
       font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
     }
 
-    .google {
-      background: #fff;
-      color: #000;
+    .right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 15px;
+    .pill{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(2,6,23,.55);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(10px);
+      color: var(--muted);
+      font-size: 12px;
     }
 
-    .hidden { display: none; }
-
-    .logout {
-      background: #ef4444;
-      color: #fff;
-      margin-top: 12px;
+    .btn{
+      border:none;
+      cursor:pointer;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      transition: transform .06s ease, opacity .2s ease;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn-primary{
+      background: linear-gradient(180deg, var(--cyan2), var(--cyan));
+      color:#001018;
+      box-shadow: 0 16px 60px rgba(0,194,255,.20);
+    }
+    .btn-danger{
+      background: linear-gradient(180deg, #ff6b6b, var(--red));
+      color:#fff;
+      box-shadow: 0 16px 60px rgba(239,68,68,.20);
+    }
+    .btn-ghost{
+      background: rgba(148,163,184,.10);
+      color: var(--text);
+      border: 1px solid var(--stroke);
     }
 
-    .list {
-      margin-top: 14px;
-      border-top: 1px solid #1e293b;
-      padding-top: 10px;
-      max-height: 320px;
-      overflow: auto;
+    /* Layout grid */
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
     }
 
-    .item {
-      padding: 10px 0;
-      border-bottom: 1px solid #1e293b;
+    .card{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+    .card .head{
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(148,163,184,.10);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .head h2{
+      margin:0;
       font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
+      letter-spacing:.2px;
+    }
+    .card .head span{
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .card .body{
+      padding: 16px;
     }
 
-    .muted { opacity: .85; font-size: 13px; }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom: 12px;
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.14);
+      background: rgba(2,6,23,.55);
+      color: var(--text);
+      outline: none;
+    }
+    input::placeholder{ color: rgba(226,232,240,.45); }
+    input:focus{
+      border-color: rgba(0,194,255,.35);
+      box-shadow: 0 0 0 4px rgba(0,194,255,.10);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    .hint{
+      font-size: 12px;
+      color: rgba(226,232,240,.55);
+      margin-top: 4px;
+    }
+
+    /* Summary */
+    .summary{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .kpi{
+      background: var(--card2);
+      border: 1px solid rgba(148,163,184,.10);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .kpi .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .kpi .v{
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing:.2px;
+    }
+    .kpi .v.green{ color: var(--green); }
+    .kpi .v.red{ color: #ff8080; }
+
+    /* List */
+    .list{
+      max-height: 520px;
+      overflow:auto;
+    }
+    .item{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(148,163,184,.10);
+    }
+    .item:last-child{ border-bottom:none; }
+    .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; }
+    .desc{
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .badge{
+      font-size: 11px;
+      color: rgba(226,232,240,.75);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.14);
+      background: rgba(2,6,23,.40);
+    }
+    .amount{
+      font-weight: 900;
+      white-space: nowrap;
+      font-size: 14px;
+    }
+    .amount.pos{ color: var(--green); }
+    .amount.neg{ color: #ff8080; }
+
+    .empty{
+      padding: 18px 16px;
+      color: rgba(226,232,240,.60);
+      font-size: 13px;
+    }
+
+    .hidden{ display:none; }
   </style>
 </head>
 <body>
+  <div class="wrap">
 
-  <!-- LOGIN -->
-  <div class="box" id="loginBox">
-    <h1>💎 Controle Premium</h1>
-    <p class="muted" style="text-align:center;margin:0 0 14px 0;">Entrar com Google</p>
-    <button class="google" id="btnLogin" type="button">Entrar com Google</button>
-  </div>
-
-  <!-- APP -->
-  <div class="box hidden" id="appBox">
-    <h1>Minhas Finanças</h1>
-    <p class="muted" id="userEmail" style="text-align:center;margin-top:-6px;"></p>
-
-    <input id="descricao" placeholder="Descrição" />
-    <input id="valor" type="number" placeholder="Valor (R$) — use negativo para saída" />
-    <input id="mes" placeholder="Mês (ex: 02/2026)" />
-
-    <button id="btnSalvar" type="button" style="margin-top:10px;">Salvar</button>
-    <button class="logout" id="btnLogout" type="button">Sair</button>
-
-    <div class="list" id="lista"></div>
-  </div>
-
-<script>
-  // ✅ CONFIG
-  const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
-
-  // ✅ CRIA CLIENTE (NOME DIFERENTE PRA NÃO DAR CONFLITO)
-  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  const loginBox = document.getElementById("loginBox");
-  const appBox = document.getElementById("appBox");
-  const btnLogin = document.getElementById("btnLogin");
-  const btnSalvar = document.getElementById("btnSalvar");
-  const btnLogout = document.getElementById("btnLogout");
-
-  const userEmail = document.getElementById("userEmail");
-  const descricaoEl = document.getElementById("descricao");
-  const valorEl = document.getElementById("valor");
-  const mesEl = document.getElementById("mes");
-  const listaEl = document.getElementById("lista");
-
-  function showLogin() {
-    loginBox.classList.remove("hidden");
-    appBox.classList.add("hidden");
-  }
-
-  function showApp(email) {
-    loginBox.classList.add("hidden");
-    appBox.classList.remove("hidden");
-    userEmail.textContent = email || "";
-  }
-
-  async function refreshUI() {
-    const { data } = await supa.auth.getSession();
-    if (!data.session) {
-      showLogin();
-      return;
-    }
-    showApp(data.session.user.email);
-    await carregarRegistros(data.session.user.id);
-  }
-
-  async function carregarRegistros(userId) {
-    const { data, error } = await supa
-      .from("registros")
-      .select("*")
-      .eq("user_id", userId)
-      .order("id", { ascending: false });
-
-    if (error) {
-      listaEl.innerHTML = `<div class="muted">Erro ao carregar: ${error.message}</div>`;
-      return;
-    }
-
-    if (!data || data.length === 0) {
-      listaEl.innerHTML = `<div class="muted">Nenhum registro ainda.</div>`;
-      return;
-    }
-
-    listaEl.innerHTML = data.map(r => `
-      <div class="item">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="diamond">💎</div>
         <div>
-          <div><strong>${(r.descricao ?? r["descrição"] ?? "").toString()}</strong></div>
-          <div class="muted">${(r.mes ?? "").toString()}</div>
+          <h1>Controle Premium</h1>
+          <p>Valores em Real (R$) • Pessoal</p>
         </div>
-        <div><strong>R$ ${Number(r.valor).toFixed(2)}</strong></div>
       </div>
-    `).join("");
-  }
 
-  // ✅ LOGIN
-  btnLogin.addEventListener("click", async () => {
-    console.log("Clique login detectado");
-    const { error } = await supa.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin
-      }
+      <div class="right">
+        <div class="pill" id="pillEmail">Não logado</div>
+        <button class="btn btn-danger hidden" id="btnSair" type="button">Sair</button>
+      </div>
+    </div>
+
+    <!-- LOGIN CARD -->
+    <div class="card" id="loginBox">
+      <div class="head">
+        <h2>Entrar</h2>
+        <span>Login com Google</span>
+      </div>
+      <div class="body">
+        <button class="btn btn-primary" id="btnLogin" type="button">Entrar com Google</button>
+        <div class="hint">Se abrir um link diferente no topo, use sempre o domínio <strong>production</strong> da Vercel.</div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div class="grid hidden" id="appBox">
+
+      <!-- FORM -->
+      <div class="card">
+        <div class="head">
+          <h2>Adicionar lançamento</h2>
+          <span>Entrada ou saída</span>
+        </div>
+        <div class="body">
+          <div class="field">
+            <label>Descrição</label>
+            <input id="descricao" placeholder="Ex: Salário, Mercado, Uber..." />
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Valor (R$)</label>
+              <input id="valor" type="number" placeholder="Ex: 120.50 (use negativo para saída)" />
+            </div>
+            <div class="field">
+              <label>Mês (texto)</label>
+              <input id="mes" placeholder="Ex: 02/2026" />
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
+          <div class="hint">Dica: use valor negativo para saída (ex: <strong>-50</strong>).</div>
+
+          <div style="height:14px"></div>
+
+          <div class="summary">
+            <div class="kpi">
+              <div class="k">Saldo</div>
+              <div class="v" id="kpiSaldo">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Registros</div>
+              <div class="v" id="kpiQtd">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIST -->
+      <div class="card">
+        <div class="head">
+          <h2>Movimentações</h2>
+          <span>Mais recentes</span>
+        </div>
+        <div class="list" id="lista">
+          <div class="empty">Nenhum registro ainda.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // ✅ Supabase
+    const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
+
+    // ✅ Cliente Supabase (nome diferente pra não dar conflito)
+    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
     });
-    if (error) {
-      alert("Erro no login: " + error.message);
-      console.error(error);
+
+    // UI refs
+    const loginBox = document.getElementById("loginBox");
+    const appBox   = document.getElementById("appBox");
+    const pillEmail= document.getElementById("pillEmail");
+    const btnSair  = document.getElementById("btnSair");
+
+    const btnLogin = document.getElementById("btnLogin");
+    const btnSalvar= document.getElementById("btnSalvar");
+
+    const descricaoEl = document.getElementById("descricao");
+    const valorEl     = document.getElementById("valor");
+    const mesEl       = document.getElementById("mes");
+
+    const listaEl     = document.getElementById("lista");
+    const kpiSaldo    = document.getElementById("kpiSaldo");
+    const kpiQtd      = document.getElementById("kpiQtd");
+
+    function brl(n){
+      return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(n);
     }
-  });
 
-  // ✅ SALVAR
-  btnSalvar.addEventListener("click", async () => {
-    const { data: userData } = await supa.auth.getUser();
-    if (!userData.user) {
-      showLogin();
-      return;
+    function showLogin(){
+      loginBox.classList.remove("hidden");
+      appBox.classList.add("hidden");
+      btnSair.classList.add("hidden");
+      pillEmail.textContent = "Não logado";
     }
 
-    const descricao = descricaoEl.value.trim();
-    const valor = Number(valorEl.value);
-    const mes = mesEl.value.trim();
-
-    if (!descricao || !mes || Number.isNaN(valor)) {
-      alert("Preencha descrição, valor e mês.");
-      return;
+    function showApp(email){
+      loginBox.classList.add("hidden");
+      appBox.classList.remove("hidden");
+      btnSair.classList.remove("hidden");
+      pillEmail.textContent = email || "Logado";
     }
 
-    const payload = {
-      user_id: userData.user.id,
-      valor,
-      mes
-    };
+    // Captura token na URL e limpa hash (evita link gigante)
+    async function captureTokenIfPresent(){
+      if (window.location.hash && window.location.hash.includes("access_token=")) {
+        await supa.auth.getSessionFromUrl({ storeSession: true });
+        history.replaceState({}, document.title, "/");
+      }
+    }
 
-    // sua coluna no Supabase pode estar como "descricao" ou "descrição"
-    // vamos gravar nas duas se precisar (supabase ignora coluna inexistente? não — então gravamos só em "descricao")
-    payload.descricao = descricao;
+    async function carregarRegistros(userId){
+      const { data, error } = await supa
+        .from("registros")
+        .select("*")
+        .eq("user_id", userId)
+        .order("id", { ascending: false });
 
-    const { error } = await supa.from("registros").insert(payload);
-    if (error) {
-      // Se sua coluna for "descrição" com acento, tentamos outra vez
-      const { error: error2 } = await supa.from("registros").insert({
-        user_id: userData.user.id,
-        valor,
-        mes,
-        "descrição": descricao
-      });
-      if (error2) {
-        alert("Erro ao salvar: " + error2.message);
-        console.error(error2);
+      if (error){
+        listaEl.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`;
         return;
       }
+
+      const rows = data || [];
+      kpiQtd.textContent = String(rows.length);
+
+      let saldo = 0;
+      rows.forEach(r => saldo += Number(r.valor || 0));
+      kpiSaldo.textContent = brl(saldo);
+      kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
+
+      if (rows.length === 0){
+        listaEl.innerHTML = `<div class="empty">Nenhum registro ainda.</div>`;
+        return;
+      }
+
+      listaEl.innerHTML = rows.map(r => {
+        const desc = (r.descricao ?? r["descrição"] ?? "").toString();
+        const mes  = (r.mes ?? "").toString();
+        const val  = Number(r.valor || 0);
+        const cls  = val >= 0 ? "pos" : "neg";
+        return `
+          <div class="item">
+            <div class="leftcol">
+              <div class="desc">${escapeHtml(desc)}</div>
+              <div class="meta"><span class="badge">${escapeHtml(mes)}</span></div>
+            </div>
+            <div class="amount ${cls}">${brl(val)}</div>
+          </div>
+        `;
+      }).join("");
     }
 
-    descricaoEl.value = "";
-    valorEl.value = "";
-    mesEl.value = "";
+    function escapeHtml(str){
+      return str.replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+      }[m]));
+    }
 
-    await refreshUI();
-  });
+    async function refreshUI(){
+      const { data } = await supa.auth.getSession();
+      const session = data.session;
 
-  // ✅ LOGOUT
-  btnLogout.addEventListener("click", async () => {
-    await supa.auth.signOut();
-    location.reload();
-  });
+      if (!session){
+        showLogin();
+        return;
+      }
 
-  // ✅ SEM LOOP / SEM 2 TELAS: só atualiza a UI quando a sessão muda
-  supa.auth.onAuthStateChange(() => {
-    refreshUI();
-  });
+      showApp(session.user.email);
+      await carregarRegistros(session.user.id);
+    }
 
-  // Primeira carga
-  refreshUI();
-</script>
+    // Login
+    btnLogin.addEventListener("click", async () => {
+      const { error } = await supa.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin }
+      });
+      if (error){ alert("Erro no login: " + error.message); console.error(error); }
+    });
 
+    // Salvar
+    btnSalvar.addEventListener("click", async () => {
+      const { data: u } = await supa.auth.getUser();
+      if (!u.user){ showLogin(); return; }
+
+      const descricao = descricaoEl.value.trim();
+      const valor = Number(valorEl.value);
+      const mes = mesEl.value.trim();
+
+      if (!descricao || !mes || Number.isNaN(valor)){
+        alert("Preencha descrição, valor e mês.");
+        return;
+      }
+
+      // tenta salvar em "descricao"; se sua coluna for "descrição", tenta também
+      let { error } = await supa.from("registros").insert({
+        user_id: u.user.id, descricao, valor, mes
+      });
+
+      if (error){
+        const { error: e2 } = await supa.from("registros").insert({
+          user_id: u.user.id, "descrição": descricao, valor, mes
+        });
+        if (e2){ alert("Erro ao salvar: " + e2.message); console.error(e2); return; }
+      }
+
+      descricaoEl.value = "";
+      valorEl.value = "";
+      mesEl.value = "";
+      await refreshUI();
+    });
+
+    // Sair
+    btnSair.addEventListener("click", async () => {
+      await supa.auth.signOut();
+      location.href = "/";
+    });
+
+    // Inicialização
+    (async () => {
+      await captureTokenIfPresent();
+      await refreshUI();
+    })();
+
+    // Mantém UI sincronizada
+    supa.auth.onAuthStateChange(() => refreshUI());
+  </script>
 </body>
 </html>
