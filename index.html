@@ -17,12 +17,12 @@
       color: white;
     }
     .card {
-      background: #020617;
       padding: 40px;
       border-radius: 16px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.6);
-      text-align: center;
+      background: #020617;
+      box-shadow: 0 0 30px rgba(0,0,0,.6);
       width: 360px;
+      text-align: center;
     }
     button {
       width: 100%;
@@ -31,10 +31,8 @@
       border: none;
       border-radius: 10px;
       background: #0ea5e9;
-      color: black;
-      cursor: pointer;
-      margin-top: 20px;
       font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -42,14 +40,13 @@
 <body>
   <div class="card">
     <h2>💎 Controle Premium</h2>
-    <p>Entrar com Google</p>
     <button id="login">Entrar com Google</button>
   </div>
 
   <script>
     const supabaseClient = supabase.createClient(
       "https://ssnabfzwfvcmwkgibvec.supabase.co",
-      "SeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
     );
 
     document.getElementById("login").onclick = async () => {
