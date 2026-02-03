@@ -53,6 +53,7 @@ button:hover { background: #0ea5e9; }
   text-align: right;
   color: #22c55e;
 }
+.negativo { color: #ef4444; }
 </style>
 </head>
 
@@ -75,23 +76,33 @@ button:hover { background: #0ea5e9; }
 
   <div class="card">
     <h2>Novo Lançamento</h2>
+
     <select id="tipo">
       <option value="entrada">Entrada</option>
       <option value="saida">Saída</option>
     </select>
+
     <input id="descricao" placeholder="Descrição">
     <input id="valor" type="number" placeholder="Valor (R$)">
+
     <button onclick="adicionar()">Adicionar</button>
   </div>
 
   <div class="card">
-    <h2>Movimentações</h2>
+    <h2>Relatório do Mês</h2>
+
+    <select id="mesFiltro" onchange="carregar()"></select>
+
     <table width="100%">
       <thead>
-        <tr><th>Tipo</th><th>Descrição</th><th>Valor</th></tr>
+        <tr>
+          <th>Descrição</th>
+          <th>Valor</th>
+        </tr>
       </thead>
       <tbody id="lista"></tbody>
     </table>
+
     <div class="total" id="saldo">Saldo: R$ 0,00</div>
   </div>
 
@@ -105,78 +116,103 @@ const supabase = supabaseJs.createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
 );
 
-let user = null;
-
-async function loginGoogle() {
-  await supabase.auth.signInWithOAuth({ provider: "google" });
+function loginGoogle() {
+  supabase.auth.signInWithOAuth({ provider: "google" });
 }
 
-async function logout() {
-  await supabase.auth.signOut();
+function logout() {
+  supabase.auth.signOut();
   location.reload();
 }
 
-supabase.auth.onAuthStateChange(async (_, session) => {
+supabase.auth.onAuthStateChange((_, session) => {
   if (session) {
-    user = session.user;
     document.getElementById("login").classList.add("hidden");
     document.getElementById("app").classList.remove("hidden");
+    carregarMeses();
     carregar();
   }
 });
+
+function mesAtual() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+}
 
 function formatar(v) {
   return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 }
 
-async function carregar() {
+async function carregarMeses() {
+  const select = document.getElementById("mesFiltro");
+  select.innerHTML = "";
+
   const { data } = await supabase
-    .from("movimentacoes")
+    .from("registros")
+    .select("mes", { distinct: true });
+
+  const meses = [...new Set((data||[]).map(r => r.mes))];
+  if (!meses.includes(mesAtual())) meses.push(mesAtual());
+
+  meses.sort().reverse().forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    select.appendChild(opt);
+  });
+}
+
+async function carregar() {
+  const mes = document.getElementById("mesFiltro").value || mesAtual();
+
+  const { data } = await supabase
+    .from("registros")
     .select("*")
-    .eq("user_id", user.id);
+    .eq("mes", mes)
+    .order("id", { ascending: false });
 
   renderizar(data || []);
 }
 
 async function adicionar() {
-  const tipo = tipoEl.value;
-  const descricao = descricaoEl.value;
-  const valor = parseFloat(valorEl.value);
+  const tipo = document.getElementById("tipo").value;
+  const descricao = document.getElementById("descricao").value;
+  let valor = parseFloat(document.getElementById("valor").value);
 
   if (!descricao || isNaN(valor)) return;
 
-  await supabase.from("movimentacoes").insert({
-    user_id: user.id,
-    tipo, descricao, valor
+  if (tipo === "saida") valor = -Math.abs(valor);
+
+  await supabase.from("registros").insert({
+    descricao,
+    valor,
+    mes: mesAtual()
   });
 
-  descricaoEl.value = "";
-  valorEl.value = "";
+  descricao.value = "";
+  valor.value = "";
   carregar();
 }
 
 function renderizar(lista) {
+  const listaEl = document.getElementById("lista");
   listaEl.innerHTML = "";
   let saldo = 0;
 
-  lista.forEach(m => {
-    saldo += m.tipo === "entrada" ? m.valor : -m.valor;
+  lista.forEach(r => {
+    saldo += r.valor;
     listaEl.innerHTML += `
       <tr>
-        <td>${m.tipo}</td>
-        <td>${m.descricao}</td>
-        <td>${formatar(m.valor)}</td>
+        <td>${r.descricao}</td>
+        <td class="${r.valor < 0 ? "negativo":""}">
+          ${formatar(r.valor)}
+        </td>
       </tr>`;
   });
 
-  saldoEl.innerText = "Saldo: " + formatar(saldo);
+  document.getElementById("saldo").innerText =
+    "Saldo: " + formatar(saldo);
 }
-
-const tipoEl = document.getElementById("tipo");
-const descricaoEl = document.getElementById("descricao");
-const valorEl = document.getElementById("valor");
-const listaEl = document.getElementById("lista");
-const saldoEl = document.getElementById("saldo");
 </script>
 
 </body>
