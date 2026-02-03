@@ -17,8 +17,8 @@
 </head>
 
 <body>
-  <h1>💎 Controle Premium Pessoal</h1>
-  <p>Você está logado.</p>
+  <h1>💎 Controle Premium</h1>
+  <p id="status">Carregando sessão...</p>
   <button id="logout">Sair</button>
 
   <script>
@@ -27,10 +27,13 @@
       "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"
     );
 
-    // ⛔ BLOQUEIA QUEM NÃO ESTÁ LOGADO
-    supabaseClient.auth.getSession().then(({ data }) => {
-      if (!data.session) {
+    // 🔑 ISSO AQUI É O QUE FALTAVA
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (!session) {
         window.location.href = "/";
+      } else {
+        document.getElementById("status").innerText =
+          "Logado como: " + session.user.email;
       }
     });
 
