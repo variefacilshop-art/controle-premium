@@ -15,22 +15,24 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
 
     .box {
       background: #020617;
-      padding: 30px;
+      padding: 26px;
       border-radius: 12px;
       width: 100%;
-      max-width: 420px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      max-width: 460px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.55);
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin: 0 0 16px 0;
+      font-size: 22px;
     }
 
     button {
@@ -40,105 +42,222 @@
       border: none;
       font-size: 16px;
       cursor: pointer;
+      font-weight: bold;
     }
 
     .google {
       background: #fff;
       color: #000;
-      font-weight: bold;
     }
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
       border: none;
+      font-size: 15px;
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
     .logout {
       background: #ef4444;
-      margin-top: 15px;
+      color: #fff;
+      margin-top: 12px;
     }
+
+    .list {
+      margin-top: 14px;
+      border-top: 1px solid #1e293b;
+      padding-top: 10px;
+      max-height: 320px;
+      overflow: auto;
+    }
+
+    .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #1e293b;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .muted { opacity: .85; font-size: 13px; }
   </style>
 </head>
 <body>
 
-<div class="box" id="login">
-  <h1>Controle Premium</h1>
-  <button class="google" onclick="loginGoogle()">Entrar com Google</button>
-</div>
+  <!-- LOGIN -->
+  <div class="box" id="loginBox">
+    <h1>💎 Controle Premium</h1>
+    <p class="muted" style="text-align:center;margin:0 0 14px 0;">Entrar com Google</p>
+    <button class="google" id="btnLogin" type="button">Entrar com Google</button>
+  </div>
 
-<div class="box hidden" id="app">
-  <h1>Minhas Finanças</h1>
+  <!-- APP -->
+  <div class="box hidden" id="appBox">
+    <h1>Minhas Finanças</h1>
+    <p class="muted" id="userEmail" style="text-align:center;margin-top:-6px;"></p>
 
-  <input id="descricao" placeholder="Descrição" />
-  <input id="valor" type="number" placeholder="Valor (R$)" />
-  <input id="mes" placeholder="Mês (ex: Janeiro)" />
+    <input id="descricao" placeholder="Descrição" />
+    <input id="valor" type="number" placeholder="Valor (R$) — use negativo para saída" />
+    <input id="mes" placeholder="Mês (ex: 02/2026)" />
 
-  <button onclick="salvar()">Salvar</button>
+    <button id="btnSalvar" type="button" style="margin-top:10px;">Salvar</button>
+    <button class="logout" id="btnLogout" type="button">Sair</button>
 
-  <button class="logout" onclick="logout()">Sair</button>
-</div>
+    <div class="list" id="lista"></div>
+  </div>
 
 <script>
-  const supabaseUrl = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  // ✅ CONFIG
+  const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
-  async function loginGoogle() {
-    await supabase.auth.signInWithOAuth({
+  // ✅ CRIA CLIENTE (NOME DIFERENTE PRA NÃO DAR CONFLITO)
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginBox = document.getElementById("loginBox");
+  const appBox = document.getElementById("appBox");
+  const btnLogin = document.getElementById("btnLogin");
+  const btnSalvar = document.getElementById("btnSalvar");
+  const btnLogout = document.getElementById("btnLogout");
+
+  const userEmail = document.getElementById("userEmail");
+  const descricaoEl = document.getElementById("descricao");
+  const valorEl = document.getElementById("valor");
+  const mesEl = document.getElementById("mes");
+  const listaEl = document.getElementById("lista");
+
+  function showLogin() {
+    loginBox.classList.remove("hidden");
+    appBox.classList.add("hidden");
+  }
+
+  function showApp(email) {
+    loginBox.classList.add("hidden");
+    appBox.classList.remove("hidden");
+    userEmail.textContent = email || "";
+  }
+
+  async function refreshUI() {
+    const { data } = await supa.auth.getSession();
+    if (!data.session) {
+      showLogin();
+      return;
+    }
+    showApp(data.session.user.email);
+    await carregarRegistros(data.session.user.id);
+  }
+
+  async function carregarRegistros(userId) {
+    const { data, error } = await supa
+      .from("registros")
+      .select("*")
+      .eq("user_id", userId)
+      .order("id", { ascending: false });
+
+    if (error) {
+      listaEl.innerHTML = `<div class="muted">Erro ao carregar: ${error.message}</div>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      listaEl.innerHTML = `<div class="muted">Nenhum registro ainda.</div>`;
+      return;
+    }
+
+    listaEl.innerHTML = data.map(r => `
+      <div class="item">
+        <div>
+          <div><strong>${(r.descricao ?? r["descrição"] ?? "").toString()}</strong></div>
+          <div class="muted">${(r.mes ?? "").toString()}</div>
+        </div>
+        <div><strong>R$ ${Number(r.valor).toFixed(2)}</strong></div>
+      </div>
+    `).join("");
+  }
+
+  // ✅ LOGIN
+  btnLogin.addEventListener("click", async () => {
+    console.log("Clique login detectado");
+    const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: window.location.origin
       }
     });
-  }
-
-  async function checkLogin() {
-    const { data } = await supabase.auth.getSession();
-
-    if (data.session) {
-      document.getElementById("login").classList.add("hidden");
-      document.getElementById("app").classList.remove("hidden");
-    } else {
-      document.getElementById("login").classList.remove("hidden");
-      document.getElementById("app").classList.add("hidden");
+    if (error) {
+      alert("Erro no login: " + error.message);
+      console.error(error);
     }
-  }
+  });
 
-  async function salvar() {
-    const { data: user } = await supabase.auth.getUser();
-
-    const descricao = document.getElementById("descricao").value;
-    const valor = document.getElementById("valor").value;
-    const mes = document.getElementById("mes").value;
-
-    if (!descricao || !valor || !mes) {
-      alert("Preencha tudo");
+  // ✅ SALVAR
+  btnSalvar.addEventListener("click", async () => {
+    const { data: userData } = await supa.auth.getUser();
+    if (!userData.user) {
+      showLogin();
       return;
     }
 
-    await supabase.from("registros").insert([{
-      descricao,
+    const descricao = descricaoEl.value.trim();
+    const valor = Number(valorEl.value);
+    const mes = mesEl.value.trim();
+
+    if (!descricao || !mes || Number.isNaN(valor)) {
+      alert("Preencha descrição, valor e mês.");
+      return;
+    }
+
+    const payload = {
+      user_id: userData.user.id,
       valor,
-      mes,
-      user_id: user.user.id
-    }]);
+      mes
+    };
 
-    alert("Salvo com sucesso!");
-  }
+    // sua coluna no Supabase pode estar como "descricao" ou "descrição"
+    // vamos gravar nas duas se precisar (supabase ignora coluna inexistente? não — então gravamos só em "descricao")
+    payload.descricao = descricao;
 
-  async function logout() {
-    await supabase.auth.signOut();
+    const { error } = await supa.from("registros").insert(payload);
+    if (error) {
+      // Se sua coluna for "descrição" com acento, tentamos outra vez
+      const { error: error2 } = await supa.from("registros").insert({
+        user_id: userData.user.id,
+        valor,
+        mes,
+        "descrição": descricao
+      });
+      if (error2) {
+        alert("Erro ao salvar: " + error2.message);
+        console.error(error2);
+        return;
+      }
+    }
+
+    descricaoEl.value = "";
+    valorEl.value = "";
+    mesEl.value = "";
+
+    await refreshUI();
+  });
+
+  // ✅ LOGOUT
+  btnLogout.addEventListener("click", async () => {
+    await supa.auth.signOut();
     location.reload();
-  }
+  });
 
-  checkLogin();
+  // ✅ SEM LOOP / SEM 2 TELAS: só atualiza a UI quando a sessão muda
+  supa.auth.onAuthStateChange(() => {
+    refreshUI();
+  });
+
+  // Primeira carga
+  refreshUI();
 </script>
 
 </body>
