@@ -2,83 +2,190 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle Premium</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:#e5e7eb;margin:0;padding:24px}
-    .card{max-width:520px;margin:auto;background:#020617;border-radius:16px;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,.4)}
-    h1{margin-top:0}
-    button{width:100%;padding:12px;border-radius:12px;border:none;font-size:16px;cursor:pointer}
-    .google{background:#fff;color:#000}
-    .primary{background:#22c55e;color:#052e16}
-    input{width:100%;padding:10px;border-radius:10px;border:1px solid #334155;background:#020617;color:#e5e7eb;margin:8px 0}
-    .row{display:flex;gap:12px}
-    .muted{opacity:.7;font-size:14px}
-    .hidden{display:none}
-    .list{margin-top:16px}
-    .item{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #1f2937}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+
+    header {
+      background: #020617;
+      padding: 20px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #38bdf8;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+
+    input, select {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #1e293b;
+    }
+
+    button {
+      background: #38bdf8;
+      color: #020617;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e293b;
+      text-align: left;
+    }
+
+    .total {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+      color: #22c55e;
+    }
   </style>
 </head>
+
 <body>
+
+<header>
+  💎 Controle Premium Pessoal
+</header>
+
+<main>
+
   <div class="card">
-    <h1>Controle Premium</h1>
-    <p class="muted">Valores em Real (R$) • Login Google</p>
+    <h2>Adicionar Lançamento</h2>
 
-    <div id="auth">
-      <button class="google" onclick="login()">Entrar com Google</button>
-    </div>
+    <select id="tipo">
+      <option value="entrada">Entrada</option>
+      <option value="saida">Saída</option>
+    </select>
 
-    <div id="app" class="hidden">
-      <p id="user"></p>
-      <div class="row">
-        <input id="descricao" placeholder="Descrição" />
-        <input id="valor" placeholder="Valor (R$)" type="number" step="0.01" />
-      </div>
-      <button class="primary" onclick="salvar()">Salvar</button>
-      <div class="list" id="lista"></div>
-    </div>
+    <input type="text" id="descricao" placeholder="Descrição" />
+    <input type="number" id="valor" placeholder="Valor (R$)" />
+
+    <button onclick="adicionar()">Adicionar</button>
   </div>
 
+  <div class="card">
+    <h2>Movimentações</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody id="lista"></tbody>
+    </table>
+
+    <div class="total" id="saldo">Saldo: R$ 0,00</div>
+  </div>
+
+</main>
+
 <script>
-  const supabaseUrl = 'https://ssnabfzwfvcmwkgibvec.supabase.co'
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo'
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey)
+  let movimentacoes = JSON.parse(localStorage.getItem("movimentacoes")) || [];
 
-  async function login(){
-    await supabase.auth.signInWithOAuth({ provider: 'google' })
+  function formatar(valor) {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
   }
 
-  supabase.auth.onAuthStateChange((_, session) => {
-    if(session){
-      document.getElementById('auth').classList.add('hidden')
-      document.getElementById('app').classList.remove('hidden')
-      document.getElementById('user').innerText = 'Olá, ' + session.user.email
-      carregar()
+  function salvar() {
+    localStorage.setItem("movimentacoes", JSON.stringify(movimentacoes));
+  }
+
+  function renderizar() {
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    let saldo = 0;
+
+    movimentacoes.forEach(m => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${m.tipo}</td>
+        <td>${m.descricao}</td>
+        <td>${formatar(m.valor)}</td>
+      `;
+
+      lista.appendChild(tr);
+
+      saldo += m.tipo === "entrada" ? m.valor : -m.valor;
+    });
+
+    document.getElementById("saldo").innerText =
+      "Saldo: " + formatar(saldo);
+  }
+
+  function adicionar() {
+    const tipo = document.getElementById("tipo").value;
+    const descricao = document.getElementById("descricao").value;
+    const valor = parseFloat(document.getElementById("valor").value);
+
+    if (!descricao || isNaN(valor)) {
+      alert("Preencha todos os campos");
+      return;
     }
-  })
 
-  async function salvar(){
-    const descricao = document.getElementById('descricao').value
-    const valor = parseFloat(document.getElementById('valor').value)
-    const mes = new Date().toISOString().slice(0,7)
-    await supabase.from('registros').insert({ descricao, valor, mes })
-    document.getElementById('descricao').value = ''
-    document.getElementById('valor').value = ''
-    carregar()
+    movimentacoes.push({ tipo, descricao, valor });
+    salvar();
+    renderizar();
+
+    document.getElementById("descricao").value = "";
+    document.getElementById("valor").value = "";
   }
 
-  async function carregar(){
-    const { data } = await supabase.from('registros').select('*').order('id',{ascending:false})
-    const lista = document.getElementById('lista')
-    lista.innerHTML = ''
-    data.forEach(i=>{
-      const div = document.createElement('div')
-      div.className='item'
-      div.innerHTML = `<span>${i.descricao}</span><strong>R$ ${i.valor.toFixed(2)}</strong>`
-      lista.appendChild(div)
-    })
-  }
+  renderizar();
 </script>
+
 </body>
 </html>
