@@ -1,89 +1,78 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Controle Premium Pessoal</title>
+  <meta charset="UTF-8">
+  <title>Controle Premium</title>
 
-  <!-- Supabase SDK (apenas UMA vez) -->
+  <!-- Supabase (APENAS UMA VEZ) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     body {
-      background: radial-gradient(circle at top, #0f172a, #020617);
-      font-family: Arial, sans-serif;
+      background: #020617;
       color: white;
+      font-family: Arial, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
       margin: 0;
     }
-    .card {
-      background: #020617cc;
+    .box {
+      background: #020617;
       padding: 40px;
       border-radius: 16px;
-      width: 100%;
-      max-width: 420px;
       text-align: center;
-      box-shadow: 0 0 40px rgba(0,0,0,.6);
-    }
-    h1 {
-      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,.6);
+      width: 100%;
+      max-width: 400px;
     }
     button {
       width: 100%;
-      padding: 15px;
-      font-size: 16px;
+      padding: 14px;
       border: none;
       border-radius: 10px;
       background: #00c2ff;
-      color: #000;
-      cursor: pointer;
+      font-size: 16px;
       font-weight: bold;
-    }
-    button:hover {
-      opacity: 0.9;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="card">
+  <div class="box">
     <h1>💎 Controle Premium</h1>
     <p>Valores em Real (R$)</p>
     <br>
-    <button id="googleLogin">Entrar com Google</button>
+    <button id="loginGoogle">Entrar com Google</button>
   </div>
 
   <script>
-    // 🔐 CONFIGURAÇÃO SUPABASE
+    // CONFIG SUPABASE (UMA ÚNICA VEZ)
     const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
+    const SUPABASE_ANON_KEY = "SUA_ANON_KEY_AQUI";
 
-    const supabase = window.supabase.createClient(
+    const supabaseClient = supabase.createClient(
       SUPABASE_URL,
       SUPABASE_ANON_KEY
     );
 
-    // ✅ FUNÇÃO DE LOGIN (AGORA EXISTE)
-    async function loginComGoogle() {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+    async function loginGoogle() {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
         options: {
           redirectTo: window.location.origin
         }
       });
 
-      if (error) {
-        alert("Erro no login: " + error.message);
-      }
+      if (error) alert(error.message);
     }
 
-    // 🔘 BOTÃO
     document
-      .getElementById("googleLogin")
-      .addEventListener("click", loginComGoogle);
+      .getElementById("loginGoogle")
+      .addEventListener("click", loginGoogle);
   </script>
 
 </body>
