@@ -5,6 +5,7 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root{
@@ -32,7 +33,7 @@
       display:flex; justify-content:center;
       padding: 34px 18px;
     }
-    .wrap{ width: 100%; max-width: 1040px; }
+    .wrap{ width: 100%; max-width: 1080px; }
     .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
@@ -84,7 +85,7 @@
       color: #ffb4b4;
     }
 
-    .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; }
+    .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; flex-wrap:wrap; }
     .tab{
       padding: 10px 14px; border-radius: 999px;
       border: 1px solid var(--stroke);
@@ -103,6 +104,9 @@
 
     .grid{ display:grid; grid-template-columns: 1fr 1.25fr; gap: 16px; }
     @media (max-width: 960px){ .grid{ grid-template-columns: 1fr; } }
+
+    .dashGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 960px){ .dashGrid{ grid-template-columns: 1fr; } }
 
     .card{
       background: var(--card);
@@ -270,6 +274,31 @@
     .chip.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
 
     .headActions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+
+    .canvasWrap{
+      background: rgba(2,6,23,.35);
+      border: 1px solid rgba(148,163,184,.12);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .topCats{
+      background: rgba(2,6,23,.35);
+      border: 1px solid rgba(148,163,184,.12);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .topItem{
+      display:flex; justify-content:space-between; gap:10px;
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(148,163,184,.10);
+      align-items:center;
+    }
+    .topItem:last-child{ border-bottom:none; }
+    .topLeft{ display:flex; flex-direction:column; gap:4px; }
+    .topTitle{ font-weight: 900; font-size: 13px; }
+    .topSub{ font-size: 12px; color: rgba(226,232,240,.65); }
+    .topVal{ font-weight: 900; white-space: nowrap; }
   </style>
 </head>
 
@@ -294,6 +323,7 @@
     <div class="tabs hidden" id="tabs">
       <button class="tab active" id="tabFin" type="button">Finanças</button>
       <button class="tab" id="tabMeta" type="button">Metas</button>
+      <button class="tab" id="tabDash" type="button">Dashboard</button>
     </div>
 
     <!-- LOGIN -->
@@ -313,7 +343,7 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Exportar CSV do mês</span>
+          <span>Categorias + Exportar CSV</span>
         </div>
         <div class="body">
 
@@ -475,6 +505,78 @@
       </div>
     </div>
 
+    <!-- DASHBOARD -->
+    <div class="hidden" id="dashboardBox">
+      <div class="dashGrid">
+        <div class="card">
+          <div class="head">
+            <h2>Entradas x Saídas</h2>
+            <span>Últimos 6 meses</span>
+          </div>
+          <div class="body">
+            <div class="canvasWrap">
+              <canvas id="chartBars" height="130"></canvas>
+            </div>
+            <div class="hint" id="dashHint1">Carregando…</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head">
+            <h2>Saldo</h2>
+            <span>Últimos 6 meses</span>
+          </div>
+          <div class="body">
+            <div class="canvasWrap">
+              <canvas id="chartSaldo" height="130"></canvas>
+            </div>
+            <div class="hint" id="dashHint2">Carregando…</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head">
+            <h2>Top categorias do mês</h2>
+            <span>Baseado no mês selecionado</span>
+          </div>
+          <div class="body">
+            <div class="topCats" id="topCatsBox">
+              <div class="empty">Sem dados ainda.</div>
+            </div>
+            <div class="hint" id="dashHint3">Dica: use o seletor de mês na aba Finanças.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="head">
+            <h2>Resumo rápido</h2>
+            <span>Mês selecionado</span>
+          </div>
+          <div class="body">
+            <div class="summary">
+              <div class="kpi">
+                <div class="k">Entradas</div>
+                <div class="v green" id="dashEntradas">R$ 0,00</div>
+              </div>
+              <div class="kpi">
+                <div class="k">Saídas</div>
+                <div class="v red" id="dashSaidas">R$ 0,00</div>
+              </div>
+              <div class="kpi">
+                <div class="k">Saldo</div>
+                <div class="v" id="dashSaldo">R$ 0,00</div>
+              </div>
+              <div class="kpi">
+                <div class="k">Registros</div>
+                <div class="v" id="dashQtd">0</div>
+              </div>
+            </div>
+            <div class="hint" id="dashMonthLabel">Mês: —</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <div class="toast" id="toast">
@@ -512,9 +614,11 @@
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
+  const dashboardBox = document.getElementById("dashboardBox");
   const tabs = document.getElementById("tabs");
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
+  const tabDash = document.getElementById("tabDash");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -561,13 +665,28 @@
   const btnCancelar = document.getElementById("btnCancelar");
   const btnConfirmar = document.getElementById("btnConfirmar");
 
+  // Dashboard refs
+  const dashHint1 = document.getElementById("dashHint1");
+  const dashHint2 = document.getElementById("dashHint2");
+  const dashHint3 = document.getElementById("dashHint3");
+  const topCatsBox = document.getElementById("topCatsBox");
+  const dashEntradas = document.getElementById("dashEntradas");
+  const dashSaidas = document.getElementById("dashSaidas");
+  const dashSaldo = document.getElementById("dashSaldo");
+  const dashQtd = document.getElementById("dashQtd");
+  const dashMonthLabel = document.getElementById("dashMonthLabel");
+
   let currentUser = null;
   let currentMonth = null;
   let pendingDelete = null;
   let currentFiltroCategoria = "Todas";
 
-  // cache do mês atual (para exportar sem buscar de novo)
+  // cache mês atual
   let lastFinCache = null;
+
+  // charts
+  let chartBars = null;
+  let chartSaldo = null;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -629,12 +748,22 @@
     if (!isCurrent) return dim;
     return Math.max(dim - now.getDate() + 1, 1);
   }
+  function getLastNMonthKeys(n){
+    const out = [];
+    const now = new Date();
+    for (let i = n-1; i >= 0; i--){
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      out.push(monthKeyFromDateObj(d));
+    }
+    return out;
+  }
 
   function showLogin(){
     loginBox.classList.remove("hidden");
     tabs.classList.add("hidden");
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
+    dashboardBox.classList.add("hidden");
     btnSair.classList.add("hidden");
     pillEmail.textContent = "Não logado";
   }
@@ -645,17 +774,27 @@
     pillEmail.textContent = email || "Logado";
     forceShowFinancas();
   }
+  function setActiveTab(active){
+    for (const el of [tabFin, tabMeta, tabDash]) el.classList.remove("active");
+    active.classList.add("active");
+  }
   function forceShowFinancas(){
-    tabFin.classList.add("active");
-    tabMeta.classList.remove("active");
+    setActiveTab(tabFin);
     financasBox.classList.remove("hidden");
     metasBox.classList.add("hidden");
+    dashboardBox.classList.add("hidden");
   }
   function showMetas(){
-    tabMeta.classList.add("active");
-    tabFin.classList.remove("active");
+    setActiveTab(tabMeta);
     metasBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
+    dashboardBox.classList.add("hidden");
+  }
+  function showDashboard(){
+    setActiveTab(tabDash);
+    dashboardBox.classList.remove("hidden");
+    financasBox.classList.add("hidden");
+    metasBox.classList.add("hidden");
   }
 
   function openModalDelete(item){
@@ -725,7 +864,6 @@
       opt.textContent = c;
       filtroCategoriaEl.appendChild(opt);
     }
-
     filtroCategoriaEl.value = selected || "Todas";
   }
 
@@ -787,9 +925,7 @@
       else obj.out += Math.abs(r.valor);
     }
 
-    const arr = Array.from(map.entries()).map(([cat, v]) => ({
-      cat, in: v.in, out: v.out
-    }));
+    const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
     arr.sort((a,b) => (b.in - a.in) || (b.out - a.out) || a.cat.localeCompare(b.cat,"pt-BR"));
 
     if (!arr.length){
@@ -916,23 +1052,19 @@
   function makeCSV(rows){
     const header = ["Data","Tipo","Categoria","Descrição","Valor"];
     const lines = [header];
-
     for (const r of rows){
       const tipo = r.valor >= 0 ? "Entrada" : "Saída";
       const cat = r.categoria || "Outros";
       const dataBR = formatISOToBR(r.dataISO);
-      const valor = r.valor; // mantém sinal
+      const valor = r.valor;
       const desc = (r.descricao || "").replace(/\s+/g, " ").trim();
 
-      // CSV com separador ;
       lines.push([dataBR, tipo, cat, desc, String(valor)].map(v => {
         const s = String(v ?? "");
-        // aspas se tiver ; ou " ou quebra de linha
         if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
         return s;
       }));
     }
-
     return lines.map(l => l.join(";")).join("\n");
   }
 
@@ -947,6 +1079,181 @@
     a.remove();
     URL.revokeObjectURL(url);
   }
+
+  // ---------- DASHBOARD ----------
+  function updateDashResumoFromCurrentMonth(){
+    const fin = lastFinCache;
+    if (!fin){ return; }
+
+    dashEntradas.textContent = brl(fin.entradas);
+    dashSaidas.textContent = brl(fin.saidas);
+    dashSaldo.textContent = brl(fin.saldo);
+    dashSaldo.className = "v " + (fin.saldo >= 0 ? "green" : "red");
+    dashQtd.textContent = String(fin.rows.length);
+    dashMonthLabel.textContent = `Mês: ${currentMonth || "-"}`;
+
+    // Top categorias do mês (por saída e por entrada)
+    const map = new Map(); // cat -> {in, out}
+    for (const r of fin.rows){
+      const cat = r.categoria || "Outros";
+      if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
+      const obj = map.get(cat);
+      if (r.valor >= 0) obj.in += r.valor;
+      else obj.out += Math.abs(r.valor);
+    }
+    const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
+    // rank por maior saída (primeiro), depois por maior entrada
+    arr.sort((a,b) => (b.out - a.out) || (b.in - a.in) || a.cat.localeCompare(b.cat,"pt-BR"));
+
+    if (!arr.length){
+      topCatsBox.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
+      return;
+    }
+
+    const top = arr.slice(0, 5);
+    topCatsBox.innerHTML = top.map(x => `
+      <div class="topItem">
+        <div class="topLeft">
+          <div class="topTitle">${escapeHtml(x.cat)}</div>
+          <div class="topSub">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
+        </div>
+        <div class="topVal">${brl(x.out > 0 ? -x.out : x.in)}</div>
+      </div>
+    `).join("");
+  }
+
+  async function fetchRegistrosForDashboardLastNMonths(userId, n){
+    const keys = getLastNMonthKeys(n);
+    const first = keys[0];
+    const last = keys[keys.length - 1];
+    const r1 = monthStartEndISO(first);
+    const r2 = monthStartEndISO(last);
+    if (!r1 || !r2) throw new Error("Range inválido dashboard.");
+
+    const { data, error } = await supa
+      .from("registros")
+      .select("valor, data, categoria")
+      .eq("user_id", userId)
+      .gte("data", r1.start)
+      .lte("data", r2.end);
+
+    if (error) throw error;
+
+    // agrupa por mês
+    const init = {};
+    for (const k of keys) init[k] = { entradas: 0, saidas: 0, saldo: 0 };
+
+    for (const row of (data || [])){
+      const iso = row.data;
+      // iso: yyyy-mm-dd
+      const m = (iso || "").match(/^(\d{4})-(\d{2})-\d{2}$/);
+      if (!m) continue;
+      const mk = `${m[2]}/${m[1]}`;
+      if (!init[mk]) continue;
+
+      const v = Number(row.valor || 0);
+      init[mk].saldo += v;
+      if (v >= 0) init[mk].entradas += v;
+      else init[mk].saidas += Math.abs(v);
+    }
+
+    return { keys, byMonth: init };
+  }
+
+  function makeChartCommonOptions(){
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: "rgba(226,232,240,.85)" } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.raw;
+              return `${ctx.dataset.label}: ${brl(v)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: "rgba(226,232,240,.70)" }, grid: { color: "rgba(148,163,184,.10)" } },
+        y: {
+          ticks: {
+            color: "rgba(226,232,240,.70)",
+            callback: (v) => brl(v)
+          },
+          grid: { color: "rgba(148,163,184,.10)" }
+        }
+      }
+    };
+  }
+
+  async function refreshDashboard(){
+    if (!currentUser) return;
+
+    try{
+      dashHint1.textContent = "Carregando…";
+      dashHint2.textContent = "Carregando…";
+
+      const { keys, byMonth } = await fetchRegistrosForDashboardLastNMonths(currentUser.id, 6);
+
+      const entradasArr = keys.map(k => byMonth[k].entradas);
+      const saidasArr = keys.map(k => byMonth[k].saidas);
+      const saldoArr = keys.map(k => byMonth[k].saldo);
+
+      // Charts
+      const ctx1 = document.getElementById("chartBars");
+      const ctx2 = document.getElementById("chartSaldo");
+
+      if (!chartBars){
+        chartBars = new Chart(ctx1, {
+          type: "bar",
+          data: {
+            labels: keys,
+            datasets: [
+              { label: "Entradas", data: entradasArr },
+              { label: "Saídas", data: saidasArr }
+            ]
+          },
+          options: makeChartCommonOptions()
+        });
+      } else {
+        chartBars.data.labels = keys;
+        chartBars.data.datasets[0].data = entradasArr;
+        chartBars.data.datasets[1].data = saidasArr;
+        chartBars.update();
+      }
+
+      if (!chartSaldo){
+        chartSaldo = new Chart(ctx2, {
+          type: "line",
+          data: {
+            labels: keys,
+            datasets: [
+              { label: "Saldo", data: saldoArr, tension: 0.3 }
+            ]
+          },
+          options: makeChartCommonOptions()
+        });
+      } else {
+        chartSaldo.data.labels = keys;
+        chartSaldo.data.datasets[0].data = saldoArr;
+        chartSaldo.update();
+      }
+
+      dashHint1.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
+      dashHint2.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
+
+      // resumo do mês selecionado (usa cache)
+      updateDashResumoFromCurrentMonth();
+
+    }catch(e){
+      showToast("Dashboard", e.message || String(e));
+      dashHint1.textContent = "Não foi possível carregar.";
+      dashHint2.textContent = "Não foi possível carregar.";
+    }
+  }
+  // ---------- /DASHBOARD ----------
 
   async function refreshUI(){
     const { data } = await supa.auth.getSession();
@@ -979,6 +1286,7 @@
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
+      updateDashResumoFromCurrentMonth();
     }catch(e){
       showToast("Finanças", e.message || String(e));
     }
@@ -1000,6 +1308,10 @@
       }
     }
   });
+  tabDash.addEventListener("click", async () => {
+    showDashboard();
+    await refreshDashboard();
+  });
 
   // Login
   btnLogin.addEventListener("click", async () => {
@@ -1016,6 +1328,8 @@
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
     await refreshUI();
+    // se estiver no dashboard, atualiza top categorias / resumo
+    updateDashResumoFromCurrentMonth();
   });
 
   // Troca filtro categoria
@@ -1060,7 +1374,10 @@
     descricaoEl.value = "";
     valorEl.value = "";
     currentMonth = mesAuto;
+
     await refreshUI();
+    // atualiza dashboard (últimos 6 meses)
+    await refreshDashboard();
   });
 
   // Exportar CSV
@@ -1145,6 +1462,7 @@
       closeModal();
       showToast("Excluído ✅", "Lançamento removido com sucesso.");
       await refreshUI();
+      await refreshDashboard();
     }catch(e){
       showToast("Erro ao excluir", e.message || String(e));
     }
@@ -1156,9 +1474,14 @@
     if (!dataEl.value) dataEl.value = getTodayBR();
     currentFiltroCategoria = "Todas";
     await refreshUI();
+    // já prepara dashboard (sem mudar de aba)
+    await refreshDashboard();
   })();
 
-  supa.auth.onAuthStateChange(() => refreshUI());
+  supa.auth.onAuthStateChange(async () => {
+    await refreshUI();
+    await refreshDashboard();
+  });
 </script>
 </body>
 </html>
