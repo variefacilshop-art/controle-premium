@@ -117,6 +117,7 @@
 
     .dashGrid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 960px){ .dashGrid{ grid-template-columns: 1fr; } }
+    .span2{ grid-column: 1 / -1; }
 
     .card{
       background: var(--card);
@@ -597,7 +598,10 @@
 
           <div style="height:12px"></div>
 
+          <!-- NOVO LAYOUT: 1) Resumo + Top  2) Gráficos lado a lado  3) Alertas no rodapé -->
           <div class="dashGrid">
+
+            <!-- Resumo -->
             <div class="card">
               <div class="head">
                 <h2>Resumo rápido</h2>
@@ -626,32 +630,7 @@
               </div>
             </div>
 
-            <div class="card">
-              <div class="head">
-                <h2>Alertas inteligentes</h2>
-                <span>Meta + ritmo + risco</span>
-              </div>
-              <div class="body">
-                <div class="alertList" id="dashAlerts">
-                  <div class="empty">Carregando…</div>
-                </div>
-                <div class="hint" id="dashHintAlerts">—</div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="head">
-                <h2>Saldo dia a dia</h2>
-                <span>Acumulado no mês</span>
-              </div>
-              <div class="body">
-                <div class="catBox" style="height:260px">
-                  <canvas id="chartDiario" style="width:100%;height:100%"></canvas>
-                </div>
-                <div class="hint" id="dashHintDiario">Atualizando…</div>
-              </div>
-            </div>
-
+            <!-- Top categorias -->
             <div class="card">
               <div class="head">
                 <h2>Top categorias</h2>
@@ -665,6 +644,21 @@
               </div>
             </div>
 
+            <!-- Gráfico diário -->
+            <div class="card">
+              <div class="head">
+                <h2>Saldo dia a dia</h2>
+                <span>Acumulado no mês</span>
+              </div>
+              <div class="body">
+                <div class="catBox" style="height:260px">
+                  <canvas id="chartDiario" style="width:100%;height:100%"></canvas>
+                </div>
+                <div class="hint" id="dashHintDiario">Atualizando…</div>
+              </div>
+            </div>
+
+            <!-- Comparação -->
             <div class="card">
               <div class="head">
                 <h2>Comparação por mês</h2>
@@ -675,6 +669,20 @@
                   <canvas id="chartComparacao" style="width:100%;height:100%"></canvas>
                 </div>
                 <div class="hint" id="dashHintComparacao">Selecione meses para comparar.</div>
+              </div>
+            </div>
+
+            <!-- Alertas no rodapé (span 2) -->
+            <div class="card span2">
+              <div class="head">
+                <h2>Alertas inteligentes</h2>
+                <span>Meta + ritmo + risco</span>
+              </div>
+              <div class="body">
+                <div class="alertList" id="dashAlerts">
+                  <div class="empty">Carregando…</div>
+                </div>
+                <div class="hint" id="dashHintAlerts">—</div>
               </div>
             </div>
 
@@ -755,7 +763,7 @@
 
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"; // <- anon key
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -1231,10 +1239,11 @@
     URL.revokeObjectURL(url);
   }
 
-  // ===== PDF HELPERS =====
+  // ===== PDF HELPERS (AGORA COM GRÁFICOS) =====
   function safePdfName(mk){
     return String(mk || "mes").replace("/", "-");
   }
+
   function buildAlertsForPdf({ mk, fin, meta }){
     const alerts = [];
     const p = parseMonthKey(mk);
@@ -1270,6 +1279,33 @@
     return alerts;
   }
 
+  function ensurePageSpace(doc, y, needed){
+    const pageH = doc.internal.pageSize.getHeight();
+    if (y + needed > pageH - 50){
+      doc.addPage();
+      return 60;
+    }
+    return y;
+  }
+
+  function addChartImageToPdf(doc, title, dataUrl, y, margin){
+    if (!dataUrl) return y;
+    const pageW = doc.internal.pageSize.getWidth();
+    const maxW = pageW - margin*2;
+    const imgW = maxW;
+    const imgH = Math.round(imgW * 0.52); // proporção boa para chart
+
+    y = ensurePageSpace(doc, y, 28 + imgH + 16);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12);
+    doc.text(title, margin, y);
+    y += 10;
+
+    doc.addImage(dataUrl, "PNG", margin, y, imgW, imgH, undefined, "FAST");
+    y += imgH + 16;
+    return y;
+  }
+
   async function generateMonthPDF({ mk, mode }){
     // mode: "fin" | "dash"
     if (!currentUser) { showToast("PDF", "Faça login primeiro."); return; }
@@ -1289,6 +1325,21 @@
 
       const falta = Math.max(meta - entradas, 0);
       const perc = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
+
+      // Captura dos gráficos (apenas no modo dashboard)
+      let diarioImg = null;
+      let compImg = null;
+      if (mode === "dash"){
+        // força o Chart.js a estar atualizado antes de capturar
+        try{ chartDiario && chartDiario.update(); }catch(e){}
+        try{ chartComparacao && chartComparacao.update(); }catch(e){}
+
+        const c1 = document.getElementById("chartDiario");
+        const c2 = document.getElementById("chartComparacao");
+
+        try{ if (c1) diarioImg = c1.toDataURL("image/png", 1.0); }catch(e){ diarioImg = null; }
+        try{ if (c2) compImg = c2.toDataURL("image/png", 1.0); }catch(e){ compImg = null; }
+      }
 
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: "pt", format: "a4" });
@@ -1331,7 +1382,7 @@
       doc.text(brl(saldo),    margin + colW*2 + 10, vY);
       doc.text(String(qtd),   margin + colW*3 + 10, vY);
 
-      // Meta section
+      // Meta
       let y = boxY + boxH + 26;
 
       doc.setFont("helvetica","bold");
@@ -1346,7 +1397,7 @@
         : `Meta: não definida para ${mk} (defina na aba “Metas”).`;
       doc.text(metaLine, margin, y);
 
-      // Progress bar (visual simple)
+      // barra simples
       y += 12;
       if (meta > 0){
         const barY = y + 10;
@@ -1361,10 +1412,11 @@
         y += 18;
       }
 
-      // Alerts (dashboard mode)
+      // Alertas + Gráficos (somente dashboard)
       if (mode === "dash"){
         doc.setFont("helvetica","bold");
         doc.setFontSize(12);
+        y = ensurePageSpace(doc, y, 30);
         doc.text("Alertas do mês", margin, y);
         y += 14;
 
@@ -1375,17 +1427,19 @@
         const maxWidth = pageW - margin*2;
         for (const a of alerts){
           const lines = doc.splitTextToSize("• " + a, maxWidth);
+          y = ensurePageSpace(doc, y, lines.length * 14 + 6);
           doc.text(lines, margin, y);
           y += lines.length * 14;
-          if (y > 740){
-            doc.addPage();
-            y = 60;
-          }
         }
-        y += 8;
+        y += 10;
+
+        // Gráficos no PDF
+        y = addChartImageToPdf(doc, "Gráfico: Saldo acumulado (dia a dia)", diarioImg, y, margin);
+        y = addChartImageToPdf(doc, "Gráfico: Comparação por mês", compImg, y, margin);
       }
 
-      // Table
+      // Tabela
+      y = ensurePageSpace(doc, y, 30);
       doc.setFont("helvetica","bold");
       doc.setFontSize(12);
       doc.text("Lançamentos do mês", margin, y);
@@ -1415,7 +1469,7 @@
           4: { cellWidth: 70, halign: "right" },
         },
         margin: { left: margin, right: margin },
-        didDrawPage: (data) => {
+        didDrawPage: () => {
           const str = `Controle Premium • ${mk}`;
           doc.setFontSize(9);
           doc.setTextColor(120);
@@ -1588,22 +1642,12 @@
       const p = parseMonthKey(dashMk);
       const diasRest = p ? remainingDays(p.mm, p.yyyy) : 30;
 
-      // 1) Meta (se existir)
       let meta = 0;
-      try{
-        meta = await getMeta(currentUser.id, dashMk);
-      }catch(e){
-        meta = 0;
-      }
+      try{ meta = await getMeta(currentUser.id, dashMk); }catch(e){ meta = 0; }
 
       if (meta > 0){
         if (fin.entradas >= meta){
-          alerts.push({
-            kind: "a-good",
-            icon: "✅",
-            title: "Meta batida!",
-            msg: `Você já fez ${brl(fin.entradas)} e a meta era ${brl(meta)}.`
-          });
+          alerts.push({ kind: "a-good", icon: "✅", title: "Meta batida!", msg: `Você já fez ${brl(fin.entradas)} e a meta era ${brl(meta)}.` });
         } else {
           const falta = Math.max(meta - fin.entradas, 0);
           const porDia = diasRest > 0 ? (falta / diasRest) : falta;
@@ -1615,60 +1659,26 @@
           });
         }
       } else {
-        alerts.push({
-          kind: "a-info",
-          icon: "ℹ️",
-          title: "Meta não definida",
-          msg: `Se quiser, defina uma meta para ${dashMk} na aba “Metas” para ver alertas de ritmo.`
-        });
+        alerts.push({ kind: "a-info", icon: "ℹ️", title: "Meta não definida", msg: `Defina uma meta para ${dashMk} na aba “Metas” para ver alertas de ritmo.` });
       }
 
-      // 2) Gastos vs entradas
       if (fin.entradas > 0){
         const percGasto = (fin.saidas / fin.entradas) * 100;
-        let kind = "a-info";
-        let icon = "📊";
-        let title = "Relação gastos x entradas";
+        let kind = "a-info", icon = "📊", title = "Relação gastos x entradas";
         if (percGasto >= 100){ kind = "a-bad"; icon="🚨"; title="Gastos acima das entradas"; }
         else if (percGasto >= 80){ kind = "a-warn"; icon="⚠️"; title="Gastos altos"; }
         else if (percGasto <= 50){ kind = "a-good"; icon="✅"; title="Gastos controlados"; }
-        alerts.push({
-          kind,
-          icon,
-          title,
-          msg: `Você gastou ${brl(fin.saidas)} no mês (${percGasto.toFixed(1)}% das entradas de ${brl(fin.entradas)}).`
-        });
+        alerts.push({ kind, icon, title, msg: `Você gastou ${brl(fin.saidas)} no mês (${percGasto.toFixed(1)}% das entradas de ${brl(fin.entradas)}).` });
       } else if (fin.saidas > 0){
-        alerts.push({
-          kind: "a-warn",
-          icon: "⚠️",
-          title: "Sem entradas registradas",
-          msg: `Você tem ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada ainda.`
-        });
+        alerts.push({ kind: "a-warn", icon: "⚠️", title: "Sem entradas registradas", msg: `Você tem ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada ainda.` });
       } else {
-        alerts.push({
-          kind: "a-good",
-          icon: "✅",
-          title: "Sem movimentações",
-          msg: `Nenhuma entrada/saída registrada ainda para ${dashMk}.`
-        });
+        alerts.push({ kind: "a-good", icon: "✅", title: "Sem movimentações", msg: `Nenhuma entrada/saída registrada ainda para ${dashMk}.` });
       }
 
-      // 3) Saldo
       if (fin.saldo < 0){
-        alerts.push({
-          kind: "a-bad",
-          icon: "💸",
-          title: "Saldo negativo",
-          msg: `Seu saldo do mês está em ${brl(fin.saldo)}. Considere reduzir saídas ou aumentar entradas.`
-        });
+        alerts.push({ kind: "a-bad", icon: "💸", title: "Saldo negativo", msg: `Seu saldo do mês está em ${brl(fin.saldo)}.` });
       } else if (fin.saldo > 0 && fin.rows.length){
-        alerts.push({
-          kind: "a-good",
-          icon: "💰",
-          title: "Saldo positivo",
-          msg: `Seu saldo do mês está em ${brl(fin.saldo)}.`
-        });
+        alerts.push({ kind: "a-good", icon: "💰", title: "Saldo positivo", msg: `Seu saldo do mês está em ${brl(fin.saldo)}.` });
       }
 
       renderAlerts(alerts);
@@ -1711,6 +1721,7 @@
         chartComparacao.data.datasets[1].data = [];
         chartComparacao.data.datasets[2].data = [];
         chartComparacao.update();
+        dashHintComparacao.textContent = "Ative para comparar meses.";
         return;
       }
 
@@ -1758,11 +1769,8 @@
     if (!dataEl.value) dataEl.value = getTodayBR();
 
     let months = [getDefaultMonth()];
-    try{
-      months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
-    }catch(e){
-      showToast("Aviso", "Não consegui carregar meses ainda.");
-    }
+    try{ months = months.concat(await fetchMonthsFromRegistros(currentUser.id)); }
+    catch(e){ showToast("Aviso", "Não consegui carregar meses ainda."); }
 
     const desiredFin = currentMonth || getDefaultMonth();
     fillMonthDropdown(mesSelect, months, desiredFin);
@@ -1773,7 +1781,6 @@
     dashboardMonth = dashMesSelect.value || desiredDash;
 
     fillDashboardMulti(months);
-
     metaMesEl.value = currentMonth;
 
     try{
@@ -1929,10 +1936,35 @@
     await generateMonthPDF({ mk, mode: "fin" });
   });
 
-  // PDF (Dashboard)
+  // PDF (Dashboard) — agora com gráficos
   btnPdfDash.addEventListener("click", async () => {
     const mk = dashboardMonth || currentMonth || getDefaultMonth();
     await generateMonthPDF({ mk, mode: "dash" });
+  });
+
+  // Salvar meta
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser){ showLogin(); return; }
+    const mes = (metaMesEl.value || "").trim();
+    const meta = Number(metaValorEl.value || 0);
+
+    if (!parseMonthKey(mes)){
+      showToast("Meta", "Mês inválido. Use MM/AAAA (ex: 02/2026).");
+      return;
+    }
+    if (!Number.isFinite(meta) || meta < 0){
+      showToast("Meta", "Digite uma meta válida (0 ou maior).");
+      return;
+    }
+
+    try{
+      await upsertMeta(currentUser.id, mes, meta);
+      showToast("Meta salva ✅", `Meta de ${mes}: ${brl(meta)}`);
+      await atualizarMetasUI(mes);
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(e){
+      showToast("Meta", e.message || String(e));
+    }
   });
 
   // Sair
@@ -2012,14 +2044,10 @@
       const valorRaw = r[col.valor];
 
       const dataISO = parseBRDateToISO(dataBR);
-      if (!dataISO || !descricao){
-        bad++; continue;
-      }
+      if (!dataISO || !descricao){ bad++; continue; }
 
       let valor = cleanMoneyToNumber(valorRaw);
-      if (!Number.isFinite(valor) || valor === 0){
-        bad++; continue;
-      }
+      if (!Number.isFinite(valor) || valor === 0){ bad++; continue; }
 
       const tipo = (tipoRaw.includes("saida") || tipoRaw.includes("saída") || tipoRaw === "out" || tipoRaw === "despesa") ? "saida" : "entrada";
       const valorFinal = (tipo === "saida") ? -Math.abs(valor) : Math.abs(valor);
