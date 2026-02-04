@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -13,8 +12,7 @@
       --card: rgba(7, 12, 26, .78);
       --card2: rgba(7, 12, 26, .60);
       --stroke: rgba(148, 163, 184, .14);
-      --text: #e5e7eb;
-      --muted: rgba(226, 232, 240, .72);
+      --text: #e5e7eb; --muted: rgba(226, 232, 240, .72);
       --cyan:#00c2ff; --cyan2:#33d2ff;
       --red:#ef4444; --green:#22c55e;
       --shadow: 0 20px 80px rgba(0,0,0,.55);
@@ -35,6 +33,7 @@
       padding: 34px 18px;
     }
     .wrap{ width: 100%; max-width: 980px; }
+
     .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
@@ -152,10 +151,8 @@
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .badge{
-      font-size: 11px;
-      color: rgba(226,232,240,.75);
-      padding: 4px 8px;
-      border-radius: 999px;
+      font-size: 11px; color: rgba(226,232,240,.75);
+      padding: 4px 8px; border-radius: 999px;
       border: 1px solid rgba(148,163,184,.14);
       background: rgba(2,6,23,.40);
     }
@@ -163,7 +160,7 @@
     .amount.pos{ color: var(--green); }
     .amount.neg{ color: #ff8080; }
     .empty{ padding: 18px 16px; color: rgba(226,232,240,.60); font-size: 13px; }
-    .hidden{ display:none; }
+    .hidden{ display:none !important; }
 
     .barWrap{
       width: 100%; height: 12px; border-radius: 999px;
@@ -182,9 +179,7 @@
     @media (max-width: 720px){ .twoCol{ grid-template-columns: 1fr; } }
 
     .toast{
-      position: fixed;
-      left: 18px;
-      bottom: 18px;
+      position: fixed; left: 18px; bottom: 18px;
       max-width: 560px;
       background: rgba(2,6,23,.90);
       border: 1px solid rgba(148,163,184,.18);
@@ -233,7 +228,7 @@
       </div>
       <div class="body">
         <button class="btn btn-primary" id="btnLogin" type="button">Entrar com Google</button>
-        <div class="hint">Use sempre o domínio <strong>Production</strong do seu projeto na Vercel.</div>
+        <div class="hint">Se aparecer “sumiu tudo”, é cache: aperte <strong>Ctrl + Shift + R</strong>.</div>
       </div>
     </div>
 
@@ -269,7 +264,7 @@
           </div>
 
           <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
-          <div class="hint">Dica: use valor negativo para saída (ex: <strong>-50</strong>).</div>
+          <div class="hint">Dica: valor negativo para saída (ex: <strong>-50</strong>).</div>
 
           <div style="height:14px"></div>
 
@@ -311,7 +306,7 @@
       <div class="card">
         <div class="head">
           <h2>Metas & Progresso</h2>
-          <span>Meta mensal salva no Supabase</span>
+          <span>Meta mensal</span>
         </div>
         <div class="body">
 
@@ -320,7 +315,6 @@
               <label>Mês da meta (MM/AAAA)</label>
               <input id="metaMes" placeholder="Ex: 02/2026" />
             </div>
-
             <div class="field">
               <label>Meta do mês (R$)</label>
               <input id="metaValor" type="number" placeholder="Ex: 3000" />
@@ -373,6 +367,7 @@
   </div>
 
 <script>
+  // ✅ TROQUE SÓ A ANON KEY
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
@@ -380,14 +375,13 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
+  // UI
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
   const tabs = document.getElementById("tabs");
-
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
-
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -397,7 +391,6 @@
   const valorEl = document.getElementById("valor");
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
-
   const listaEl = document.getElementById("lista");
 
   const kpiEntradas = document.getElementById("kpiEntradas");
@@ -408,7 +401,6 @@
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
   const btnSalvarMeta = document.getElementById("btnSalvarMeta");
-
   const metaKpi = document.getElementById("metaKpi");
   const ganheiKpi = document.getElementById("ganheiKpi");
   const faltaKpi = document.getElementById("faltaKpi");
@@ -422,41 +414,35 @@
   let toastTimer = null;
 
   let currentUser = null;
-  let currentMonth = null; // "MM/AAAA"
+  let currentMonth = null;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
     toastMsg.textContent = msg;
     toast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => toast.classList.remove("show"), 5600);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 6500);
   }
+
+  window.addEventListener("error", (e) => {
+    showToast("Erro no site", e.message || "Erro desconhecido");
+  });
 
   function brl(n){
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
   }
-
   function escapeHtml(str){
     return (str || "").toString().replace(/[&<>"']/g, m => ({
       "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
     }[m]));
   }
-
   function pad2(n){ return String(n).padStart(2,"0"); }
-
-  function monthKeyFromDateObj(d){
-    return `${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
-  }
-
-  function getDefaultMonth(){
-    return monthKeyFromDateObj(new Date());
-  }
-
+  function monthKeyFromDateObj(d){ return `${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
+  function getDefaultMonth(){ return monthKeyFromDateObj(new Date()); }
   function getTodayBR(){
     const d = new Date();
     return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
   }
-
   function parseBRDateToISO(br){
     const v = (br || "").trim();
     const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
@@ -467,13 +453,11 @@
     if (dd < 1 || dd > dim) return null;
     return `${yyyy}-${pad2(mm)}-${pad2(dd)}`;
   }
-
   function formatISOToBR(iso){
     const m = (iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return "";
     return `${m[3]}/${m[2]}/${m[1]}`;
   }
-
   function parseMonthKey(mk){
     const m = (mk || "").trim().match(/^(\d{2})\/(\d{4})$/);
     if (!m) return null;
@@ -481,7 +465,6 @@
     if (mm < 1 || mm > 12) return null;
     return { mm, yyyy };
   }
-
   function monthStartEndISO(monthKey){
     const p = parseMonthKey(monthKey);
     if (!p) return null;
@@ -490,7 +473,6 @@
     const end = `${p.yyyy}-${pad2(p.mm)}-${pad2(endDay)}`;
     return { start, end };
   }
-
   function remainingDays(mm, yyyy){
     const now = new Date();
     const isCurrent = (now.getFullYear() === yyyy && (now.getMonth()+1) === mm);
@@ -501,33 +483,31 @@
 
   function showLogin(){
     loginBox.classList.remove("hidden");
+    tabs.classList.add("hidden");
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
-    tabs.classList.add("hidden");
     btnSair.classList.add("hidden");
     pillEmail.textContent = "Não logado";
   }
-
   function showApp(email){
     loginBox.classList.add("hidden");
-    financasBox.classList.remove("hidden");
     tabs.classList.remove("hidden");
     btnSair.classList.remove("hidden");
     pillEmail.textContent = email || "Logado";
   }
 
-  function activateTab(which){
-    if (which === "fin"){
-      tabFin.classList.add("active");
-      tabMeta.classList.remove("active");
-      financasBox.classList.remove("hidden");
-      metasBox.classList.add("hidden");
-    } else {
-      tabMeta.classList.add("active");
-      tabFin.classList.remove("active");
-      metasBox.classList.remove("hidden");
-      financasBox.classList.add("hidden");
-    }
+  // ✅ MODO SEGURANÇA: sempre mostra alguma coisa
+  function forceShowFinancas(){
+    tabFin.classList.add("active");
+    tabMeta.classList.remove("active");
+    financasBox.classList.remove("hidden");
+    metasBox.classList.add("hidden");
+  }
+  function showMetas(){
+    tabMeta.classList.add("active");
+    tabFin.classList.remove("active");
+    metasBox.classList.remove("hidden");
+    financasBox.classList.add("hidden");
   }
 
   async function captureTokenIfPresent(){
@@ -537,9 +517,39 @@
     }
   }
 
+  function fillMonthDropdown(months, selected){
+    const unique = Array.from(new Set(months.filter(Boolean)));
+    unique.sort((a,b) => {
+      const pa = parseMonthKey(a), pb = parseMonthKey(b);
+      if (!pa || !pb) return 0;
+      if (pa.yyyy !== pb.yyyy) return pb.yyyy - pa.yyyy;
+      return pb.mm - pa.mm;
+    });
+    mesSelect.innerHTML = "";
+    for (const mk of unique){
+      const opt = document.createElement("option");
+      opt.value = mk;
+      opt.textContent = mk;
+      mesSelect.appendChild(opt);
+    }
+    mesSelect.value = selected;
+    if (mesSelect.value !== selected && unique.length) mesSelect.value = unique[0];
+  }
+
+  async function fetchMonthsFromRegistros(userId){
+    const { data, error } = await supa
+      .from("registros")
+      .select("mes")
+      .eq("user_id", userId)
+      .order("mes", { ascending: false })
+      .limit(5000);
+    if (error) throw error;
+    return (data || []).map(r => r.mes).filter(Boolean);
+  }
+
   async function fetchRegistrosByMonth(userId, monthKey){
     const range = monthStartEndISO(monthKey);
-    if (!range) throw new Error("Mês inválido. Use MM/AAAA.");
+    if (!range) throw new Error("Mês inválido.");
     const { data, error } = await supa
       .from("registros")
       .select("id, descricao, valor, data, mes")
@@ -547,7 +557,6 @@
       .gte("data", range.start)
       .lte("data", range.end)
       .order("data", { ascending: false });
-
     if (error) throw error;
 
     const rows = (data || []).map(r => ({
@@ -558,7 +567,7 @@
       mes: r.mes
     }));
 
-    let entradas = 0, saidas = 0, saldo = 0;
+    let entradas=0, saidas=0, saldo=0;
     for (const r of rows){
       saldo += r.valor;
       if (r.valor >= 0) entradas += r.valor;
@@ -596,43 +605,6 @@
     }).join("");
   }
 
-  function fillMonthDropdown(months, selected){
-    mesSelect.innerHTML = "";
-    const unique = Array.from(new Set(months));
-    unique.sort((a,b) => {
-      const pa = parseMonthKey(a), pb = parseMonthKey(b);
-      if (!pa || !pb) return 0;
-      if (pa.yyyy !== pb.yyyy) return pb.yyyy - pa.yyyy;
-      return pb.mm - pa.mm;
-    });
-
-    for (const mk of unique){
-      const opt = document.createElement("option");
-      opt.value = mk;
-      opt.textContent = mk;
-      mesSelect.appendChild(opt);
-    }
-
-    mesSelect.value = selected;
-    if (mesSelect.value !== selected && unique.length){
-      mesSelect.value = unique[0];
-    }
-  }
-
-  async function fetchMonthsFromRegistros(userId){
-    // como "mes" pode existir e ser obrigatório, usamos ele direto
-    const { data, error } = await supa
-      .from("registros")
-      .select("mes")
-      .eq("user_id", userId)
-      .order("mes", { ascending: false })
-      .limit(5000);
-
-    if (error) throw error;
-    return (data || []).map(r => r.mes).filter(Boolean);
-  }
-
-  // Metas (config)
   async function getMeta(userId, mes){
     const { data, error } = await supa
       .from("config")
@@ -640,7 +612,6 @@
       .eq("user_id", userId)
       .eq("mes", mes)
       .maybeSingle();
-
     if (error) throw error;
     return Number(data?.meta || 0);
   }
@@ -649,7 +620,6 @@
     const { error } = await supa
       .from("config")
       .upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
-
     if (error) throw error;
   }
 
@@ -686,6 +656,9 @@
     currentUser = session.user;
     showApp(session.user.email);
 
+    // ✅ garante que NÃO some tudo
+    forceShowFinancas();
+
     if (!dataEl.value) dataEl.value = getTodayBR();
 
     // meses
@@ -693,16 +666,17 @@
     try{
       months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
     }catch(e){
-      // se der erro, ainda dá pra usar o mês atual
+      showToast("Aviso", "Não consegui carregar lista de meses ainda.");
     }
 
     const desired = currentMonth || getDefaultMonth();
     fillMonthDropdown(months, desired);
-    currentMonth = mesSelect.value;
+    currentMonth = mesSelect.value || getDefaultMonth();
 
-    if (!metaMesEl.value) metaMesEl.value = currentMonth;
-    else metaMesEl.value = currentMonth;
+    // sincroniza metas com o mês selecionado
+    metaMesEl.value = currentMonth;
 
+    // carrega finanças e metas (se der erro, não esconde nada)
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       renderFinancas(fin);
@@ -713,14 +687,14 @@
     try{
       await atualizarMetasUI(currentMonth);
     }catch(e){
-      showToast("Metas", e.message || String(e));
+      // não quebra a tela
     }
   }
 
-  // Events
-  tabFin.addEventListener("click", () => activateTab("fin"));
+  // Eventos
+  tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => {
-    activateTab("meta");
+    showMetas();
     if (currentUser){
       try{ await atualizarMetasUI(currentMonth); }catch(e){
         showToast("Metas", e.message || String(e));
@@ -757,20 +731,10 @@
     const valor = Number(valorEl.value);
     const descricao = descricaoEl.value.trim();
 
-    if (!dataISO){
-      showToast("Data inválida", "Use DD/MM/AAAA (ex: 03/02/2026).");
-      return;
-    }
-    if (!descricao){
-      showToast("Descrição", "Preencha a descrição.");
-      return;
-    }
-    if (Number.isNaN(valor)){
-      showToast("Valor", "Preencha um valor válido.");
-      return;
-    }
+    if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
+    if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
+    if (Number.isNaN(valor)){ showToast("Valor", "Digite um valor válido."); return; }
 
-    // ✅ aqui é o conserto: calcula mes (MM/AAAA) automaticamente
     const d = new Date(dataISO + "T00:00:00");
     const mesAuto = monthKeyFromDateObj(d);
 
@@ -782,15 +746,11 @@
       mes: mesAuto
     });
 
-    if (error){
-      showToast("Não salvou (registros)", error.message);
-      return;
-    }
+    if (error){ showToast("Não salvou (registros)", error.message); return; }
 
     descricaoEl.value = "";
     valorEl.value = "";
-
-    currentMonth = mesAuto; // pula para o mês do lançamento
+    currentMonth = mesAuto;
     await refreshUI();
   });
 
@@ -800,19 +760,13 @@
     const mes = metaMesEl.value.trim();
     const meta = Number(metaValorEl.value);
 
-    if (!parseMonthKey(mes)){
-      showToast("Mês inválido", "Use MM/AAAA (ex: 02/2026).");
-      return;
-    }
-    if (Number.isNaN(meta) || meta < 0){
-      showToast("Meta inválida", "Digite uma meta válida (>= 0).");
-      return;
-    }
+    if (!parseMonthKey(mes)){ showToast("Mês inválido", "Use MM/AAAA."); return; }
+    if (Number.isNaN(meta) || meta < 0){ showToast("Meta inválida", "Meta >= 0"); return; }
 
     try{
       await upsertMeta(currentUser.id, mes, meta);
       await atualizarMetasUI(mes);
-      showToast("Meta salva ✅", "Sua meta foi salva no Supabase.");
+      showToast("Meta salva ✅", "Meta salva no Supabase.");
     }catch(e){
       showToast("Meta", e.message || String(e));
     }
@@ -825,7 +779,8 @@
 
   (async () => {
     await captureTokenIfPresent();
-    activateTab("fin");
+    // ✅ força abrir Finanças imediatamente
+    forceShowFinancas();
     await refreshUI();
   })();
 
