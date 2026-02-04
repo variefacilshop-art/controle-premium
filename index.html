@@ -14,7 +14,7 @@
       --stroke: rgba(148, 163, 184, .14);
       --text: #e5e7eb; --muted: rgba(226, 232, 240, .72);
       --cyan:#00c2ff; --cyan2:#33d2ff;
-      --red:#ef4444; --green:#22c55e; --amber:#f59e0b;
+      --red:#ef4444; --green:#22c55e;
       --shadow: 0 20px 80px rgba(0,0,0,.55);
       --glow: 0 0 0 1px rgba(0,194,255,.18), 0 0 60px rgba(0,194,255,.12);
       --radius: 18px;
@@ -32,7 +32,7 @@
       display:flex; justify-content:center;
       padding: 34px 18px;
     }
-    .wrap{ width: 100%; max-width: 980px; }
+    .wrap{ width: 100%; max-width: 1040px; }
     .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
@@ -78,7 +78,6 @@
       width: 36px; height: 36px; padding: 0;
       border-radius: 12px;
     }
-    .btn-icon:hover{ opacity: .95; }
     .btn-icon-danger{
       background: rgba(239,68,68,.12);
       border: 1px solid rgba(239,68,68,.22);
@@ -102,14 +101,14 @@
       box-shadow: 0 0 0 1px rgba(0,194,255,.10);
     }
 
-    .grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
-    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+    .grid{ display:grid; grid-template-columns: 1fr 1.25fr; gap: 16px; }
+    @media (max-width: 960px){ .grid{ grid-template-columns: 1fr; } }
 
     .card{
       background: var(--card);
       border: 1px solid var(--stroke);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      box-shadow: 0 20px 80px rgba(0,0,0,.55);
       backdrop-filter: blur(10px);
       overflow:hidden;
     }
@@ -152,7 +151,7 @@
     .kpi .v.green{ color: var(--green); }
     .kpi .v.red{ color: #ff8080; }
 
-    .list{ max-height: 560px; overflow:auto; }
+    .list{ max-height: 520px; overflow:auto; }
     .item{
       display:flex; justify-content:space-between; gap:12px;
       padding: 14px 16px;
@@ -171,6 +170,7 @@
     }
     .badge.in{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
     .badge.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
+    .badge.cat{ border-color: rgba(0,194,255,.22); background: rgba(0,194,255,.08); }
 
     .rightcol{ display:flex; align-items:center; gap:10px; }
     .amount{ font-weight: 900; white-space: nowrap; font-size: 14px; }
@@ -212,7 +212,6 @@
     .toast b{ display:block; margin-bottom:2px; }
     .toast .small{ font-size: 12px; color: rgba(226,232,240,.75); }
 
-    /* Modal confirmação */
     .modalOverlay{
       position: fixed; inset: 0;
       background: rgba(0,0,0,.55);
@@ -243,6 +242,32 @@
       display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
     }
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .catBox{
+      background: rgba(2,6,23,.35);
+      border: 1px solid rgba(148,163,184,.12);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 12px;
+    }
+    .catRow{
+      display:flex; justify-content:space-between; gap:10px;
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(148,163,184,.10);
+      align-items:center;
+    }
+    .catRow:last-child{ border-bottom:none; }
+    .catName{ font-weight: 900; font-size: 13px; color: rgba(226,232,240,.92); }
+    .catNums{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .chip{
+      font-size: 11px; padding: 4px 8px; border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.14);
+      background: rgba(2,6,23,.40);
+      color: rgba(226,232,240,.82);
+      white-space:nowrap;
+    }
+    .chip.in{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
+    .chip.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
   </style>
 </head>
 
@@ -286,16 +311,20 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Entrada / Saída automático</span>
+          <span>Categorias + Filtro</span>
         </div>
         <div class="body">
 
           <div class="field">
-            <label>Mês selecionado (filtro)</label>
+            <label>Mês selecionado</label>
             <select id="mesSelect"></select>
           </div>
 
           <div class="row">
+            <div class="field">
+              <label>Filtro de categoria</label>
+              <select id="filtroCategoria"></select>
+            </div>
             <div class="field">
               <label>Tipo</label>
               <select id="tipo">
@@ -303,25 +332,43 @@
                 <option value="saida">Saída</option>
               </select>
             </div>
+          </div>
+
+          <div class="row">
             <div class="field">
               <label>Data (DD/MM/AAAA)</label>
               <input id="data" placeholder="Ex: 03/02/2026" />
+            </div>
+            <div class="field">
+              <label>Valor (R$)</label>
+              <input id="valor" type="number" placeholder="Ex: 100 (sempre positivo)" />
             </div>
           </div>
 
           <div class="row">
             <div class="field">
-              <label>Valor (R$)</label>
-              <input id="valor" type="number" placeholder="Ex: 100 (sempre positivo)" />
+              <label>Categoria</label>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
+              <div class="hint">Você pode mudar essa lista depois.</div>
             </div>
             <div class="field">
               <label>Descrição</label>
-              <input id="descricao" placeholder="Ex: Venda, Mercado, Uber..." />
+              <input id="descricao" placeholder="Ex: Venda Shopify, Mercado, Uber..." />
             </div>
           </div>
 
           <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
-          <div class="hint">Saída salva automaticamente como valor negativo.</div>
+          <div class="hint">Saída vira negativo automaticamente. Meta usa só entradas.</div>
 
           <div style="height:14px"></div>
 
@@ -344,13 +391,21 @@
             </div>
           </div>
 
+          <div class="catBox">
+            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px">
+              <div style="font-weight:900">Resumo por categoria</div>
+              <div style="font-size:12px;color:rgba(226,232,240,.62)" id="catHint">Mês selecionado</div>
+            </div>
+            <div id="catResumo" class="empty">Sem dados ainda.</div>
+          </div>
+
         </div>
       </div>
 
       <div class="card">
         <div class="head">
           <h2>Movimentações</h2>
-          <span>Toque na lixeira para excluir</span>
+          <span>Filtro por categoria</span>
         </div>
         <div class="list" id="lista">
           <div class="empty">Nenhum registro neste mês.</div>
@@ -430,9 +485,7 @@
         <h3>Confirmar exclusão</h3>
         <button class="btn btn-ghost btn-icon" id="btnModalClose" type="button">✕</button>
       </div>
-      <div class="modalBody" id="modalBody">
-        Tem certeza que deseja excluir?
-      </div>
+      <div class="modalBody" id="modalBody">Tem certeza?</div>
       <div class="modalFoot">
         <button class="btn btn-ghost" id="btnCancelar" type="button">Cancelar</button>
         <button class="btn btn-danger" id="btnConfirmar" type="button">Excluir</button>
@@ -448,6 +501,7 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
+  // UI refs
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
@@ -459,9 +513,11 @@
   const btnLogin = document.getElementById("btnLogin");
 
   const mesSelect = document.getElementById("mesSelect");
+  const filtroCategoriaEl = document.getElementById("filtroCategoria");
   const tipoEl = document.getElementById("tipo");
   const dataEl = document.getElementById("data");
   const valorEl = document.getElementById("valor");
+  const categoriaEl = document.getElementById("categoria");
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const listaEl = document.getElementById("lista");
@@ -470,6 +526,9 @@
   const kpiSaidas = document.getElementById("kpiSaidas");
   const kpiSaldo = document.getElementById("kpiSaldo");
   const kpiQtd = document.getElementById("kpiQtd");
+
+  const catResumoEl = document.getElementById("catResumo");
+  const catHint = document.getElementById("catHint");
 
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
@@ -496,9 +555,8 @@
 
   let currentUser = null;
   let currentMonth = null;
-
-  // guarda o item a excluir
-  let pendingDelete = null; // { id, descricao, valor, dataISO, mes }
+  let pendingDelete = null; // item
+  let currentFiltroCategoria = "Todas";
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -601,6 +659,8 @@
       <div style="height:6px"></div>
       <div><b>${escapeHtml(item.descricao)}</b></div>
       <div style="height:6px"></div>
+      <div style="opacity:.85">Categoria: <b>${escapeHtml(item.categoria || "Outros")}</b></div>
+      <div style="height:6px"></div>
       <div style="color:${item.valor>=0?'#22c55e':'#ff8080'};font-weight:900">${brl(item.valor)}</div>
       <div style="height:10px"></div>
       <div style="opacity:.75">Essa ação não pode ser desfeita.</div>
@@ -638,6 +698,26 @@
     if (mesSelect.value !== selected && unique.length) mesSelect.value = unique[0];
   }
 
+  function fillCategoriaFilter(categorias, selected){
+    const unique = Array.from(new Set(categorias.filter(Boolean)));
+    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
+
+    filtroCategoriaEl.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "Todas";
+    optAll.textContent = "Todas";
+    filtroCategoriaEl.appendChild(optAll);
+
+    for (const c of unique){
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      filtroCategoriaEl.appendChild(opt);
+    }
+
+    filtroCategoriaEl.value = selected || "Todas";
+  }
+
   async function fetchMonthsFromRegistros(userId){
     const { data, error } = await supa
       .from("registros")
@@ -654,7 +734,7 @@
     if (!range) throw new Error("Mês inválido.");
     const { data, error } = await supa
       .from("registros")
-      .select("id, descricao, valor, data, mes")
+      .select("id, descricao, valor, data, mes, categoria")
       .eq("user_id", userId)
       .gte("data", range.start)
       .lte("data", range.end)
@@ -670,6 +750,7 @@
         valor: v,
         dataISO: r.data,
         mes: r.mes,
+        categoria: r.categoria || "Outros",
         tipo
       });
     });
@@ -680,33 +761,83 @@
       if (r.valor >= 0) entradas += r.valor;
       else saidas += Math.abs(r.valor);
     }
-    return { rows, entradas, saidas, saldo };
+
+    const categorias = rows.map(r => r.categoria || "Outros");
+    return { rows, entradas, saidas, saldo, categorias };
   }
 
-  function renderFinancas({ rows, entradas, saidas, saldo }){
+  function buildResumoCategorias(rows){
+    const map = new Map(); // cat -> { in, out }
+    for (const r of rows){
+      const cat = r.categoria || "Outros";
+      if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
+      const obj = map.get(cat);
+      if (r.valor >= 0) obj.in += r.valor;
+      else obj.out += Math.abs(r.valor);
+    }
+
+    const arr = Array.from(map.entries()).map(([cat, v]) => ({
+      cat,
+      in: v.in,
+      out: v.out
+    }));
+
+    // ordenar por maior "in" e depois maior "out"
+    arr.sort((a,b) => (b.in - a.in) || (b.out - a.out) || a.cat.localeCompare(b.cat,"pt-BR"));
+
+    if (!arr.length){
+      catResumoEl.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
+      return;
+    }
+
+    catResumoEl.innerHTML = arr.map(x => `
+      <div class="catRow">
+        <div class="catName">${escapeHtml(x.cat)}</div>
+        <div class="catNums">
+          <span class="chip in">Entradas: ${brl(x.in)}</span>
+          <span class="chip out">Saídas: ${brl(x.out)}</span>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function renderFinancas(fin){
+    const { rows, entradas, saidas, saldo } = fin;
+
     kpiEntradas.textContent = brl(entradas);
     kpiSaidas.textContent = brl(saidas);
     kpiSaldo.textContent = brl(saldo);
     kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
     kpiQtd.textContent = String(rows.length);
 
-    if (!rows.length){
-      listaEl.innerHTML = `<div class="empty">Nenhum registro neste mês.</div>`;
+    // resumo por categoria (sempre do mês inteiro, independente do filtro)
+    catHint.textContent = `Mês: ${currentMonth}`;
+    buildResumoCategorias(rows);
+
+    // aplica filtro na lista
+    let filtered = rows;
+    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
+      filtered = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+
+    if (!filtered.length){
+      listaEl.innerHTML = `<div class="empty">Nenhum registro para este filtro.</div>`;
       return;
     }
 
-    listaEl.innerHTML = rows.map(r => {
+    listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
       const bCls = r.tipo === "entrada" ? "in" : "out";
       const bTxt = r.tipo === "entrada" ? "Entrada" : "Saída";
+      const catTxt = r.categoria || "Outros";
       return `
         <div class="item">
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
               <span class="badge ${bCls}">${bTxt}</span>
+              <span class="badge cat">${escapeHtml(catTxt)}</span>
               <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
-              <span class="badge">${escapeHtml(r.mes || currentMonth)}</span>
             </div>
           </div>
           <div class="rightcol">
@@ -719,6 +850,7 @@
               data-valor="${escapeHtml(String(r.valor))}"
               data-data="${escapeHtml(String(r.dataISO))}"
               data-mes="${escapeHtml(String(r.mes || ""))}"
+              data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
             >🗑️</button>
           </div>
         </div>
@@ -747,7 +879,6 @@
   async function atualizarMetasUI(mes){
     const meta = await getMeta(currentUser.id, mes);
     const fin = await fetchRegistrosByMonth(currentUser.id, mes);
-
     const entradasMes = fin.entradas;
 
     metaKpi.textContent = brl(meta);
@@ -764,6 +895,15 @@
     const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
+  }
+
+  async function deleteRegistroById(id){
+    const { error } = await supa
+      .from("registros")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", currentUser.id);
+    if (error) throw error;
   }
 
   async function refreshUI(){
@@ -791,11 +931,12 @@
     const desired = currentMonth || getDefaultMonth();
     fillMonthDropdown(months, desired);
     currentMonth = mesSelect.value || getDefaultMonth();
-
     metaMesEl.value = currentMonth;
 
+    // carrega dados do mês e monta filtro categorias
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
@@ -806,16 +947,6 @@
     }catch(e){
       // não quebra
     }
-  }
-
-  async function deleteRegistroById(id){
-    // segurança: user_id junto
-    const { error } = await supa
-      .from("registros")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", currentUser.id);
-    if (error) throw error;
   }
 
   // Eventos Tabs
@@ -838,18 +969,18 @@
     if (error) showToast("Login", error.message);
   });
 
-  // Troca de mês
+  // Troca mês
   mesSelect.addEventListener("change", async () => {
     if (!currentUser) return;
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
-    try{
-      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
-      renderFinancas(fin);
-      await atualizarMetasUI(currentMonth);
-    }catch(e){
-      showToast("Filtro", e.message || String(e));
-    }
+    await refreshUI();
+  });
+
+  // Troca filtro categoria
+  filtroCategoriaEl.addEventListener("change", async () => {
+    currentFiltroCategoria = filtroCategoriaEl.value;
+    await refreshUI();
   });
 
   // Salvar lançamento
@@ -861,6 +992,7 @@
     const dataISO = parseBRDateToISO(dataBR);
     const valorDigitado = Number(valorEl.value);
     const descricao = descricaoEl.value.trim();
+    const categoria = (categoriaEl.value || "Outros").trim();
 
     if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
     if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
@@ -870,7 +1002,6 @@
     }
 
     const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
-
     const d = new Date(dataISO + "T00:00:00");
     const mesAuto = monthKeyFromDateObj(d);
 
@@ -879,7 +1010,8 @@
       descricao,
       valor: valorFinal,
       data: dataISO,
-      mes: mesAuto
+      mes: mesAuto,
+      categoria
     });
 
     if (error){ showToast("Não salvou (registros)", error.message); return; }
@@ -915,7 +1047,7 @@
     location.href = "/";
   });
 
-  // Clique na lixeira (delegação)
+  // Clique na lixeira
   listaEl.addEventListener("click", (e) => {
     const btn = e.target.closest("button[data-del='1']");
     if (!btn) return;
@@ -925,12 +1057,13 @@
       descricao: btn.getAttribute("data-desc"),
       valor: Number(btn.getAttribute("data-valor")),
       dataISO: btn.getAttribute("data-data"),
-      mes: btn.getAttribute("data-mes")
+      mes: btn.getAttribute("data-mes"),
+      categoria: btn.getAttribute("data-cat")
     };
     openModalDelete(item);
   });
 
-  // Modal eventos
+  // Modal
   btnModalClose.addEventListener("click", closeModal);
   btnCancelar.addEventListener("click", closeModal);
   modalOverlay.addEventListener("click", (e) => {
@@ -954,6 +1087,8 @@
   (async () => {
     await captureTokenIfPresent();
     if (!dataEl.value) dataEl.value = getTodayBR();
+    // inicia filtro como "Todas"
+    currentFiltroCategoria = "Todas";
     await refreshUI();
   })();
 
