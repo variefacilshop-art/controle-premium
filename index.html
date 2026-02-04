@@ -126,6 +126,7 @@
       padding: 16px 16px 12px;
       border-bottom: 1px solid rgba(148,163,184,.10);
       display:flex; align-items:center; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
     }
     .card .head h2{ margin:0; font-size: 14px; letter-spacing:.2px; }
     .card .head span{ color: var(--muted); font-size: 12px; }
@@ -232,7 +233,7 @@
     }
     .modalOverlay.show{ display:flex; }
     .modal{
-      width: 100%; max-width: 560px;
+      width: 100%; max-width: 620px;
       background: rgba(2,6,23,.92);
       border: 1px solid rgba(148,163,184,.18);
       border-radius: 18px;
@@ -251,7 +252,6 @@
       border-top: 1px solid rgba(148,163,184,.12);
       display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
     }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
     .catBox{
       background: rgba(2,6,23,.35);
@@ -260,52 +260,6 @@
       padding: 12px;
       margin-top: 12px;
     }
-    .catRow{
-      display:flex; justify-content:space-between; gap:10px;
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(148,163,184,.10);
-      align-items:center;
-    }
-    .catRow:last-child{ border-bottom:none; }
-    .catName{ font-weight: 900; font-size: 13px; color: rgba(226,232,240,.92); }
-    .catNums{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-    .chip{
-      font-size: 11px; padding: 4px 8px; border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.14);
-      background: rgba(2,6,23,.40);
-      color: rgba(226,232,240,.82);
-      white-space:nowrap;
-    }
-    .chip.in{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
-    .chip.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
-
-    .headActions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-
-    .canvasWrap{
-      background: rgba(2,6,23,.35);
-      border: 1px solid rgba(148,163,184,.12);
-      border-radius: 16px;
-      padding: 12px;
-      height: 260px;
-    }
-
-    .topCats{
-      background: rgba(2,6,23,.35);
-      border: 1px solid rgba(148,163,184,.12);
-      border-radius: 16px;
-      padding: 12px;
-    }
-    .topItem{
-      display:flex; justify-content:space-between; gap:10px;
-      padding: 10px 10px;
-      border-bottom: 1px solid rgba(148,163,184,.10);
-      align-items:center;
-    }
-    .topItem:last-child{ border-bottom:none; }
-    .topLeft{ display:flex; flex-direction:column; gap:4px; }
-    .topTitle{ font-weight: 900; font-size: 13px; }
-    .topSub{ font-size: 12px; color: rgba(226,232,240,.65); }
-    .topVal{ font-weight: 900; white-space: nowrap; }
 
     .searchBox{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
@@ -313,6 +267,17 @@
     }
     .searchBox input{ flex: 1; min-width: 220px; }
     .smallNote{ font-size: 12px; color: rgba(226,232,240,.60); }
+
+    .dropZone{
+      border: 1px dashed rgba(0,194,255,.35);
+      background: rgba(0,194,255,.06);
+      border-radius: 16px;
+      padding: 12px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .dropZone strong{ font-size: 13px; }
+    .dropZone span{ font-size: 12px; color: rgba(226,232,240,.70); }
   </style>
 </head>
 
@@ -357,7 +322,7 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Busca + Editar</span>
+          <span>Importar CSV</span>
         </div>
         <div class="body">
 
@@ -405,7 +370,6 @@
                 <option value="Lazer">Lazer</option>
                 <option value="Outros">Outros</option>
               </select>
-              <div class="hint">Você pode mudar essa lista depois.</div>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -418,31 +382,18 @@
 
           <div style="height:14px"></div>
 
-          <div class="summary">
-            <div class="kpi">
-              <div class="k">Entradas</div>
-              <div class="v green" id="kpiEntradas">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Saídas</div>
-              <div class="v red" id="kpiSaidas">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Saldo</div>
-              <div class="v" id="kpiSaldo">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Registros</div>
-              <div class="v" id="kpiQtd">0</div>
-            </div>
-          </div>
-
           <div class="catBox">
-            <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px">
-              <div style="font-weight:900">Resumo por categoria</div>
-              <div style="font-size:12px;color:rgba(226,232,240,.62)" id="catHint">Mês selecionado</div>
+            <div class="dropZone" id="dropZone">
+              <div>
+                <strong>📥 Importar CSV</strong><br/>
+                <span>Colunas: Data;Tipo;Categoria;Descrição;Valor</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <input id="fileCsv" type="file" accept=".csv,text/csv" class="hidden" />
+                <button class="btn btn-ghost" id="btnImportar" type="button">Selecionar arquivo</button>
+              </div>
             </div>
-            <div id="catResumo" class="empty">Sem dados ainda.</div>
+            <div class="hint" id="importInfo">Dica: você pode exportar CSV aqui mesmo e reimportar depois.</div>
           </div>
 
         </div>
@@ -478,7 +429,6 @@
           <span>Progresso conta só ENTRADAS</span>
         </div>
         <div class="body">
-
           <div class="twoCol">
             <div class="field">
               <label>Mês da meta (MM/AAAA)</label>
@@ -489,7 +439,6 @@
               <input id="metaValor" type="number" placeholder="Ex: 3000" />
             </div>
           </div>
-
           <button class="btn btn-primary" id="btnSalvarMeta" type="button">Salvar meta</button>
 
           <div style="height:18px"></div>
@@ -520,7 +469,6 @@
             <div class="barWrap"><div class="bar" id="bar"></div></div>
             <div class="hint" id="progressText">0% da meta</div>
           </div>
-
         </div>
       </div>
     </div>
@@ -534,8 +482,8 @@
             <span>Últimos 6 meses</span>
           </div>
           <div class="body">
-            <div class="canvasWrap">
-              <canvas id="chartBars"></canvas>
+            <div class="catBox" style="height:260px">
+              <canvas id="chartBars" style="width:100%;height:100%"></canvas>
             </div>
             <div class="hint" id="dashHint1">Carregando…</div>
           </div>
@@ -547,8 +495,8 @@
             <span>Últimos 6 meses</span>
           </div>
           <div class="body">
-            <div class="canvasWrap">
-              <canvas id="chartSaldo"></canvas>
+            <div class="catBox" style="height:260px">
+              <canvas id="chartSaldo" style="width:100%;height:100%"></canvas>
             </div>
             <div class="hint" id="dashHint2">Carregando…</div>
           </div>
@@ -560,10 +508,9 @@
             <span>Baseado no mês selecionado</span>
           </div>
           <div class="body">
-            <div class="topCats" id="topCatsBox">
+            <div class="catBox" id="topCatsBox">
               <div class="empty">Sem dados ainda.</div>
             </div>
-            <div class="hint" id="dashHint3">Dica: use o seletor de mês na aba Finanças.</div>
           </div>
         </div>
 
@@ -607,7 +554,7 @@
     </div>
   </div>
 
-  <!-- Modal confirmação EXCLUIR -->
+  <!-- Modal excluir -->
   <div class="modalOverlay" id="modalOverlay">
     <div class="modal">
       <div class="modalHead">
@@ -622,7 +569,7 @@
     </div>
   </div>
 
-  <!-- Modal EDITAR -->
+  <!-- Modal editar -->
   <div class="modalOverlay" id="editOverlay">
     <div class="modal">
       <div class="modalHead">
@@ -700,6 +647,12 @@
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
 
+  // Import
+  const dropZone = document.getElementById("dropZone");
+  const fileCsv = document.getElementById("fileCsv");
+  const btnImportar = document.getElementById("btnImportar");
+  const importInfo = document.getElementById("importInfo");
+
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
   const kpiSaldo = document.getElementById("kpiSaldo");
@@ -758,14 +711,11 @@
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
 
-  // cache mês atual
   let lastFinCache = null;
 
-  // charts
   let chartBars = null;
   let chartSaldo = null;
 
-  // edição
   let editingItem = null;
 
   function showToast(title, msg){
@@ -883,7 +833,7 @@
     modalBody.innerHTML = `
       <div>Você quer excluir este lançamento?</div>
       <div style="height:10px"></div>
-      <div class="mono" style="opacity:.9">
+      <div style="opacity:.9">
         ${escapeHtml(tipoTxt)} • ${escapeHtml(formatISOToBR(item.dataISO))} • ${escapeHtml(item.mes || "")}
       </div>
       <div style="height:6px"></div>
@@ -904,13 +854,11 @@
 
   function openEditModal(item){
     editingItem = item;
-
     editDataEl.value = formatISOToBR(item.dataISO);
     editTipoEl.value = item.valor >= 0 ? "entrada" : "saida";
     editValorEl.value = Math.abs(Number(item.valor || 0));
     editCategoriaEl.value = item.categoria || "Outros";
     editDescricaoEl.value = item.descricao || "";
-
     editOverlay.classList.add("show");
   }
   function closeEditModal(){
@@ -988,15 +936,13 @@
 
     const rows = (data || []).map(r => {
       const v = Number(r.valor || 0);
-      const tipo = v >= 0 ? "entrada" : "saida";
       return ({
         id: r.id,
         descricao: r.descricao ?? "",
         valor: v,
         dataISO: r.data,
         mes: r.mes,
-        categoria: r.categoria || "Outros",
-        tipo
+        categoria: r.categoria || "Outros"
       });
     });
 
@@ -1011,57 +957,23 @@
     return { rows, entradas, saidas, saldo, categorias };
   }
 
-  function buildResumoCategorias(rows){
-    const map = new Map();
-    for (const r of rows){
-      const cat = r.categoria || "Outros";
-      if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
-      const obj = map.get(cat);
-      if (r.valor >= 0) obj.in += r.valor;
-      else obj.out += Math.abs(r.valor);
-    }
-
-    const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
-    arr.sort((a,b) => (b.in - a.in) || (b.out - a.out) || a.cat.localeCompare(b.cat,"pt-BR"));
-
-    if (!arr.length){
-      catResumoEl.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
-      return;
-    }
-
-    catResumoEl.innerHTML = arr.map(x => `
-      <div class="catRow">
-        <div class="catName">${escapeHtml(x.cat)}</div>
-        <div class="catNums">
-          <span class="chip in">Entradas: ${brl(x.in)}</span>
-          <span class="chip out">Saídas: ${brl(x.out)}</span>
-        </div>
-      </div>
-    `).join("");
-  }
-
   function renderFinancas(fin){
     lastFinCache = fin;
 
-    const { rows, entradas, saidas, saldo } = fin;
-
-    kpiEntradas.textContent = brl(entradas);
-    kpiSaidas.textContent = brl(saidas);
-    kpiSaldo.textContent = brl(saldo);
-    kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
-    kpiQtd.textContent = String(rows.length);
+    kpiEntradas.textContent = brl(fin.entradas);
+    kpiSaidas.textContent = brl(fin.saidas);
+    kpiSaldo.textContent = brl(fin.saldo);
+    kpiSaldo.className = "v " + (fin.saldo >= 0 ? "green" : "red");
+    kpiQtd.textContent = String(fin.rows.length);
 
     catHint.textContent = `Mês: ${currentMonth}`;
-    buildResumoCategorias(rows);
 
-    let filtered = rows;
+    let filtered = fin.rows;
 
-    // filtro categoria
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
       filtered = filtered.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
     }
 
-    // busca descrição
     const q = (currentSearch || "").trim().toLowerCase();
     if (q){
       filtered = filtered.filter(r => (r.descricao || "").toLowerCase().includes(q));
@@ -1077,8 +989,8 @@
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
-      const bCls = r.tipo === "entrada" ? "in" : "out";
-      const bTxt = r.tipo === "entrada" ? "Entrada" : "Saída";
+      const bCls = r.valor >= 0 ? "in" : "out";
+      const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       return `
         <div class="item">
@@ -1206,10 +1118,9 @@
     URL.revokeObjectURL(url);
   }
 
-  // ---------- DASHBOARD ----------
   function updateDashResumoFromCurrentMonth(){
     const fin = lastFinCache;
-    if (!fin){ return; }
+    if (!fin) return;
 
     dashEntradas.textContent = brl(fin.entradas);
     dashSaidas.textContent = brl(fin.saidas);
@@ -1233,15 +1144,14 @@
       topCatsBox.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
       return;
     }
-
     const top = arr.slice(0, 5);
     topCatsBox.innerHTML = top.map(x => `
-      <div class="topItem">
-        <div class="topLeft">
-          <div class="topTitle">${escapeHtml(x.cat)}</div>
-          <div class="topSub">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
+      <div class="item" style="padding:10px 10px">
+        <div class="leftcol">
+          <div class="desc">${escapeHtml(x.cat)}</div>
+          <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
         </div>
-        <div class="topVal">${brl(x.out > 0 ? -x.out : x.in)}</div>
+        <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
       </div>
     `).join("");
   }
@@ -1288,28 +1198,17 @@
       maintainAspectRatio: false,
       plugins: {
         legend: { labels: { color: "rgba(226,232,240,.85)" } },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => `${ctx.dataset.label}: ${brl(ctx.raw)}`
-          }
-        }
+        tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${brl(ctx.raw)}` } }
       },
       scales: {
         x: { ticks: { color: "rgba(226,232,240,.70)" }, grid: { color: "rgba(148,163,184,.10)" } },
-        y: {
-          ticks: {
-            color: "rgba(226,232,240,.70)",
-            callback: (v) => brl(v)
-          },
-          grid: { color: "rgba(148,163,184,.10)" }
-        }
+        y: { ticks: { color: "rgba(226,232,240,.70)", callback: (v) => brl(v) }, grid: { color: "rgba(148,163,184,.10)" } }
       }
     };
   }
 
   async function refreshDashboard(){
     if (!currentUser) return;
-
     try{
       dashHint1.textContent = "Carregando…";
       dashHint2.textContent = "Carregando…";
@@ -1326,13 +1225,7 @@
       if (!chartBars){
         chartBars = new Chart(ctx1, {
           type: "bar",
-          data: {
-            labels: keys,
-            datasets: [
-              { label: "Entradas", data: entradasArr },
-              { label: "Saídas", data: saidasArr }
-            ]
-          },
+          data: { labels: keys, datasets: [{ label: "Entradas", data: entradasArr }, { label: "Saídas", data: saidasArr }] },
           options: makeChartCommonOptions()
         });
       } else {
@@ -1345,12 +1238,7 @@
       if (!chartSaldo){
         chartSaldo = new Chart(ctx2, {
           type: "line",
-          data: {
-            labels: keys,
-            datasets: [
-              { label: "Saldo", data: saldoArr, tension: 0.3 }
-            ]
-          },
+          data: { labels: keys, datasets: [{ label: "Saldo", data: saldoArr, tension: 0.3 }] },
           options: makeChartCommonOptions()
         });
       } else {
@@ -1362,14 +1250,12 @@
       dashHint1.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
       dashHint2.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
       updateDashResumoFromCurrentMonth();
-
-    }catch(e){
+    } catch(e){
       showToast("Dashboard", e.message || String(e));
       dashHint1.textContent = "Não foi possível carregar.";
       dashHint2.textContent = "Não foi possível carregar.";
     }
   }
-  // ---------- /DASHBOARD ----------
 
   async function refreshUI(){
     const { data } = await supa.auth.getSession();
@@ -1411,25 +1297,15 @@
       await atualizarMetasUI(currentMonth);
     }catch(e){}
 
-    if (document.body.contains(dashboardBox) && !dashboardBox.classList.contains("hidden")){
+    if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
   }
 
   // Tabs
   tabFin.addEventListener("click", () => forceShowFinancas());
-  tabMeta.addEventListener("click", async () => {
-    showMetas();
-    if (currentUser){
-      try{ await atualizarMetasUI(currentMonth); }catch(e){
-        showToast("Metas", e.message || String(e));
-      }
-    }
-  });
-  tabDash.addEventListener("click", async () => {
-    showDashboard();
-    await refreshDashboard();
-  });
+  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
+  tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
 
   // Login
   btnLogin.addEventListener("click", async () => {
@@ -1455,7 +1331,7 @@
   });
 
   // Busca
-  buscaEl.addEventListener("input", async () => {
+  buscaEl.addEventListener("input", () => {
     currentSearch = buscaEl.value;
     if (lastFinCache) renderFinancas(lastFinCache);
   });
@@ -1534,32 +1410,7 @@
     showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
   });
 
-  // Salvar meta
-  btnSalvarMeta.addEventListener("click", async () => {
-    if (!currentUser){ showLogin(); return; }
-
-    const mes = metaMesEl.value.trim();
-    const meta = Number(metaValorEl.value);
-
-    if (!parseMonthKey(mes)){ showToast("Mês inválido", "Use MM/AAAA."); return; }
-    if (Number.isNaN(meta) || meta < 0){ showToast("Meta inválida", "Meta >= 0"); return; }
-
-    try{
-      await upsertMeta(currentUser.id, mes, meta);
-      await atualizarMetasUI(mes);
-      showToast("Meta salva ✅", "Meta salva no Supabase.");
-    }catch(e){
-      showToast("Meta", e.message || String(e));
-    }
-  });
-
-  // Sair
-  btnSair.addEventListener("click", async () => {
-    await supa.auth.signOut();
-    location.href = "/";
-  });
-
-  // Clique na lista (editar/excluir)
+  // Editar/Excluir na lista
   listaEl.addEventListener("click", (e) => {
     const btnDel = e.target.closest("button[data-del='1']");
     const btnEdit = e.target.closest("button[data-edit='1']");
@@ -1594,15 +1445,13 @@
   // Modal excluir
   btnModalClose.addEventListener("click", closeModalDelete);
   btnCancelar.addEventListener("click", closeModalDelete);
-  modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModalDelete();
-  });
+  modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModalDelete(); });
 
   btnConfirmar.addEventListener("click", async () => {
     if (!pendingDelete || !currentUser) return;
-
     try{
-      await deleteRegistroById(pendingDelete.id);
+      const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
+      if (error) throw error;
       closeModalDelete();
       showToast("Excluído ✅", "Lançamento removido com sucesso.");
       await refreshUI();
@@ -1615,9 +1464,7 @@
   // Modal editar
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
-  editOverlay.addEventListener("click", (e) => {
-    if (e.target === editOverlay) closeEditModal();
-  });
+  editOverlay.addEventListener("click", (e) => { if (e.target === editOverlay) closeEditModal(); });
 
   btnEditSalvar.addEventListener("click", async () => {
     if (!editingItem || !currentUser) return;
@@ -1642,18 +1489,13 @@
     const mesAuto = monthKeyFromDateObj(d);
 
     try{
-      await updateRegistroById(editingItem.id, {
-        data: dataISO,
-        mes: mesAuto,
-        valor: valorFinal,
-        categoria,
-        descricao
-      });
+      const { error } = await supa.from("registros").update({
+        data: dataISO, mes: mesAuto, valor: valorFinal, categoria, descricao
+      }).eq("id", editingItem.id).eq("user_id", currentUser.id);
+      if (error) throw error;
 
       closeEditModal();
       showToast("Salvo ✅", "Lançamento atualizado.");
-
-      // se mudou de mês, mantém o seletor no novo mês
       currentMonth = mesAuto;
       await refreshUI();
       await refreshDashboard();
@@ -1661,6 +1503,168 @@
       showToast("Editar", e.message || String(e));
     }
   });
+
+  // Sair
+  btnSair.addEventListener("click", async () => {
+    await supa.auth.signOut();
+    location.href = "/";
+  });
+
+  // -------- IMPORT CSV --------
+  function cleanMoneyToNumber(str){
+    // aceita: "R$ 1.234,56" "1234,56" "-100" "100.50"
+    let s = String(str ?? "").trim();
+    if (!s) return NaN;
+    s = s.replace(/\s/g, "");
+    s = s.replace("R$", "").replace("r$", "");
+    // se tiver vírgula, assume pt-BR
+    if (s.includes(",")){
+      s = s.replace(/\./g, "");
+      s = s.replace(",", ".");
+    }
+    // remove qualquer coisa que não seja número, . ou -
+    s = s.replace(/[^0-9.-]/g, "");
+    return Number(s);
+  }
+
+  function parseCSV(text){
+    // suporta ; (padrão) e , como separador (detecta)
+    const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim() !== "");
+    if (!lines.length) return { header: [], rows: [] };
+
+    const first = lines[0];
+    const sep = (first.split(";").length >= 3) ? ";" : ",";
+    const header = first.split(sep).map(x => x.trim().replace(/^"|"$/g,""));
+
+    const rows = [];
+    for (let i=1;i<lines.length;i++){
+      const raw = lines[i];
+      // parse simples (sem CSV complexo com ; dentro de aspas)
+      const cols = raw.split(sep).map(x => x.trim().replace(/^"|"$/g,"").replace(/""/g,'"'));
+      if (cols.every(c => c === "")) continue;
+      rows.push(cols);
+    }
+    return { header, rows, sep };
+  }
+
+  function mapColumns(header){
+    const norm = header.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
+    const idx = (name) => norm.indexOf(name);
+
+    const map = {
+      data: idx("data"),
+      tipo: idx("tipo"),
+      categoria: idx("categoria"),
+      descricao: idx("descricao") >= 0 ? idx("descricao") : idx("descrição"),
+      valor: idx("valor")
+    };
+    return map;
+  }
+
+  async function importCSVFile(file){
+    if (!currentUser){ showToast("Importar", "Faça login primeiro."); return; }
+    const text = await file.text();
+    const parsed = parseCSV(text);
+
+    if (!parsed.rows.length){
+      showToast("Importar", "Arquivo vazio ou inválido.");
+      return;
+    }
+
+    const col = mapColumns(parsed.header);
+    if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
+      showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
+      return;
+    }
+
+    let ok = 0, bad = 0;
+    const inserts = [];
+
+    for (const r of parsed.rows){
+      const dataBR = r[col.data] ?? "";
+      const tipoRaw = (r[col.tipo] ?? "").trim().toLowerCase();
+      const categoria = (r[col.categoria] ?? "Outros").trim() || "Outros";
+      const descricao = (r[col.descricao] ?? "").trim();
+      const valorRaw = r[col.valor];
+
+      const dataISO = parseBRDateToISO(dataBR);
+      if (!dataISO || !descricao){
+        bad++; continue;
+      }
+
+      let valor = cleanMoneyToNumber(valorRaw);
+      if (!Number.isFinite(valor) || valor === 0){
+        bad++; continue;
+      }
+
+      const tipo = (tipoRaw.includes("saida") || tipoRaw.includes("saída") || tipoRaw === "out" || tipoRaw === "despesa") ? "saida" : "entrada";
+      const valorFinal = (tipo === "saida") ? -Math.abs(valor) : Math.abs(valor);
+
+      const d = new Date(dataISO + "T00:00:00");
+      const mesAuto = monthKeyFromDateObj(d);
+
+      inserts.push({
+        user_id: currentUser.id,
+        data: dataISO,
+        mes: mesAuto,
+        categoria,
+        descricao,
+        valor: valorFinal
+      });
+      ok++;
+    }
+
+    if (!inserts.length){
+      showToast("Importar", "Nenhuma linha válida encontrada.");
+      return;
+    }
+
+    importInfo.textContent = `Importando… (${ok} válidas, ${bad} inválidas)`;
+
+    // insere em lotes para evitar limite
+    const chunkSize = 200;
+    let inserted = 0;
+    try{
+      for (let i=0;i<inserts.length;i+=chunkSize){
+        const chunk = inserts.slice(i, i+chunkSize);
+        const { error } = await supa.from("registros").insert(chunk);
+        if (error) throw error;
+        inserted += chunk.length;
+      }
+      importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
+      showToast("Importação concluída ✅", `${inserted} lançamentos importados.`);
+      // vai para o mês do arquivo mais recente (se existir)
+      currentMonth = getDefaultMonth();
+      await refreshUI();
+      await refreshDashboard();
+    }catch(e){
+      importInfo.textContent = "Falha ao importar.";
+      showToast("Importar", e.message || String(e));
+    }
+  }
+
+  btnImportar.addEventListener("click", () => fileCsv.click());
+  fileCsv.addEventListener("change", async () => {
+    const f = fileCsv.files && fileCsv.files[0];
+    if (f) await importCSVFile(f);
+    fileCsv.value = "";
+  });
+
+  // drag and drop
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = "rgba(0,194,255,.65)";
+  });
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.borderColor = "rgba(0,194,255,.35)";
+  });
+  dropZone.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = "rgba(0,194,255,.35)";
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) await importCSVFile(f);
+  });
+  // -------- /IMPORT CSV --------
 
   // Init
   (async () => {
