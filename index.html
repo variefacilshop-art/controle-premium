@@ -4,31 +4,24 @@
   <meta charset="UTF-8" />
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
-      --bg1:#020617;
-      --bg2:#0b1225;
+      --bg1:#020617; --bg2:#0b1225;
       --card: rgba(7, 12, 26, .78);
       --card2: rgba(7, 12, 26, .60);
       --stroke: rgba(148, 163, 184, .14);
-      --text: #e5e7eb;
-      --muted: rgba(226, 232, 240, .72);
-      --cyan:#00c2ff;
-      --cyan2:#33d2ff;
-      --red:#ef4444;
-      --green:#22c55e;
+      --text: #e5e7eb; --muted: rgba(226, 232, 240, .72);
+      --cyan:#00c2ff; --cyan2:#33d2ff;
+      --red:#ef4444; --green:#22c55e;
       --shadow: 0 20px 80px rgba(0,0,0,.55);
       --glow: 0 0 0 1px rgba(0,194,255,.18), 0 0 60px rgba(0,194,255,.12);
       --radius: 18px;
     }
-
     *{box-sizing:border-box}
     body{
-      margin:0;
-      min-height:100vh;
+      margin:0; min-height:100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
       color:var(--text);
       background:
@@ -36,30 +29,21 @@
         radial-gradient(900px 700px at 90% 20%, rgba(99,102,241,.10), transparent 55%),
         radial-gradient(900px 700px at 40% 120%, rgba(34,197,94,.08), transparent 55%),
         linear-gradient(180deg, var(--bg2), var(--bg1));
-      display:flex;
-      justify-content:center;
+      display:flex; justify-content:center;
       padding: 34px 18px;
     }
-
     .wrap{ width: 100%; max-width: 980px; }
-
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; margin-bottom: 14px;
-    }
-
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
-      padding: 14px 16px;
-      border-radius: 999px;
+      padding: 14px 16px; border-radius: 999px;
       background: rgba(2,6,23,.55);
       border: 1px solid var(--stroke);
       backdrop-filter: blur(10px);
       box-shadow: var(--glow);
     }
     .diamond{
-      width: 34px; height: 34px;
-      display:grid; place-items:center;
+      width: 34px; height: 34px; display:grid; place-items:center;
       border-radius: 12px;
       background: rgba(0,194,255,.12);
       border: 1px solid rgba(0,194,255,.25);
@@ -68,52 +52,27 @@
     .brand p{ margin:0; font-size: 12px; color: var(--muted); margin-top:2px; }
 
     .right{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-
     .pill{
       display:flex; gap:10px; align-items:center;
-      padding: 10px 12px;
-      border-radius: 999px;
+      padding: 10px 12px; border-radius: 999px;
       background: rgba(2,6,23,.55);
       border: 1px solid var(--stroke);
       backdrop-filter: blur(10px);
       color: var(--muted);
       font-size: 12px;
     }
-
     .btn{
-      border:none; cursor:pointer;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 700;
-      font-size: 13px;
+      border:none; cursor:pointer; border-radius: 12px;
+      padding: 10px 14px; font-weight: 700; font-size: 13px;
       transition: transform .06s ease, opacity .2s ease;
       display:inline-flex; align-items:center; justify-content:center; gap:8px;
     }
     .btn:active{ transform: translateY(1px); }
-    .btn-primary{
-      background: linear-gradient(180deg, var(--cyan2), var(--cyan));
-      color:#001018;
-      box-shadow: 0 16px 60px rgba(0,194,255,.20);
-    }
-    .btn-danger{
-      background: linear-gradient(180deg, #ff6b6b, var(--red));
-      color:#fff;
-      box-shadow: 0 16px 60px rgba(239,68,68,.20);
-    }
-    .btn-ghost{
-      background: rgba(148,163,184,.10);
-      color: var(--text);
-      border: 1px solid var(--stroke);
-    }
-
-    .tabs{
-      display:flex; gap:10px; align-items:center;
-      margin: 10px 0 16px;
-    }
-
+    .btn-primary{ background: linear-gradient(180deg, var(--cyan2), var(--cyan)); color:#001018; box-shadow: 0 16px 60px rgba(0,194,255,.20); }
+    .btn-danger{ background: linear-gradient(180deg, #ff6b6b, var(--red)); color:#fff; box-shadow: 0 16px 60px rgba(239,68,68,.20); }
+    .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; }
     .tab{
-      padding: 10px 14px;
-      border-radius: 999px;
+      padding: 10px 14px; border-radius: 999px;
       border: 1px solid var(--stroke);
       background: rgba(2,6,23,.45);
       color: var(--muted);
@@ -121,12 +80,7 @@
       font-weight: 800;
       font-size: 12px;
     }
-    .tab.active{
-      background: rgba(0,194,255,.14);
-      border-color: rgba(0,194,255,.25);
-      color: var(--text);
-      box-shadow: 0 0 0 1px rgba(0,194,255,.10);
-    }
+    .tab.active{ background: rgba(0,194,255,.14); border-color: rgba(0,194,255,.25); color: var(--text); box-shadow: 0 0 0 1px rgba(0,194,255,.10); }
 
     .grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
     @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
@@ -151,23 +105,16 @@
     .field{ display:flex; flex-direction:column; gap:6px; margin-bottom: 12px; }
     label{ font-size: 12px; color: var(--muted); }
     input{
-      width:100%;
-      padding: 12px 12px;
-      border-radius: 12px;
+      width:100%; padding: 12px 12px; border-radius: 12px;
       border: 1px solid rgba(148,163,184,.14);
       background: rgba(2,6,23,.55);
       color: var(--text);
       outline: none;
     }
     input::placeholder{ color: rgba(226,232,240,.45); }
-    input:focus{
-      border-color: rgba(0,194,255,.35);
-      box-shadow: 0 0 0 4px rgba(0,194,255,.10);
-    }
-
+    input:focus{ border-color: rgba(0,194,255,.35); box-shadow: 0 0 0 4px rgba(0,194,255,.10); }
     .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
-
     .hint{ font-size: 12px; color: rgba(226,232,240,.55); margin-top: 4px; }
 
     .summary{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -203,15 +150,11 @@
     .amount{ font-weight: 900; white-space: nowrap; font-size: 14px; }
     .amount.pos{ color: var(--green); }
     .amount.neg{ color: #ff8080; }
-
     .empty{ padding: 18px 16px; color: rgba(226,232,240,.60); font-size: 13px; }
     .hidden{ display:none; }
 
-    /* Progress */
     .barWrap{
-      width: 100%;
-      height: 12px;
-      border-radius: 999px;
+      width: 100%; height: 12px; border-radius: 999px;
       background: rgba(148,163,184,.10);
       border: 1px solid rgba(148,163,184,.10);
       overflow:hidden;
@@ -223,12 +166,27 @@
       border-radius: 999px;
       transition: width .25s ease;
     }
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .twoCol{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 720px){ .twoCol{ grid-template-columns: 1fr; } }
+
+    .toast{
+      position: fixed;
+      left: 18px;
+      bottom: 18px;
+      max-width: 560px;
+      background: rgba(2,6,23,.88);
+      border: 1px solid rgba(148,163,184,.18);
+      border-radius: 14px;
+      padding: 12px 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      display:none;
+      gap:10px;
+      align-items:flex-start;
+      z-index: 9999;
+    }
+    .toast.show{ display:flex; }
+    .toast b{ display:block; margin-bottom:2px; }
+    .toast .small{ font-size: 12px; color: rgba(226,232,240,.70); }
   </style>
 </head>
 
@@ -263,7 +221,7 @@
       </div>
       <div class="body">
         <button class="btn btn-primary" id="btnLogin" type="button">Entrar com Google</button>
-        <div class="hint">Dica: use sempre o domínio <strong>Production</strong> do seu projeto na Vercel.</div>
+        <div class="hint">Use sempre o domínio <strong>Production</strong> do seu projeto na Vercel.</div>
       </div>
     </div>
 
@@ -298,7 +256,7 @@
 
           <div class="summary">
             <div class="kpi">
-              <div class="k">Saldo (mês selecionado)</div>
+              <div class="k">Saldo (mês)</div>
               <div class="v" id="kpiSaldo">R$ 0,00</div>
             </div>
             <div class="kpi">
@@ -353,7 +311,7 @@
               <div class="v" id="metaKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
-              <div class="k">Já ganhei</div>
+              <div class="k">Já ganhei (saldo do mês)</div>
               <div class="v green" id="ganheiKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
@@ -378,6 +336,14 @@
       </div>
     </div>
 
+  </div>
+
+  <div class="toast" id="toast">
+    <div>⚠️</div>
+    <div>
+      <b id="toastTitle">Erro</b>
+      <div class="small" id="toastMsg"></div>
+    </div>
   </div>
 
   <script>
@@ -411,7 +377,7 @@
     const kpiSaldo = document.getElementById("kpiSaldo");
     const kpiQtd = document.getElementById("kpiQtd");
 
-    // Metas UI
+    // Metas
     const metaMesEl = document.getElementById("metaMes");
     const metaValorEl = document.getElementById("metaValor");
     const btnSalvarMeta = document.getElementById("btnSalvarMeta");
@@ -423,7 +389,20 @@
     const bar = document.getElementById("bar");
     const progressText = document.getElementById("progressText");
 
+    const toast = document.getElementById("toast");
+    const toastTitle = document.getElementById("toastTitle");
+    const toastMsg = document.getElementById("toastMsg");
+    let toastTimer = null;
+
     let currentUser = null;
+
+    function showToast(title, msg){
+      toastTitle.textContent = title;
+      toastMsg.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 5500);
+    }
 
     function brl(n){
       return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
@@ -443,7 +422,6 @@
     }
 
     function parseMesMMYYYY(mes){
-      // "02/2026" -> {mm:2, yyyy:2026}
       const m = (mes || "").trim();
       const parts = m.split("/");
       if (parts.length !== 2) return null;
@@ -461,7 +439,7 @@
       const now = new Date();
       const isCurrent = (now.getFullYear() === yyyy && (now.getMonth()+1) === mm);
       const dim = daysInMonth(mm, yyyy);
-      if (!isCurrent) return dim; // para meses passados/futuros, usa total do mês
+      if (!isCurrent) return dim;
       return Math.max(dim - now.getDate() + 1, 1);
     }
 
@@ -503,52 +481,51 @@
       }
     }
 
-    async function carregarRegistros(userId, mesFiltro){
+    // Busca registros (não mexe na UI)
+    async function fetchRegistros(userId, mesFiltro){
       const { data, error } = await supa
         .from("registros")
-        .select("*")
+        .select("id, descricao, valor, mes")
         .eq("user_id", userId)
         .eq("mes", mesFiltro)
         .order("id", { ascending: false });
 
-      if (error){
-        listaEl.innerHTML = `<div class="empty">Erro ao carregar: ${escapeHtml(error.message)}</div>`;
-        return { rows: [], saldo: 0 };
-      }
+      if (error) throw error;
 
       const rows = data || [];
-      kpiQtd.textContent = String(rows.length);
-
       let saldo = 0;
       rows.forEach(r => saldo += Number(r.valor || 0));
+      return { rows, saldo };
+    }
 
+    function renderFinancas(rows, saldo){
+      kpiQtd.textContent = String(rows.length);
       kpiSaldo.textContent = brl(saldo);
       kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
 
       if (rows.length === 0){
         listaEl.innerHTML = `<div class="empty">Nenhum registro neste mês.</div>`;
-      } else {
-        listaEl.innerHTML = rows.map(r => {
-          const desc = (r.descricao ?? r["descrição"] ?? "").toString();
-          const mes  = (r.mes ?? "").toString();
-          const val  = Number(r.valor || 0);
-          const cls  = val >= 0 ? "pos" : "neg";
-          return `
-            <div class="item">
-              <div class="leftcol">
-                <div class="desc">${escapeHtml(desc)}</div>
-                <div class="meta"><span class="badge">${escapeHtml(mes)}</span></div>
-              </div>
-              <div class="amount ${cls}">${brl(val)}</div>
-            </div>
-          `;
-        }).join("");
+        return;
       }
 
-      return { rows, saldo };
+      listaEl.innerHTML = rows.map(r => {
+        const desc = (r.descricao ?? "").toString();
+        const mes  = (r.mes ?? "").toString();
+        const val  = Number(r.valor || 0);
+        const cls  = val >= 0 ? "pos" : "neg";
+        return `
+          <div class="item">
+            <div class="leftcol">
+              <div class="desc">${escapeHtml(desc)}</div>
+              <div class="meta"><span class="badge">${escapeHtml(mes)}</span></div>
+            </div>
+            <div class="amount ${cls}">${brl(val)}</div>
+          </div>
+        `;
+      }).join("");
     }
 
-    // CONFIG (metas)
+    // Config/metas
     async function getMeta(userId, mes){
       const { data, error } = await supa
         .from("config")
@@ -557,7 +534,7 @@
         .eq("mes", mes)
         .maybeSingle();
 
-      if (error) return 0;
+      if (error) throw error;
       return Number(data?.meta || 0);
     }
 
@@ -570,10 +547,9 @@
     }
 
     async function atualizarMetasUI(mes){
-      // usa saldo do mês como "já ganhei"
-      const { saldo } = await carregarRegistros(currentUser.id, mes);
-
       const meta = await getMeta(currentUser.id, mes);
+      const { saldo } = await fetchRegistros(currentUser.id, mes);
+
       metaKpi.textContent = brl(meta);
       ganheiKpi.textContent = brl(saldo);
 
@@ -583,7 +559,6 @@
       const parsed = parseMesMMYYYY(mes);
       const dias = parsed ? remainingDays(parsed.mm, parsed.yyyy) : 30;
       const mediaDia = dias > 0 ? (falta / dias) : falta;
-
       mediaDiaKpi.textContent = brl(mediaDia);
 
       const perc = meta > 0 ? Math.min((saldo / meta) * 100, 999) : 0;
@@ -604,23 +579,34 @@
       currentUser = session.user;
       showApp(session.user.email);
 
-      // defaults
       const mesDefault = getDefaultMesMMYYYY();
       if (!mesEl.value) mesEl.value = mesDefault;
       if (!metaMesEl.value) metaMesEl.value = mesDefault;
 
-      // carrega finanças do mês atual do input
-      await carregarRegistros(currentUser.id, mesEl.value.trim());
+      try{
+        const mesFin = mesEl.value.trim();
+        const fin = await fetchRegistros(currentUser.id, mesFin);
+        renderFinancas(fin.rows, fin.saldo);
+      }catch(e){
+        showToast("Finanças não carregou", e.message || String(e));
+      }
 
-      // metas
-      await atualizarMetasUI(metaMesEl.value.trim());
+      try{
+        await atualizarMetasUI(metaMesEl.value.trim());
+      }catch(e){
+        showToast("Meta não carregou", e.message || String(e));
+      }
     }
 
     // Tabs
     tabFin.addEventListener("click", () => activateTab("fin"));
     tabMeta.addEventListener("click", async () => {
       activateTab("meta");
-      if (currentUser) await atualizarMetasUI(metaMesEl.value.trim());
+      if (currentUser){
+        try{ await atualizarMetasUI(metaMesEl.value.trim()); }catch(e){
+          showToast("Meta", e.message || String(e));
+        }
+      }
     });
 
     // Login
@@ -629,7 +615,7 @@
         provider: "google",
         options: { redirectTo: window.location.origin }
       });
-      if (error){ alert("Erro no login: " + error.message); console.error(error); }
+      if (error) showToast("Erro no login", error.message);
     });
 
     // Salvar lançamento
@@ -641,33 +627,43 @@
       const mes = mesEl.value.trim();
 
       if (!descricao || !mes || Number.isNaN(valor)){
-        alert("Preencha descrição, valor e mês.");
+        showToast("Preenchimento", "Preencha descrição, valor e mês.");
         return;
       }
 
-      // tenta salvar em "descricao"; se sua coluna for "descrição", tenta também
-      let { error } = await supa.from("registros").insert({
-        user_id: currentUser.id, descricao, valor, mes
+      const { error } = await supa.from("registros").insert({
+        user_id: currentUser.id,
+        descricao,
+        valor,
+        mes
       });
 
       if (error){
-        const { error: e2 } = await supa.from("registros").insert({
-          user_id: currentUser.id, "descrição": descricao, valor, mes
-        });
-        if (e2){ alert("Erro ao salvar: " + e2.message); console.error(e2); return; }
+        showToast("Não salvou (registros)", error.message);
+        return;
       }
 
       descricaoEl.value = "";
       valorEl.value = "";
-      // mantém o mes
-      await carregarRegistros(currentUser.id, mes);
-      await atualizarMetasUI(metaMesEl.value.trim());
+
+      try{
+        const fin = await fetchRegistros(currentUser.id, mes);
+        renderFinancas(fin.rows, fin.saldo);
+        await atualizarMetasUI(metaMesEl.value.trim());
+      }catch(e){
+        showToast("Atualização", e.message || String(e));
+      }
     });
 
-    // Atualiza quando muda mês no input (finanças)
+    // Muda mês em Finanças
     mesEl.addEventListener("change", async () => {
       if (!currentUser) return;
-      await carregarRegistros(currentUser.id, mesEl.value.trim());
+      try{
+        const fin = await fetchRegistros(currentUser.id, mesEl.value.trim());
+        renderFinancas(fin.rows, fin.saldo);
+      }catch(e){
+        showToast("Filtro de mês", e.message || String(e));
+      }
     });
 
     // Salvar meta
@@ -678,33 +674,31 @@
       const meta = Number(metaValorEl.value);
 
       if (!mes || Number.isNaN(meta) || meta < 0){
-        alert("Preencha o mês e uma meta válida (>= 0).");
+        showToast("Meta inválida", "Preencha o mês e uma meta válida (>= 0).");
         return;
       }
 
       try{
         await upsertMeta(currentUser.id, mes, meta);
         await atualizarMetasUI(mes);
-        alert("Meta salva com sucesso!");
+        showToast("Meta salva ✅", "Sua meta foi salva no Supabase.");
       }catch(e){
-        alert("Erro ao salvar meta: " + e.message);
-        console.error(e);
+        showToast("Não salvou (meta)", e.message || String(e));
       }
     });
 
-    // Atualiza painel quando muda mês das metas
     metaMesEl.addEventListener("change", async () => {
       if (!currentUser) return;
-      await atualizarMetasUI(metaMesEl.value.trim());
+      try{ await atualizarMetasUI(metaMesEl.value.trim()); }catch(e){
+        showToast("Meta", e.message || String(e));
+      }
     });
 
-    // Sair
     btnSair.addEventListener("click", async () => {
       await supa.auth.signOut();
       location.href = "/";
     });
 
-    // Inicialização
     (async () => {
       await captureTokenIfPresent();
       activateTab("fin");
