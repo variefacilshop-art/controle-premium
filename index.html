@@ -33,7 +33,6 @@
       padding: 34px 18px;
     }
     .wrap{ width: 100%; max-width: 980px; }
-
     .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
@@ -51,7 +50,6 @@
     }
     .brand h1{ margin:0; font-size: 16px; letter-spacing:.2px; }
     .brand p{ margin:0; font-size: 12px; color: var(--muted); margin-top:2px; }
-
     .right{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
     .pill{
       display:flex; gap:10px; align-items:center;
@@ -62,7 +60,6 @@
       color: var(--muted);
       font-size: 12px;
     }
-
     .btn{
       border:none; cursor:pointer; border-radius: 12px;
       padding: 10px 14px; font-weight: 900; font-size: 13px;
@@ -228,7 +225,7 @@
       </div>
       <div class="body">
         <button class="btn btn-primary" id="btnLogin" type="button">Entrar com Google</button>
-        <div class="hint">Se aparecer “sumiu tudo”, é cache: aperte <strong>Ctrl + Shift + R</strong>.</div>
+        <div class="hint">Cache: <strong>Ctrl + Shift + R</strong></div>
       </div>
     </div>
 
@@ -244,7 +241,6 @@
           <div class="field">
             <label>Mês selecionado (filtro)</label>
             <select id="mesSelect"></select>
-            <div class="hint">O resumo e a lista mostram apenas este mês.</div>
           </div>
 
           <div class="row">
@@ -260,7 +256,7 @@
 
           <div class="field">
             <label>Descrição</label>
-            <input id="descricao" placeholder="Ex: Salário, Mercado, Uber..." />
+            <input id="descricao" placeholder="Ex: Venda, Mercado, Uber..." />
           </div>
 
           <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
@@ -306,7 +302,7 @@
       <div class="card">
         <div class="head">
           <h2>Metas & Progresso</h2>
-          <span>Meta mensal</span>
+          <span>Progresso conta só ENTRADAS</span>
         </div>
         <div class="body">
 
@@ -314,6 +310,7 @@
             <div class="field">
               <label>Mês da meta (MM/AAAA)</label>
               <input id="metaMes" placeholder="Ex: 02/2026" />
+              <div class="hint">Sincroniza com o mês selecionado nas Finanças.</div>
             </div>
             <div class="field">
               <label>Meta do mês (R$)</label>
@@ -331,7 +328,7 @@
               <div class="v" id="metaKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
-              <div class="k">Saldo do mês</div>
+              <div class="k">Entradas do mês</div>
               <div class="v green" id="ganheiKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
@@ -367,7 +364,6 @@
   </div>
 
 <script>
-  // ✅ TROQUE SÓ A ANON KEY
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
@@ -375,7 +371,6 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
-  // UI
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
@@ -401,6 +396,7 @@
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
   const btnSalvarMeta = document.getElementById("btnSalvarMeta");
+
   const metaKpi = document.getElementById("metaKpi");
   const ganheiKpi = document.getElementById("ganheiKpi");
   const faltaKpi = document.getElementById("faltaKpi");
@@ -424,13 +420,10 @@
     toastTimer = setTimeout(() => toast.classList.remove("show"), 6500);
   }
 
-  window.addEventListener("error", (e) => {
-    showToast("Erro no site", e.message || "Erro desconhecido");
-  });
-
   function brl(n){
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
   }
+
   function escapeHtml(str){
     return (str || "").toString().replace(/[&<>"']/g, m => ({
       "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
@@ -494,9 +487,8 @@
     tabs.classList.remove("hidden");
     btnSair.classList.remove("hidden");
     pillEmail.textContent = email || "Logado";
+    forceShowFinancas();
   }
-
-  // ✅ MODO SEGURANÇA: sempre mostra alguma coisa
   function forceShowFinancas(){
     tabFin.classList.add("active");
     tabMeta.classList.remove("active");
@@ -623,14 +615,17 @@
     if (error) throw error;
   }
 
+  // ✅ AQUI está a correção: usar somente ENTRADAS para bater meta
   async function atualizarMetasUI(mes){
     const meta = await getMeta(currentUser.id, mes);
     const fin = await fetchRegistrosByMonth(currentUser.id, mes);
 
-    metaKpi.textContent = brl(meta);
-    ganheiKpi.textContent = brl(fin.saldo);
+    const entradasMes = fin.entradas; // SOMENTE valores positivos
 
-    const falta = Math.max(meta - fin.saldo, 0);
+    metaKpi.textContent = brl(meta);
+    ganheiKpi.textContent = brl(entradasMes);
+
+    const falta = Math.max(meta - entradasMes, 0);
     faltaKpi.textContent = brl(falta);
 
     const p = parseMonthKey(mes);
@@ -638,7 +633,7 @@
     const mediaDia = dias > 0 ? (falta / dias) : falta;
     mediaDiaKpi.textContent = brl(mediaDia);
 
-    const perc = meta > 0 ? Math.min((fin.saldo / meta) * 100, 999) : 0;
+    const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
   }
@@ -656,27 +651,21 @@
     currentUser = session.user;
     showApp(session.user.email);
 
-    // ✅ garante que NÃO some tudo
-    forceShowFinancas();
-
     if (!dataEl.value) dataEl.value = getTodayBR();
 
-    // meses
     let months = [getDefaultMonth()];
     try{
       months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
     }catch(e){
-      showToast("Aviso", "Não consegui carregar lista de meses ainda.");
+      showToast("Aviso", "Não consegui carregar meses ainda.");
     }
 
     const desired = currentMonth || getDefaultMonth();
     fillMonthDropdown(months, desired);
     currentMonth = mesSelect.value || getDefaultMonth();
 
-    // sincroniza metas com o mês selecionado
     metaMesEl.value = currentMonth;
 
-    // carrega finanças e metas (se der erro, não esconde nada)
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       renderFinancas(fin);
@@ -687,11 +676,10 @@
     try{
       await atualizarMetasUI(currentMonth);
     }catch(e){
-      // não quebra a tela
+      // não quebra tela
     }
   }
 
-  // Eventos
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => {
     showMetas();
@@ -779,8 +767,6 @@
 
   (async () => {
     await captureTokenIfPresent();
-    // ✅ força abrir Finanças imediatamente
-    forceShowFinancas();
     await refreshUI();
   })();
 
