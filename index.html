@@ -382,6 +382,26 @@
 
           <div style="height:14px"></div>
 
+          <!-- KPIs (IMPORTANTE: isso evita o erro e mostra os números) -->
+          <div class="summary">
+            <div class="kpi">
+              <div class="k">Entradas</div>
+              <div class="v green" id="kpiEntradas">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Saídas</div>
+              <div class="v red" id="kpiSaidas">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Saldo</div>
+              <div class="v" id="kpiSaldo">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Registros</div>
+              <div class="v" id="kpiQtd">0</div>
+            </div>
+          </div>
+
           <div class="catBox">
             <div class="dropZone" id="dropZone">
               <div>
@@ -393,7 +413,7 @@
                 <button class="btn btn-ghost" id="btnImportar" type="button">Selecionar arquivo</button>
               </div>
             </div>
-            <div class="hint" id="importInfo">Dica: você pode exportar CSV aqui mesmo e reimportar depois.</div>
+            <div class="hint" id="importInfo">Você pode arrastar o arquivo CSV aqui também.</div>
           </div>
 
         </div>
@@ -615,7 +635,7 @@
 
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"; // <- cole aqui a sua anon key
 
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -647,24 +667,22 @@
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
 
+  // KPIs
+  const kpiEntradas = document.getElementById("kpiEntradas");
+  const kpiSaidas = document.getElementById("kpiSaidas");
+  const kpiSaldo = document.getElementById("kpiSaldo");
+  const kpiQtd = document.getElementById("kpiQtd");
+
   // Import
   const dropZone = document.getElementById("dropZone");
   const fileCsv = document.getElementById("fileCsv");
   const btnImportar = document.getElementById("btnImportar");
   const importInfo = document.getElementById("importInfo");
 
-  const kpiEntradas = document.getElementById("kpiEntradas");
-  const kpiSaidas = document.getElementById("kpiSaidas");
-  const kpiSaldo = document.getElementById("kpiSaldo");
-  const kpiQtd = document.getElementById("kpiQtd");
-
-  const catResumoEl = document.getElementById("catResumo");
-  const catHint = document.getElementById("catHint");
-
+  // Metas
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
   const btnSalvarMeta = document.getElementById("btnSalvarMeta");
-
   const metaKpi = document.getElementById("metaKpi");
   const ganheiKpi = document.getElementById("ganheiKpi");
   const faltaKpi = document.getElementById("faltaKpi");
@@ -672,6 +690,7 @@
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
 
+  // Toast
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
   const toastMsg = document.getElementById("toastMsg");
@@ -695,7 +714,7 @@
   const editCategoriaEl = document.getElementById("editCategoria");
   const editDescricaoEl = document.getElementById("editDescricao");
 
-  // Dashboard refs
+  // Dashboard
   const dashHint1 = document.getElementById("dashHint1");
   const dashHint2 = document.getElementById("dashHint2");
   const topCatsBox = document.getElementById("topCatsBox");
@@ -710,12 +729,10 @@
   let pendingDelete = null;
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
-
   let lastFinCache = null;
 
   let chartBars = null;
   let chartSaldo = null;
-
   let editingItem = null;
 
   function showToast(title, msg){
@@ -827,45 +844,6 @@
     metasBox.classList.add("hidden");
   }
 
-  function openModalDelete(item){
-    pendingDelete = item;
-    const tipoTxt = item.valor >= 0 ? "Entrada" : "Saída";
-    modalBody.innerHTML = `
-      <div>Você quer excluir este lançamento?</div>
-      <div style="height:10px"></div>
-      <div style="opacity:.9">
-        ${escapeHtml(tipoTxt)} • ${escapeHtml(formatISOToBR(item.dataISO))} • ${escapeHtml(item.mes || "")}
-      </div>
-      <div style="height:6px"></div>
-      <div><b>${escapeHtml(item.descricao)}</b></div>
-      <div style="height:6px"></div>
-      <div style="opacity:.85">Categoria: <b>${escapeHtml(item.categoria || "Outros")}</b></div>
-      <div style="height:6px"></div>
-      <div style="color:${item.valor>=0?'#22c55e':'#ff8080'};font-weight:900">${brl(item.valor)}</div>
-      <div style="height:10px"></div>
-      <div style="opacity:.75">Essa ação não pode ser desfeita.</div>
-    `;
-    modalOverlay.classList.add("show");
-  }
-  function closeModalDelete(){
-    modalOverlay.classList.remove("show");
-    pendingDelete = null;
-  }
-
-  function openEditModal(item){
-    editingItem = item;
-    editDataEl.value = formatISOToBR(item.dataISO);
-    editTipoEl.value = item.valor >= 0 ? "entrada" : "saida";
-    editValorEl.value = Math.abs(Number(item.valor || 0));
-    editCategoriaEl.value = item.categoria || "Outros";
-    editDescricaoEl.value = item.descricao || "";
-    editOverlay.classList.add("show");
-  }
-  function closeEditModal(){
-    editOverlay.classList.remove("show");
-    editingItem = null;
-  }
-
   async function captureTokenIfPresent(){
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       await supa.auth.getSessionFromUrl({ storeSession: true });
@@ -960,13 +938,12 @@
   function renderFinancas(fin){
     lastFinCache = fin;
 
+    // KPIs
     kpiEntradas.textContent = brl(fin.entradas);
     kpiSaidas.textContent = brl(fin.saidas);
     kpiSaldo.textContent = brl(fin.saldo);
     kpiSaldo.className = "v " + (fin.saldo >= 0 ? "green" : "red");
     kpiQtd.textContent = String(fin.rows.length);
-
-    catHint.textContent = `Mês: ${currentMonth}`;
 
     let filtered = fin.rows;
 
@@ -983,7 +960,7 @@
     }
 
     if (!filtered.length){
-      listaEl.innerHTML = `<div class="empty">Nenhum registro para este filtro.</div>`;
+      listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
       return;
     }
 
@@ -1011,7 +988,6 @@
               data-desc="${escapeHtml(r.descricao)}"
               data-valor="${escapeHtml(String(r.valor))}"
               data-data="${escapeHtml(String(r.dataISO))}"
-              data-mes="${escapeHtml(String(r.mes || ""))}"
               data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
             >✏️</button>
             <button class="btn btn-icon btn-icon-danger" type="button"
@@ -1021,7 +997,6 @@
               data-desc="${escapeHtml(r.descricao)}"
               data-valor="${escapeHtml(String(r.valor))}"
               data-data="${escapeHtml(String(r.dataISO))}"
-              data-mes="${escapeHtml(String(r.mes || ""))}"
               data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
             >🗑️</button>
           </div>
@@ -1069,24 +1044,6 @@
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
   }
 
-  async function deleteRegistroById(id){
-    const { error } = await supa
-      .from("registros")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", currentUser.id);
-    if (error) throw error;
-  }
-
-  async function updateRegistroById(id, patch){
-    const { error } = await supa
-      .from("registros")
-      .update(patch)
-      .eq("id", id)
-      .eq("user_id", currentUser.id);
-    if (error) throw error;
-  }
-
   function makeCSV(rows){
     const header = ["Data","Tipo","Categoria","Descrição","Valor"];
     const lines = [header];
@@ -1116,44 +1073,6 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-  }
-
-  function updateDashResumoFromCurrentMonth(){
-    const fin = lastFinCache;
-    if (!fin) return;
-
-    dashEntradas.textContent = brl(fin.entradas);
-    dashSaidas.textContent = brl(fin.saidas);
-    dashSaldo.textContent = brl(fin.saldo);
-    dashSaldo.className = "v " + (fin.saldo >= 0 ? "green" : "red");
-    dashQtd.textContent = String(fin.rows.length);
-    dashMonthLabel.textContent = `Mês: ${currentMonth || "-"}`;
-
-    const map = new Map();
-    for (const r of fin.rows){
-      const cat = r.categoria || "Outros";
-      if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
-      const obj = map.get(cat);
-      if (r.valor >= 0) obj.in += r.valor;
-      else obj.out += Math.abs(r.valor);
-    }
-    const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
-    arr.sort((a,b) => (b.out - a.out) || (b.in - a.in) || a.cat.localeCompare(b.cat,"pt-BR"));
-
-    if (!arr.length){
-      topCatsBox.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
-      return;
-    }
-    const top = arr.slice(0, 5);
-    topCatsBox.innerHTML = top.map(x => `
-      <div class="item" style="padding:10px 10px">
-        <div class="leftcol">
-          <div class="desc">${escapeHtml(x.cat)}</div>
-          <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
-        </div>
-        <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
-      </div>
-    `).join("");
   }
 
   async function fetchRegistrosForDashboardLastNMonths(userId, n){
@@ -1249,7 +1168,44 @@
 
       dashHint1.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
       dashHint2.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
-      updateDashResumoFromCurrentMonth();
+
+      // resumo do mês atual (usa cache)
+      if (lastFinCache){
+        dashEntradas.textContent = brl(lastFinCache.entradas);
+        dashSaidas.textContent = brl(lastFinCache.saidas);
+        dashSaldo.textContent = brl(lastFinCache.saldo);
+        dashSaldo.className = "v " + (lastFinCache.saldo >= 0 ? "green" : "red");
+        dashQtd.textContent = String(lastFinCache.rows.length);
+        dashMonthLabel.textContent = `Mês: ${currentMonth || "-"}`;
+      }
+
+      // top categorias
+      if (lastFinCache){
+        const map = new Map();
+        for (const r of lastFinCache.rows){
+          const cat = r.categoria || "Outros";
+          if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
+          const obj = map.get(cat);
+          if (r.valor >= 0) obj.in += r.valor;
+          else obj.out += Math.abs(r.valor);
+        }
+        const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
+        arr.sort((a,b) => (b.out - a.out) || (b.in - a.in) || a.cat.localeCompare(b.cat,"pt-BR"));
+        const top = arr.slice(0, 5);
+
+        topCatsBox.innerHTML = top.length ? top.map(x => `
+          <div class="item" style="padding:10px 10px">
+            <div class="leftcol">
+              <div class="desc">${escapeHtml(x.cat)}</div>
+              <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
+            </div>
+            <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
+          </div>
+        `).join("") : `<div class="empty">Sem dados ainda.</div>`;
+      } else {
+        topCatsBox.innerHTML = `<div class="empty">Sem dados ainda.</div>`;
+      }
+
     } catch(e){
       showToast("Dashboard", e.message || String(e));
       dashHint1.textContent = "Não foi possível carregar.";
@@ -1288,7 +1244,6 @@
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
-      updateDashResumoFromCurrentMonth();
     }catch(e){
       showToast("Finanças", e.message || String(e));
     }
@@ -1377,7 +1332,7 @@
     await refreshDashboard();
   });
 
-  // Exportar CSV (respeita categoria + busca)
+  // Exportar CSV
   btnExportar.addEventListener("click", () => {
     if (!lastFinCache || !lastFinCache.rows) {
       showToast("Exportar", "Sem dados carregados para exportar.");
@@ -1402,15 +1357,13 @@
 
     const csv = makeCSV(rows);
     const safeMonth = (currentMonth || "mes").replace("/", "-");
-    const safeCat = (currentFiltroCategoria || "Todas").replace(/[^\wÀ-ÿ-]+/g, "_");
-    const safeSearch = (q ? ("busca_" + q) : "tudo").replace(/[^\wÀ-ÿ-]+/g, "_");
-    const filename = `controle-premium_${safeMonth}_${safeCat}_${safeSearch}.csv`;
+    const filename = `controle-premium_${safeMonth}.csv`;
 
     downloadCSV(csv, filename);
     showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
   });
 
-  // Editar/Excluir na lista
+  // Editar/Excluir
   listaEl.addEventListener("click", (e) => {
     const btnDel = e.target.closest("button[data-del='1']");
     const btnEdit = e.target.closest("button[data-edit='1']");
@@ -1421,10 +1374,15 @@
         descricao: btnEdit.getAttribute("data-desc"),
         valor: Number(btnEdit.getAttribute("data-valor")),
         dataISO: btnEdit.getAttribute("data-data"),
-        mes: btnEdit.getAttribute("data-mes"),
         categoria: btnEdit.getAttribute("data-cat")
       };
-      openEditModal(item);
+      editingItem = item;
+      editDataEl.value = formatISOToBR(item.dataISO);
+      editTipoEl.value = item.valor >= 0 ? "entrada" : "saida";
+      editValorEl.value = Math.abs(Number(item.valor || 0));
+      editCategoriaEl.value = item.categoria || "Outros";
+      editDescricaoEl.value = item.descricao || "";
+      editOverlay.classList.add("show");
       return;
     }
 
@@ -1434,15 +1392,34 @@
         descricao: btnDel.getAttribute("data-desc"),
         valor: Number(btnDel.getAttribute("data-valor")),
         dataISO: btnDel.getAttribute("data-data"),
-        mes: btnDel.getAttribute("data-mes"),
         categoria: btnDel.getAttribute("data-cat")
       };
-      openModalDelete(item);
+      pendingDelete = item;
+
+      modalBody.innerHTML = `
+        <div>Você quer excluir este lançamento?</div>
+        <div style="height:10px"></div>
+        <div style="opacity:.9">${escapeHtml(formatISOToBR(item.dataISO))}</div>
+        <div style="height:6px"></div>
+        <div><b>${escapeHtml(item.descricao)}</b></div>
+        <div style="height:6px"></div>
+        <div style="opacity:.85">Categoria: <b>${escapeHtml(item.categoria || "Outros")}</b></div>
+        <div style="height:6px"></div>
+        <div style="color:${item.valor>=0?'#22c55e':'#ff8080'};font-weight:900">${brl(item.valor)}</div>
+        <div style="height:10px"></div>
+        <div style="opacity:.75">Essa ação não pode ser desfeita.</div>
+      `;
+
+      modalOverlay.classList.add("show");
       return;
     }
   });
 
   // Modal excluir
+  function closeModalDelete(){
+    modalOverlay.classList.remove("show");
+    pendingDelete = null;
+  }
   btnModalClose.addEventListener("click", closeModalDelete);
   btnCancelar.addEventListener("click", closeModalDelete);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeModalDelete(); });
@@ -1462,6 +1439,10 @@
   });
 
   // Modal editar
+  function closeEditModal(){
+    editOverlay.classList.remove("show");
+    editingItem = null;
+  }
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
   editOverlay.addEventListener("click", (e) => { if (e.target === editOverlay) closeEditModal(); });
@@ -1492,6 +1473,7 @@
       const { error } = await supa.from("registros").update({
         data: dataISO, mes: mesAuto, valor: valorFinal, categoria, descricao
       }).eq("id", editingItem.id).eq("user_id", currentUser.id);
+
       if (error) throw error;
 
       closeEditModal();
@@ -1504,6 +1486,25 @@
     }
   });
 
+  // Metas - salvar
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser) return;
+
+    const mes = (metaMesEl.value || "").trim();
+    const meta = Number(metaValorEl.value);
+
+    if (!parseMonthKey(mes)){ showToast("Meta", "Mês inválido. Use MM/AAAA."); return; }
+    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite uma meta válida."); return; }
+
+    try{
+      await upsertMeta(currentUser.id, mes, meta);
+      showToast("Meta salva ✅", `Meta de ${mes} atualizada.`);
+      await atualizarMetasUI(currentMonth);
+    }catch(e){
+      showToast("Meta", e.message || String(e));
+    }
+  });
+
   // Sair
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
@@ -1512,34 +1513,27 @@
 
   // -------- IMPORT CSV --------
   function cleanMoneyToNumber(str){
-    // aceita: "R$ 1.234,56" "1234,56" "-100" "100.50"
     let s = String(str ?? "").trim();
     if (!s) return NaN;
     s = s.replace(/\s/g, "");
     s = s.replace("R$", "").replace("r$", "");
-    // se tiver vírgula, assume pt-BR
     if (s.includes(",")){
       s = s.replace(/\./g, "");
       s = s.replace(",", ".");
     }
-    // remove qualquer coisa que não seja número, . ou -
     s = s.replace(/[^0-9.-]/g, "");
     return Number(s);
   }
 
   function parseCSV(text){
-    // suporta ; (padrão) e , como separador (detecta)
     const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim() !== "");
     if (!lines.length) return { header: [], rows: [] };
-
     const first = lines[0];
     const sep = (first.split(";").length >= 3) ? ";" : ",";
     const header = first.split(sep).map(x => x.trim().replace(/^"|"$/g,""));
-
     const rows = [];
     for (let i=1;i<lines.length;i++){
       const raw = lines[i];
-      // parse simples (sem CSV complexo com ; dentro de aspas)
       const cols = raw.split(sep).map(x => x.trim().replace(/^"|"$/g,"").replace(/""/g,'"'));
       if (cols.every(c => c === "")) continue;
       rows.push(cols);
@@ -1550,15 +1544,14 @@
   function mapColumns(header){
     const norm = header.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
     const idx = (name) => norm.indexOf(name);
-
-    const map = {
+    const d = idx("descricao") >= 0 ? idx("descricao") : idx("descrição");
+    return {
       data: idx("data"),
       tipo: idx("tipo"),
       categoria: idx("categoria"),
-      descricao: idx("descricao") >= 0 ? idx("descricao") : idx("descrição"),
+      descricao: d,
       valor: idx("valor")
     };
-    return map;
   }
 
   async function importCSVFile(file){
@@ -1579,6 +1572,8 @@
 
     let ok = 0, bad = 0;
     const inserts = [];
+
+    let latestISO = null;
 
     for (const r of parsed.rows){
       const dataBR = r[col.data] ?? "";
@@ -1611,7 +1606,9 @@
         descricao,
         valor: valorFinal
       });
+
       ok++;
+      if (!latestISO || dataISO > latestISO) latestISO = dataISO;
     }
 
     if (!inserts.length){
@@ -1621,7 +1618,6 @@
 
     importInfo.textContent = `Importando… (${ok} válidas, ${bad} inválidas)`;
 
-    // insere em lotes para evitar limite
     const chunkSize = 200;
     let inserted = 0;
     try{
@@ -1631,10 +1627,15 @@
         if (error) throw error;
         inserted += chunk.length;
       }
+
+      // ir automaticamente para o mês mais recente do CSV
+      if (latestISO){
+        const d = new Date(latestISO + "T00:00:00");
+        currentMonth = monthKeyFromDateObj(d);
+      }
+
       importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
       showToast("Importação concluída ✅", `${inserted} lançamentos importados.`);
-      // vai para o mês do arquivo mais recente (se existir)
-      currentMonth = getDefaultMonth();
       await refreshUI();
       await refreshDashboard();
     }catch(e){
@@ -1650,14 +1651,8 @@
     fileCsv.value = "";
   });
 
-  // drag and drop
-  dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.style.borderColor = "rgba(0,194,255,.65)";
-  });
-  dropZone.addEventListener("dragleave", () => {
-    dropZone.style.borderColor = "rgba(0,194,255,.35)";
-  });
+  dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.style.borderColor = "rgba(0,194,255,.65)"; });
+  dropZone.addEventListener("dragleave", () => { dropZone.style.borderColor = "rgba(0,194,255,.35)"; });
   dropZone.addEventListener("drop", async (e) => {
     e.preventDefault();
     dropZone.style.borderColor = "rgba(0,194,255,.35)";
