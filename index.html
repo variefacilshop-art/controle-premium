@@ -7,6 +7,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+  <!-- PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
   <style>
     :root{
       --bg1:#020617; --bg2:#0b1225;
@@ -475,7 +479,8 @@
             <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
-          <div class="headActions">
+          <div class="headActions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btnPdfFin" type="button">📄 Gerar PDF</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
@@ -557,6 +562,8 @@
               <label style="display:block;margin-bottom:6px;color:rgba(226,232,240,.72);font-size:12px">Mês do Dashboard</label>
               <select id="dashMesSelect"></select>
             </div>
+
+            <button class="btn btn-ghost" id="btnPdfDash" type="button">📄 PDF do mês</button>
 
             <label class="toggle">
               <input id="chkComparar" type="checkbox" />
@@ -748,7 +755,7 @@
 
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"; // <- cole aqui sua anon key
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo"; // <- anon key
 
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -776,6 +783,7 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
+  const btnPdfFin = document.getElementById("btnPdfFin");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -836,6 +844,7 @@
   const btnAplicarComparacao = document.getElementById("btnAplicarComparacao");
 
   const dashMesSelect = document.getElementById("dashMesSelect");
+  const btnPdfDash = document.getElementById("btnPdfDash");
   const topCatsBox = document.getElementById("topCatsBox");
   const dashEntradas = document.getElementById("dashEntradas");
   const dashSaidas = document.getElementById("dashSaidas");
@@ -1220,6 +1229,207 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  // ===== PDF HELPERS =====
+  function safePdfName(mk){
+    return String(mk || "mes").replace("/", "-");
+  }
+  function buildAlertsForPdf({ mk, fin, meta }){
+    const alerts = [];
+    const p = parseMonthKey(mk);
+    const diasRest = p ? remainingDays(p.mm, p.yyyy) : 30;
+
+    if (meta > 0){
+      if (fin.entradas >= meta){
+        alerts.push(`Meta batida ✅ (Entradas ${brl(fin.entradas)} / Meta ${brl(meta)})`);
+      } else {
+        const falta = Math.max(meta - fin.entradas, 0);
+        const porDia = diasRest > 0 ? (falta / diasRest) : falta;
+        alerts.push(`Ritmo da meta 🎯: faltam ${brl(falta)} (~${brl(porDia)}/dia, ${diasRest} dias)`);
+      }
+    } else {
+      alerts.push(`Meta não definida ℹ️: defina em “Metas” para ${mk}.`);
+    }
+
+    if (fin.entradas > 0){
+      const percGasto = (fin.saidas / fin.entradas) * 100;
+      if (percGasto >= 100) alerts.push(`Gastos acima das entradas 🚨 (${percGasto.toFixed(1)}%)`);
+      else if (percGasto >= 80) alerts.push(`Gastos altos ⚠️ (${percGasto.toFixed(1)}%)`);
+      else if (percGasto <= 50) alerts.push(`Gastos controlados ✅ (${percGasto.toFixed(1)}%)`);
+      else alerts.push(`Relação gastos x entradas 📊 (${percGasto.toFixed(1)}%)`);
+    } else if (fin.saidas > 0){
+      alerts.push(`Sem entradas registradas ⚠️ (Saídas: ${brl(fin.saidas)})`);
+    } else {
+      alerts.push(`Sem movimentações ✅`);
+    }
+
+    if (fin.saldo < 0) alerts.push(`Saldo negativo 💸 (${brl(fin.saldo)})`);
+    else if (fin.saldo > 0 && fin.rows.length) alerts.push(`Saldo positivo 💰 (${brl(fin.saldo)})`);
+
+    return alerts;
+  }
+
+  async function generateMonthPDF({ mk, mode }){
+    // mode: "fin" | "dash"
+    if (!currentUser) { showToast("PDF", "Faça login primeiro."); return; }
+
+    try{
+      showToast("PDF", "Gerando…");
+
+      const fin = (lastFinCache && currentMonth === mk) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mk);
+
+      let meta = 0;
+      try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
+
+      const entradas = fin.entradas;
+      const saidas = fin.saidas;
+      const saldo = fin.saldo;
+      const qtd = fin.rows.length;
+
+      const falta = Math.max(meta - entradas, 0);
+      const perc = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const margin = 40;
+
+      // Header
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Controle Premium", margin, 54);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      const subtitle = mode === "dash" ? "Relatório (Dashboard)" : "Relatório (Finanças)";
+      doc.text(`${subtitle} • Mês: ${mk}`, margin, 74);
+      doc.text(`Usuário: ${currentUser.email || currentUser.id}`, margin, 90);
+
+      // KPI box
+      const boxY = 110;
+      const boxH = 78;
+      doc.setDrawColor(200);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(margin, boxY, pageW - margin*2, boxH, 8, 8);
+
+      const colW = (pageW - margin*2) / 4;
+      const kY = boxY + 24;
+      const vY = boxY + 52;
+
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10);
+      doc.text("ENTRADAS", margin + colW*0 + 10, kY);
+      doc.text("SAÍDAS",   margin + colW*1 + 10, kY);
+      doc.text("SALDO",    margin + colW*2 + 10, kY);
+      doc.text("REGISTROS",margin + colW*3 + 10, kY);
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(12);
+      doc.text(brl(entradas), margin + colW*0 + 10, vY);
+      doc.text(brl(saidas),   margin + colW*1 + 10, vY);
+      doc.text(brl(saldo),    margin + colW*2 + 10, vY);
+      doc.text(String(qtd),   margin + colW*3 + 10, vY);
+
+      // Meta section
+      let y = boxY + boxH + 26;
+
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(12);
+      doc.text("Meta do mês", margin, y);
+
+      y += 16;
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(11);
+      const metaLine = meta > 0
+        ? `Meta: ${brl(meta)} • Entradas: ${brl(entradas)} • Falta: ${brl(falta)} • Progresso: ${perc.toFixed(1)}%`
+        : `Meta: não definida para ${mk} (defina na aba “Metas”).`;
+      doc.text(metaLine, margin, y);
+
+      // Progress bar (visual simple)
+      y += 12;
+      if (meta > 0){
+        const barY = y + 10;
+        const barW = pageW - margin*2;
+        doc.setDrawColor(220);
+        doc.roundedRect(margin, barY, barW, 10, 6, 6);
+        const fillW = Math.max(0, Math.min(barW * (perc/100), barW));
+        doc.setFillColor(0, 194, 255);
+        doc.roundedRect(margin, barY, fillW, 10, 6, 6, "F");
+        y = barY + 24;
+      } else {
+        y += 18;
+      }
+
+      // Alerts (dashboard mode)
+      if (mode === "dash"){
+        doc.setFont("helvetica","bold");
+        doc.setFontSize(12);
+        doc.text("Alertas do mês", margin, y);
+        y += 14;
+
+        const alerts = buildAlertsForPdf({ mk, fin, meta });
+        doc.setFont("helvetica","normal");
+        doc.setFontSize(11);
+
+        const maxWidth = pageW - margin*2;
+        for (const a of alerts){
+          const lines = doc.splitTextToSize("• " + a, maxWidth);
+          doc.text(lines, margin, y);
+          y += lines.length * 14;
+          if (y > 740){
+            doc.addPage();
+            y = 60;
+          }
+        }
+        y += 8;
+      }
+
+      // Table
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(12);
+      doc.text("Lançamentos do mês", margin, y);
+      y += 10;
+
+      const bodyRows = fin.rows
+        .slice()
+        .sort((a,b) => (a.dataISO < b.dataISO ? 1 : -1))
+        .map(r => {
+          const tipo = r.valor >= 0 ? "Entrada" : "Saída";
+          const valor = brl(r.valor);
+          return [formatISOToBR(r.dataISO), tipo, (r.categoria || "Outros"), (r.descricao || ""), valor];
+        });
+
+      doc.autoTable({
+        startY: y + 8,
+        head: [["Data","Tipo","Categoria","Descrição","Valor"]],
+        body: bodyRows.length ? bodyRows : [["—","—","—","Sem dados no mês","—"]],
+        styles: { font: "helvetica", fontSize: 9, cellPadding: 4, overflow: "linebreak" },
+        headStyles: { fillColor: [2, 6, 23], textColor: [229, 231, 235] },
+        alternateRowStyles: { fillColor: [245,245,245] },
+        columnStyles: {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 60 },
+          2: { cellWidth: 90 },
+          3: { cellWidth: 240 },
+          4: { cellWidth: 70, halign: "right" },
+        },
+        margin: { left: margin, right: margin },
+        didDrawPage: (data) => {
+          const str = `Controle Premium • ${mk}`;
+          doc.setFontSize(9);
+          doc.setTextColor(120);
+          doc.text(str, margin, doc.internal.pageSize.getHeight() - 18);
+        }
+      });
+
+      const filename = `controle-premium_${safePdfName(mk)}_${mode}.pdf`;
+      doc.save(filename);
+
+      showToast("PDF gerado ✅", `Arquivo: ${filename}`);
+    }catch(e){
+      showToast("PDF", e.message || String(e));
+    }
   }
 
   // ===== DASHBOARD HELPERS =====
@@ -1713,8 +1923,17 @@
     showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
   });
 
-  // Editar/Excluir + Modais (mantidos como estavam) — por simplicidade:
-  // OBS: Se algo seu já estava funcionando aqui, mantém igual.
+  // PDF (Finanças)
+  btnPdfFin.addEventListener("click", async () => {
+    const mk = currentMonth || getDefaultMonth();
+    await generateMonthPDF({ mk, mode: "fin" });
+  });
+
+  // PDF (Dashboard)
+  btnPdfDash.addEventListener("click", async () => {
+    const mk = dashboardMonth || currentMonth || getDefaultMonth();
+    await generateMonthPDF({ mk, mode: "dash" });
+  });
 
   // Sair
   btnSair.addEventListener("click", async () => {
