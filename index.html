@@ -33,7 +33,7 @@
       display:flex; justify-content:center;
       padding: 34px 18px;
     }
-    .wrap{ width: 100%; max-width: 1080px; }
+    .wrap{ width: 100%; max-width: 1120px; }
     .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
     .brand{
       display:flex; align-items:center; gap:12px;
@@ -78,11 +78,17 @@
     .btn-icon{
       width: 36px; height: 36px; padding: 0;
       border-radius: 12px;
+      font-weight: 900;
     }
     .btn-icon-danger{
       background: rgba(239,68,68,.12);
       border: 1px solid rgba(239,68,68,.22);
       color: #ffb4b4;
+    }
+    .btn-icon-edit{
+      background: rgba(0,194,255,.10);
+      border: 1px solid rgba(0,194,255,.22);
+      color: rgba(200,245,255,.95);
     }
 
     .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; flex-wrap:wrap; }
@@ -226,7 +232,7 @@
     }
     .modalOverlay.show{ display:flex; }
     .modal{
-      width: 100%; max-width: 520px;
+      width: 100%; max-width: 560px;
       background: rgba(2,6,23,.92);
       border: 1px solid rgba(148,163,184,.18);
       border-radius: 18px;
@@ -280,6 +286,7 @@
       border: 1px solid rgba(148,163,184,.12);
       border-radius: 16px;
       padding: 12px;
+      height: 260px;
     }
 
     .topCats{
@@ -299,6 +306,13 @@
     .topTitle{ font-weight: 900; font-size: 13px; }
     .topSub{ font-size: 12px; color: rgba(226,232,240,.65); }
     .topVal{ font-weight: 900; white-space: nowrap; }
+
+    .searchBox{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      margin-top: 10px;
+    }
+    .searchBox input{ flex: 1; min-width: 220px; }
+    .smallNote{ font-size: 12px; color: rgba(226,232,240,.60); }
   </style>
 </head>
 
@@ -343,7 +357,7 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Categorias + Exportar CSV</span>
+          <span>Busca + Editar</span>
         </div>
         <div class="body">
 
@@ -438,10 +452,16 @@
         <div class="head">
           <div>
             <h2>Movimentações</h2>
-            <span>Exporta o mês (respeita filtro)</span>
+            <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions">
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
+          </div>
+        </div>
+        <div class="body" style="padding-top:12px">
+          <div class="searchBox">
+            <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
+            <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
           </div>
         </div>
         <div class="list" id="lista">
@@ -515,7 +535,7 @@
           </div>
           <div class="body">
             <div class="canvasWrap">
-              <canvas id="chartBars" height="130"></canvas>
+              <canvas id="chartBars"></canvas>
             </div>
             <div class="hint" id="dashHint1">Carregando…</div>
           </div>
@@ -528,7 +548,7 @@
           </div>
           <div class="body">
             <div class="canvasWrap">
-              <canvas id="chartSaldo" height="130"></canvas>
+              <canvas id="chartSaldo"></canvas>
             </div>
             <div class="hint" id="dashHint2">Carregando…</div>
           </div>
@@ -587,7 +607,7 @@
     </div>
   </div>
 
-  <!-- Modal confirmação -->
+  <!-- Modal confirmação EXCLUIR -->
   <div class="modalOverlay" id="modalOverlay">
     <div class="modal">
       <div class="modalHead">
@@ -598,6 +618,50 @@
       <div class="modalFoot">
         <button class="btn btn-ghost" id="btnCancelar" type="button">Cancelar</button>
         <button class="btn btn-danger" id="btnConfirmar" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal EDITAR -->
+  <div class="modalOverlay" id="editOverlay">
+    <div class="modal">
+      <div class="modalHead">
+        <h3>Editar lançamento</h3>
+        <button class="btn btn-ghost btn-icon" id="btnEditClose" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="row">
+          <div class="field">
+            <label>Data (DD/MM/AAAA)</label>
+            <input id="editData" />
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select id="editTipo">
+              <option value="entrada">Entrada</option>
+              <option value="saida">Saída</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Valor (R$)</label>
+            <input id="editValor" type="number" />
+          </div>
+          <div class="field">
+            <label>Categoria</label>
+            <input id="editCategoria" placeholder="Ex: Vendas, Mercado..." />
+          </div>
+        </div>
+        <div class="field">
+          <label>Descrição</label>
+          <input id="editDescricao" />
+        </div>
+        <div class="hint">Ao salvar, o mês (MM/AAAA) é recalculado pela data.</div>
+      </div>
+      <div class="modalFoot">
+        <button class="btn btn-ghost" id="btnEditCancelar" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="btnEditSalvar" type="button">Salvar alterações</button>
       </div>
     </div>
   </div>
@@ -633,6 +697,8 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const listaEl = document.getElementById("lista");
+  const buscaEl = document.getElementById("busca");
+  const buscaInfo = document.getElementById("buscaInfo");
 
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
@@ -658,17 +724,27 @@
   const toastMsg = document.getElementById("toastMsg");
   let toastTimer = null;
 
-  // Modal
+  // Modal excluir
   const modalOverlay = document.getElementById("modalOverlay");
   const modalBody = document.getElementById("modalBody");
   const btnModalClose = document.getElementById("btnModalClose");
   const btnCancelar = document.getElementById("btnCancelar");
   const btnConfirmar = document.getElementById("btnConfirmar");
 
+  // Modal editar
+  const editOverlay = document.getElementById("editOverlay");
+  const btnEditClose = document.getElementById("btnEditClose");
+  const btnEditCancelar = document.getElementById("btnEditCancelar");
+  const btnEditSalvar = document.getElementById("btnEditSalvar");
+  const editDataEl = document.getElementById("editData");
+  const editTipoEl = document.getElementById("editTipo");
+  const editValorEl = document.getElementById("editValor");
+  const editCategoriaEl = document.getElementById("editCategoria");
+  const editDescricaoEl = document.getElementById("editDescricao");
+
   // Dashboard refs
   const dashHint1 = document.getElementById("dashHint1");
   const dashHint2 = document.getElementById("dashHint2");
-  const dashHint3 = document.getElementById("dashHint3");
   const topCatsBox = document.getElementById("topCatsBox");
   const dashEntradas = document.getElementById("dashEntradas");
   const dashSaidas = document.getElementById("dashSaidas");
@@ -680,6 +756,7 @@
   let currentMonth = null;
   let pendingDelete = null;
   let currentFiltroCategoria = "Todas";
+  let currentSearch = "";
 
   // cache mês atual
   let lastFinCache = null;
@@ -687,6 +764,9 @@
   // charts
   let chartBars = null;
   let chartSaldo = null;
+
+  // edição
+  let editingItem = null;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -817,9 +897,25 @@
     `;
     modalOverlay.classList.add("show");
   }
-  function closeModal(){
+  function closeModalDelete(){
     modalOverlay.classList.remove("show");
     pendingDelete = null;
+  }
+
+  function openEditModal(item){
+    editingItem = item;
+
+    editDataEl.value = formatISOToBR(item.dataISO);
+    editTipoEl.value = item.valor >= 0 ? "entrada" : "saida";
+    editValorEl.value = Math.abs(Number(item.valor || 0));
+    editCategoriaEl.value = item.categoria || "Outros";
+    editDescricaoEl.value = item.descricao || "";
+
+    editOverlay.classList.add("show");
+  }
+  function closeEditModal(){
+    editOverlay.classList.remove("show");
+    editingItem = null;
   }
 
   async function captureTokenIfPresent(){
@@ -959,8 +1055,19 @@
     buildResumoCategorias(rows);
 
     let filtered = rows;
+
+    // filtro categoria
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
-      filtered = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+      filtered = filtered.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+
+    // busca descrição
+    const q = (currentSearch || "").trim().toLowerCase();
+    if (q){
+      filtered = filtered.filter(r => (r.descricao || "").toLowerCase().includes(q));
+      buscaInfo.textContent = `Filtrando: "${currentSearch}" • ${filtered.length} itens`;
+    } else {
+      buscaInfo.textContent = "Mostrando tudo";
     }
 
     if (!filtered.length){
@@ -985,6 +1092,16 @@
           </div>
           <div class="rightcol">
             <div class="amount ${cls}">${brl(r.valor)}</div>
+            <button class="btn btn-icon btn-icon-edit" type="button"
+              title="Editar"
+              data-edit="1"
+              data-id="${escapeHtml(String(r.id))}"
+              data-desc="${escapeHtml(r.descricao)}"
+              data-valor="${escapeHtml(String(r.valor))}"
+              data-data="${escapeHtml(String(r.dataISO))}"
+              data-mes="${escapeHtml(String(r.mes || ""))}"
+              data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
+            >✏️</button>
             <button class="btn btn-icon btn-icon-danger" type="button"
               title="Excluir"
               data-del="1"
@@ -1049,6 +1166,15 @@
     if (error) throw error;
   }
 
+  async function updateRegistroById(id, patch){
+    const { error } = await supa
+      .from("registros")
+      .update(patch)
+      .eq("id", id)
+      .eq("user_id", currentUser.id);
+    if (error) throw error;
+  }
+
   function makeCSV(rows){
     const header = ["Data","Tipo","Categoria","Descrição","Valor"];
     const lines = [header];
@@ -1092,8 +1218,7 @@
     dashQtd.textContent = String(fin.rows.length);
     dashMonthLabel.textContent = `Mês: ${currentMonth || "-"}`;
 
-    // Top categorias do mês (por saída e por entrada)
-    const map = new Map(); // cat -> {in, out}
+    const map = new Map();
     for (const r of fin.rows){
       const cat = r.categoria || "Outros";
       if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
@@ -1102,7 +1227,6 @@
       else obj.out += Math.abs(r.valor);
     }
     const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
-    // rank por maior saída (primeiro), depois por maior entrada
     arr.sort((a,b) => (b.out - a.out) || (b.in - a.in) || a.cat.localeCompare(b.cat,"pt-BR"));
 
     if (!arr.length){
@@ -1132,20 +1256,18 @@
 
     const { data, error } = await supa
       .from("registros")
-      .select("valor, data, categoria")
+      .select("valor, data")
       .eq("user_id", userId)
       .gte("data", r1.start)
       .lte("data", r2.end);
 
     if (error) throw error;
 
-    // agrupa por mês
     const init = {};
     for (const k of keys) init[k] = { entradas: 0, saidas: 0, saldo: 0 };
 
     for (const row of (data || [])){
       const iso = row.data;
-      // iso: yyyy-mm-dd
       const m = (iso || "").match(/^(\d{4})-(\d{2})-\d{2}$/);
       if (!m) continue;
       const mk = `${m[2]}/${m[1]}`;
@@ -1168,10 +1290,7 @@
         legend: { labels: { color: "rgba(226,232,240,.85)" } },
         tooltip: {
           callbacks: {
-            label: (ctx) => {
-              const v = ctx.raw;
-              return `${ctx.dataset.label}: ${brl(v)}`;
-            }
+            label: (ctx) => `${ctx.dataset.label}: ${brl(ctx.raw)}`
           }
         }
       },
@@ -1201,7 +1320,6 @@
       const saidasArr = keys.map(k => byMonth[k].saidas);
       const saldoArr = keys.map(k => byMonth[k].saldo);
 
-      // Charts
       const ctx1 = document.getElementById("chartBars");
       const ctx2 = document.getElementById("chartSaldo");
 
@@ -1243,8 +1361,6 @@
 
       dashHint1.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
       dashHint2.textContent = `Atualizado • ${keys[0]} → ${keys[keys.length-1]}`;
-
-      // resumo do mês selecionado (usa cache)
       updateDashResumoFromCurrentMonth();
 
     }catch(e){
@@ -1293,8 +1409,10 @@
 
     try{
       await atualizarMetasUI(currentMonth);
-    }catch(e){
-      // não quebra
+    }catch(e){}
+
+    if (document.body.contains(dashboardBox) && !dashboardBox.classList.contains("hidden")){
+      await refreshDashboard();
     }
   }
 
@@ -1328,14 +1446,18 @@
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
     await refreshUI();
-    // se estiver no dashboard, atualiza top categorias / resumo
-    updateDashResumoFromCurrentMonth();
   });
 
   // Troca filtro categoria
   filtroCategoriaEl.addEventListener("change", async () => {
     currentFiltroCategoria = filtroCategoriaEl.value;
     await refreshUI();
+  });
+
+  // Busca
+  buscaEl.addEventListener("input", async () => {
+    currentSearch = buscaEl.value;
+    if (lastFinCache) renderFinancas(lastFinCache);
   });
 
   // Salvar lançamento
@@ -1376,11 +1498,10 @@
     currentMonth = mesAuto;
 
     await refreshUI();
-    // atualiza dashboard (últimos 6 meses)
     await refreshDashboard();
   });
 
-  // Exportar CSV
+  // Exportar CSV (respeita categoria + busca)
   btnExportar.addEventListener("click", () => {
     if (!lastFinCache || !lastFinCache.rows) {
       showToast("Exportar", "Sem dados carregados para exportar.");
@@ -1388,19 +1509,26 @@
     }
 
     let rows = lastFinCache.rows;
+
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
       rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
     }
 
+    const q = (currentSearch || "").trim().toLowerCase();
+    if (q){
+      rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q));
+    }
+
     if (!rows.length){
-      showToast("Exportar", "Não há registros para exportar neste filtro.");
+      showToast("Exportar", "Não há registros para exportar neste filtro/busca.");
       return;
     }
 
     const csv = makeCSV(rows);
     const safeMonth = (currentMonth || "mes").replace("/", "-");
     const safeCat = (currentFiltroCategoria || "Todas").replace(/[^\wÀ-ÿ-]+/g, "_");
-    const filename = `controle-premium_${safeMonth}_${safeCat}.csv`;
+    const safeSearch = (q ? ("busca_" + q) : "tudo").replace(/[^\wÀ-ÿ-]+/g, "_");
+    const filename = `controle-premium_${safeMonth}_${safeCat}_${safeSearch}.csv`;
 
     downloadCSV(csv, filename);
     showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
@@ -1431,27 +1559,43 @@
     location.href = "/";
   });
 
-  // Clique na lixeira
+  // Clique na lista (editar/excluir)
   listaEl.addEventListener("click", (e) => {
-    const btn = e.target.closest("button[data-del='1']");
-    if (!btn) return;
+    const btnDel = e.target.closest("button[data-del='1']");
+    const btnEdit = e.target.closest("button[data-edit='1']");
 
-    const item = {
-      id: btn.getAttribute("data-id"),
-      descricao: btn.getAttribute("data-desc"),
-      valor: Number(btn.getAttribute("data-valor")),
-      dataISO: btn.getAttribute("data-data"),
-      mes: btn.getAttribute("data-mes"),
-      categoria: btn.getAttribute("data-cat")
-    };
-    openModalDelete(item);
+    if (btnEdit){
+      const item = {
+        id: btnEdit.getAttribute("data-id"),
+        descricao: btnEdit.getAttribute("data-desc"),
+        valor: Number(btnEdit.getAttribute("data-valor")),
+        dataISO: btnEdit.getAttribute("data-data"),
+        mes: btnEdit.getAttribute("data-mes"),
+        categoria: btnEdit.getAttribute("data-cat")
+      };
+      openEditModal(item);
+      return;
+    }
+
+    if (btnDel){
+      const item = {
+        id: btnDel.getAttribute("data-id"),
+        descricao: btnDel.getAttribute("data-desc"),
+        valor: Number(btnDel.getAttribute("data-valor")),
+        dataISO: btnDel.getAttribute("data-data"),
+        mes: btnDel.getAttribute("data-mes"),
+        categoria: btnDel.getAttribute("data-cat")
+      };
+      openModalDelete(item);
+      return;
+    }
   });
 
-  // Modal
-  btnModalClose.addEventListener("click", closeModal);
-  btnCancelar.addEventListener("click", closeModal);
+  // Modal excluir
+  btnModalClose.addEventListener("click", closeModalDelete);
+  btnCancelar.addEventListener("click", closeModalDelete);
   modalOverlay.addEventListener("click", (e) => {
-    if (e.target === modalOverlay) closeModal();
+    if (e.target === modalOverlay) closeModalDelete();
   });
 
   btnConfirmar.addEventListener("click", async () => {
@@ -1459,7 +1603,7 @@
 
     try{
       await deleteRegistroById(pendingDelete.id);
-      closeModal();
+      closeModalDelete();
       showToast("Excluído ✅", "Lançamento removido com sucesso.");
       await refreshUI();
       await refreshDashboard();
@@ -1468,13 +1612,63 @@
     }
   });
 
+  // Modal editar
+  btnEditClose.addEventListener("click", closeEditModal);
+  btnEditCancelar.addEventListener("click", closeEditModal);
+  editOverlay.addEventListener("click", (e) => {
+    if (e.target === editOverlay) closeEditModal();
+  });
+
+  btnEditSalvar.addEventListener("click", async () => {
+    if (!editingItem || !currentUser) return;
+
+    const dataBR = (editDataEl.value || "").trim();
+    const dataISO = parseBRDateToISO(dataBR);
+    if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
+
+    const tipo = editTipoEl.value;
+    const valorDigitado = Number(editValorEl.value);
+    if (Number.isNaN(valorDigitado) || valorDigitado <= 0){
+      showToast("Valor", "Digite um valor positivo.");
+      return;
+    }
+
+    const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
+    const categoria = (editCategoriaEl.value || "Outros").trim() || "Outros";
+    const descricao = (editDescricaoEl.value || "").trim();
+    if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
+
+    const d = new Date(dataISO + "T00:00:00");
+    const mesAuto = monthKeyFromDateObj(d);
+
+    try{
+      await updateRegistroById(editingItem.id, {
+        data: dataISO,
+        mes: mesAuto,
+        valor: valorFinal,
+        categoria,
+        descricao
+      });
+
+      closeEditModal();
+      showToast("Salvo ✅", "Lançamento atualizado.");
+
+      // se mudou de mês, mantém o seletor no novo mês
+      currentMonth = mesAuto;
+      await refreshUI();
+      await refreshDashboard();
+    }catch(e){
+      showToast("Editar", e.message || String(e));
+    }
+  });
+
   // Init
   (async () => {
     await captureTokenIfPresent();
     if (!dataEl.value) dataEl.value = getTodayBR();
     currentFiltroCategoria = "Todas";
+    currentSearch = "";
     await refreshUI();
-    // já prepara dashboard (sem mudar de aba)
     await refreshDashboard();
   })();
 
