@@ -4,24 +4,31 @@
   <meta charset="UTF-8" />
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
-      --bg1:#020617; --bg2:#0b1225;
+      --bg1:#020617;
+      --bg2:#0b1225;
       --card: rgba(7, 12, 26, .78);
       --card2: rgba(7, 12, 26, .60);
       --stroke: rgba(148, 163, 184, .14);
-      --text: #e5e7eb; --muted: rgba(226, 232, 240, .72);
-      --cyan:#00c2ff; --cyan2:#33d2ff;
-      --red:#ef4444; --green:#22c55e;
+      --text: #e5e7eb;
+      --muted: rgba(226, 232, 240, .72);
+      --cyan:#00c2ff;
+      --cyan2:#33d2ff;
+      --red:#ef4444;
+      --green:#22c55e;
       --shadow: 0 20px 80px rgba(0,0,0,.55);
       --glow: 0 0 0 1px rgba(0,194,255,.18), 0 0 60px rgba(0,194,255,.12);
       --radius: 18px;
     }
+
     *{box-sizing:border-box}
     body{
-      margin:0; min-height:100vh;
+      margin:0;
+      min-height:100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
       color:var(--text);
       background:
@@ -29,61 +36,136 @@
         radial-gradient(900px 700px at 90% 20%, rgba(99,102,241,.10), transparent 55%),
         radial-gradient(900px 700px at 40% 120%, rgba(34,197,94,.08), transparent 55%),
         linear-gradient(180deg, var(--bg2), var(--bg1));
-      display:flex; justify-content:center;
+      display:flex;
+      justify-content:center;
       padding: 34px 18px;
     }
+
     .wrap{ width: 100%; max-width: 980px; }
-    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 14px;}
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+
     .brand{
-      display:flex; align-items:center; gap:12px;
-      padding: 14px 16px; border-radius: 999px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding: 14px 16px;
+      border-radius: 999px;
       background: rgba(2,6,23,.55);
       border: 1px solid var(--stroke);
       backdrop-filter: blur(10px);
       box-shadow: var(--glow);
     }
     .diamond{
-      width: 34px; height: 34px; display:grid; place-items:center;
+      width: 34px;
+      height: 34px;
+      display:grid;
+      place-items:center;
       border-radius: 12px;
       background: rgba(0,194,255,.12);
       border: 1px solid rgba(0,194,255,.25);
     }
-    .brand h1{ margin:0; font-size: 16px; letter-spacing:.2px; }
-    .brand p{ margin:0; font-size: 12px; color: var(--muted); margin-top:2px; }
+    .brand h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
 
-    .right{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+    .right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
     .pill{
-      display:flex; gap:10px; align-items:center;
-      padding: 10px 12px; border-radius: 999px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      padding: 10px 12px;
+      border-radius: 999px;
       background: rgba(2,6,23,.55);
       border: 1px solid var(--stroke);
       backdrop-filter: blur(10px);
       color: var(--muted);
       font-size: 12px;
     }
+
     .btn{
-      border:none; cursor:pointer; border-radius: 12px;
-      padding: 10px 14px; font-weight: 700; font-size: 13px;
+      border:none;
+      cursor:pointer;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800;
+      font-size: 13px;
       transition: transform .06s ease, opacity .2s ease;
-      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
     }
     .btn:active{ transform: translateY(1px); }
-    .btn-primary{ background: linear-gradient(180deg, var(--cyan2), var(--cyan)); color:#001018; box-shadow: 0 16px 60px rgba(0,194,255,.20); }
-    .btn-danger{ background: linear-gradient(180deg, #ff6b6b, var(--red)); color:#fff; box-shadow: 0 16px 60px rgba(239,68,68,.20); }
-    .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; }
+    .btn-primary{
+      background: linear-gradient(180deg, var(--cyan2), var(--cyan));
+      color:#001018;
+      box-shadow: 0 16px 60px rgba(0,194,255,.20);
+    }
+    .btn-danger{
+      background: linear-gradient(180deg, #ff6b6b, var(--red));
+      color:#fff;
+      box-shadow: 0 16px 60px rgba(239,68,68,.20);
+    }
+    .btn-ghost{
+      background: rgba(148,163,184,.10);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+    }
+
+    .tabs{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      margin: 10px 0 16px;
+    }
+
     .tab{
-      padding: 10px 14px; border-radius: 999px;
+      padding: 10px 14px;
+      border-radius: 999px;
       border: 1px solid var(--stroke);
       background: rgba(2,6,23,.45);
       color: var(--muted);
       cursor:pointer;
-      font-weight: 800;
+      font-weight: 900;
       font-size: 12px;
     }
-    .tab.active{ background: rgba(0,194,255,.14); border-color: rgba(0,194,255,.25); color: var(--text); box-shadow: 0 0 0 1px rgba(0,194,255,.10); }
+    .tab.active{
+      background: rgba(0,194,255,.14);
+      border-color: rgba(0,194,255,.25);
+      color: var(--text);
+      box-shadow: 0 0 0 1px rgba(0,194,255,.10);
+    }
 
-    .grid{ display:grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
-    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
 
     .card{
       background: var(--card);
@@ -96,49 +178,118 @@
     .card .head{
       padding: 16px 16px 12px;
       border-bottom: 1px solid rgba(148,163,184,.10);
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
-    .card .head h2{ margin:0; font-size: 14px; letter-spacing:.2px; }
-    .card .head span{ color: var(--muted); font-size: 12px; }
+    .card .head h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .card .head span{
+      color: var(--muted);
+      font-size: 12px;
+    }
     .card .body{ padding: 16px; }
 
-    .field{ display:flex; flex-direction:column; gap:6px; margin-bottom: 12px; }
-    label{ font-size: 12px; color: var(--muted); }
-    input{
-      width:100%; padding: 12px 12px; border-radius: 12px;
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom: 12px;
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    input, select{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 12px;
       border: 1px solid rgba(148,163,184,.14);
       background: rgba(2,6,23,.55);
       color: var(--text);
       outline: none;
     }
+    select{ cursor:pointer; }
     input::placeholder{ color: rgba(226,232,240,.45); }
-    input:focus{ border-color: rgba(0,194,255,.35); box-shadow: 0 0 0 4px rgba(0,194,255,.10); }
-    .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
-    .hint{ font-size: 12px; color: rgba(226,232,240,.55); margin-top: 4px; }
+    input:focus, select:focus{
+      border-color: rgba(0,194,255,.35);
+      box-shadow: 0 0 0 4px rgba(0,194,255,.10);
+    }
 
-    .summary{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    .hint{
+      font-size: 12px;
+      color: rgba(226,232,240,.55);
+      margin-top: 4px;
+    }
+
+    .summary{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
     .kpi{
       background: var(--card2);
       border: 1px solid rgba(148,163,184,.10);
       border-radius: 16px;
       padding: 14px;
     }
-    .kpi .k{ font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-    .kpi .v{ font-size: 18px; font-weight: 800; letter-spacing:.2px; }
+    .kpi .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .kpi .v{
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
     .kpi .v.green{ color: var(--green); }
     .kpi .v.red{ color: #ff8080; }
 
-    .list{ max-height: 520px; overflow:auto; }
+    .list{
+      max-height: 560px;
+      overflow:auto;
+    }
     .item{
-      display:flex; justify-content:space-between; gap:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
       padding: 14px 16px;
       border-bottom: 1px solid rgba(148,163,184,.10);
     }
     .item:last-child{ border-bottom:none; }
-    .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; }
-    .desc{ font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .leftcol{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:0;
+    }
+    .desc{
+      font-weight: 800;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
     .badge{
       font-size: 11px;
       color: rgba(226,232,240,.75);
@@ -147,14 +298,27 @@
       border: 1px solid rgba(148,163,184,.14);
       background: rgba(2,6,23,.40);
     }
-    .amount{ font-weight: 900; white-space: nowrap; font-size: 14px; }
+    .amount{
+      font-weight: 900;
+      white-space: nowrap;
+      font-size: 14px;
+    }
     .amount.pos{ color: var(--green); }
     .amount.neg{ color: #ff8080; }
-    .empty{ padding: 18px 16px; color: rgba(226,232,240,.60); font-size: 13px; }
+
+    .empty{
+      padding: 18px 16px;
+      color: rgba(226,232,240,.60);
+      font-size: 13px;
+    }
+
     .hidden{ display:none; }
 
+    /* Progress */
     .barWrap{
-      width: 100%; height: 12px; border-radius: 999px;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
       background: rgba(148,163,184,.10);
       border: 1px solid rgba(148,163,184,.10);
       overflow:hidden;
@@ -166,15 +330,22 @@
       border-radius: 999px;
       transition: width .25s ease;
     }
-    .twoCol{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 720px){ .twoCol{ grid-template-columns: 1fr; } }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 720px){
+      .twoCol{ grid-template-columns: 1fr; }
+    }
 
     .toast{
       position: fixed;
       left: 18px;
       bottom: 18px;
       max-width: 560px;
-      background: rgba(2,6,23,.88);
+      background: rgba(2,6,23,.90);
       border: 1px solid rgba(148,163,184,.18);
       border-radius: 14px;
       padding: 12px 12px;
@@ -186,7 +357,7 @@
     }
     .toast.show{ display:flex; }
     .toast b{ display:block; margin-bottom:2px; }
-    .toast .small{ font-size: 12px; color: rgba(226,232,240,.70); }
+    .toast .small{ font-size: 12px; color: rgba(226,232,240,.75); }
   </style>
 </head>
 
@@ -227,26 +398,35 @@
 
     <!-- FINANÇAS -->
     <div class="grid hidden" id="financasBox">
+
+      <!-- ESQUERDA -->
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Entrada ou saída</span>
+          <span>Diário (DD/MM/AAAA)</span>
         </div>
         <div class="body">
+
           <div class="field">
-            <label>Descrição</label>
-            <input id="descricao" placeholder="Ex: Salário, Mercado, Uber..." />
+            <label>Mês selecionado (filtro)</label>
+            <select id="mesSelect"></select>
+            <div class="hint">O resumo e a lista mostram apenas este mês.</div>
           </div>
 
           <div class="row">
             <div class="field">
-              <label>Valor (R$)</label>
-              <input id="valor" type="number" placeholder="Ex: 120.50 (use negativo para saída)" />
+              <label>Data (DD/MM/AAAA)</label>
+              <input id="data" placeholder="Ex: 03/02/2026" />
             </div>
             <div class="field">
-              <label>Mês (MM/AAAA)</label>
-              <input id="mes" placeholder="Ex: 02/2026" />
+              <label>Valor (R$)</label>
+              <input id="valor" type="number" placeholder="Ex: 120.50 (negativo = saída)" />
             </div>
+          </div>
+
+          <div class="field">
+            <label>Descrição</label>
+            <input id="descricao" placeholder="Ex: Salário, Mercado, Uber..." />
           </div>
 
           <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
@@ -256,7 +436,15 @@
 
           <div class="summary">
             <div class="kpi">
-              <div class="k">Saldo (mês)</div>
+              <div class="k">Entradas</div>
+              <div class="v green" id="kpiEntradas">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Saídas</div>
+              <div class="v red" id="kpiSaidas">R$ 0,00</div>
+            </div>
+            <div class="kpi">
+              <div class="k">Saldo</div>
               <div class="v" id="kpiSaldo">R$ 0,00</div>
             </div>
             <div class="kpi">
@@ -264,16 +452,18 @@
               <div class="v" id="kpiQtd">0</div>
             </div>
           </div>
+
         </div>
       </div>
 
+      <!-- DIREITA -->
       <div class="card">
         <div class="head">
           <h2>Movimentações</h2>
-          <span>Mais recentes</span>
+          <span>Ordenado por data</span>
         </div>
         <div class="list" id="lista">
-          <div class="empty">Nenhum registro ainda.</div>
+          <div class="empty">Nenhum registro neste mês.</div>
         </div>
       </div>
     </div>
@@ -291,13 +481,12 @@
             <div class="field">
               <label>Mês da meta (MM/AAAA)</label>
               <input id="metaMes" placeholder="Ex: 02/2026" />
-              <div class="hint">Use o mesmo formato do campo “Mês” dos lançamentos.</div>
+              <div class="hint">A meta sempre é por mês.</div>
             </div>
 
             <div class="field">
               <label>Meta do mês (R$)</label>
               <input id="metaValor" type="number" placeholder="Ex: 3000" />
-              <div class="hint">Ex: 3000 significa R$ 3.000,00</div>
             </div>
           </div>
 
@@ -311,7 +500,7 @@
               <div class="v" id="metaKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
-              <div class="k">Já ganhei (saldo do mês)</div>
+              <div class="k">Saldo do mês</div>
               <div class="v green" id="ganheiKpi">R$ 0,00</div>
             </div>
             <div class="kpi">
@@ -341,371 +530,482 @@
   <div class="toast" id="toast">
     <div>⚠️</div>
     <div>
-      <b id="toastTitle">Erro</b>
+      <b id="toastTitle">Aviso</b>
       <div class="small" id="toastMsg"></div>
     </div>
   </div>
 
-  <script>
-    const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
+<script>
+  // ====== CONFIG ======
+  const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
-    const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-    });
+  const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
 
-    // UI refs
-    const loginBox = document.getElementById("loginBox");
-    const financasBox = document.getElementById("financasBox");
-    const metasBox = document.getElementById("metasBox");
-    const tabs = document.getElementById("tabs");
+  // ====== UI REFS ======
+  const loginBox = document.getElementById("loginBox");
+  const financasBox = document.getElementById("financasBox");
+  const metasBox = document.getElementById("metasBox");
+  const tabs = document.getElementById("tabs");
 
-    const tabFin = document.getElementById("tabFin");
-    const tabMeta = document.getElementById("tabMeta");
+  const tabFin = document.getElementById("tabFin");
+  const tabMeta = document.getElementById("tabMeta");
 
-    const pillEmail = document.getElementById("pillEmail");
-    const btnSair = document.getElementById("btnSair");
+  const pillEmail = document.getElementById("pillEmail");
+  const btnSair = document.getElementById("btnSair");
+  const btnLogin = document.getElementById("btnLogin");
 
-    const btnLogin = document.getElementById("btnLogin");
-    const btnSalvar = document.getElementById("btnSalvar");
+  const mesSelect = document.getElementById("mesSelect");
+  const dataEl = document.getElementById("data");
+  const valorEl = document.getElementById("valor");
+  const descricaoEl = document.getElementById("descricao");
+  const btnSalvar = document.getElementById("btnSalvar");
 
-    const descricaoEl = document.getElementById("descricao");
-    const valorEl = document.getElementById("valor");
-    const mesEl = document.getElementById("mes");
+  const listaEl = document.getElementById("lista");
 
-    const listaEl = document.getElementById("lista");
-    const kpiSaldo = document.getElementById("kpiSaldo");
-    const kpiQtd = document.getElementById("kpiQtd");
+  const kpiEntradas = document.getElementById("kpiEntradas");
+  const kpiSaidas = document.getElementById("kpiSaidas");
+  const kpiSaldo = document.getElementById("kpiSaldo");
+  const kpiQtd = document.getElementById("kpiQtd");
 
-    // Metas
-    const metaMesEl = document.getElementById("metaMes");
-    const metaValorEl = document.getElementById("metaValor");
-    const btnSalvarMeta = document.getElementById("btnSalvarMeta");
+  const metaMesEl = document.getElementById("metaMes");
+  const metaValorEl = document.getElementById("metaValor");
+  const btnSalvarMeta = document.getElementById("btnSalvarMeta");
 
-    const metaKpi = document.getElementById("metaKpi");
-    const ganheiKpi = document.getElementById("ganheiKpi");
-    const faltaKpi = document.getElementById("faltaKpi");
-    const mediaDiaKpi = document.getElementById("mediaDiaKpi");
-    const bar = document.getElementById("bar");
-    const progressText = document.getElementById("progressText");
+  const metaKpi = document.getElementById("metaKpi");
+  const ganheiKpi = document.getElementById("ganheiKpi");
+  const faltaKpi = document.getElementById("faltaKpi");
+  const mediaDiaKpi = document.getElementById("mediaDiaKpi");
+  const bar = document.getElementById("bar");
+  const progressText = document.getElementById("progressText");
 
-    const toast = document.getElementById("toast");
-    const toastTitle = document.getElementById("toastTitle");
-    const toastMsg = document.getElementById("toastMsg");
-    let toastTimer = null;
+  const toast = document.getElementById("toast");
+  const toastTitle = document.getElementById("toastTitle");
+  const toastMsg = document.getElementById("toastMsg");
+  let toastTimer = null;
 
-    let currentUser = null;
+  // ====== STATE ======
+  let currentUser = null;
+  let currentMonth = null; // "MM/AAAA"
 
-    function showToast(title, msg){
-      toastTitle.textContent = title;
-      toastMsg.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => toast.classList.remove("show"), 5500);
-    }
+  // ====== HELPERS ======
+  function showToast(title, msg){
+    toastTitle.textContent = title;
+    toastMsg.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 5600);
+  }
 
-    function brl(n){
-      return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
-    }
+  function brl(n){
+    return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
+  }
 
-    function escapeHtml(str){
-      return (str || "").toString().replace(/[&<>"']/g, m => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
-      }[m]));
-    }
+  function escapeHtml(str){
+    return (str || "").toString().replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"
+    }[m]));
+  }
 
-    function getDefaultMesMMYYYY(){
-      const d = new Date();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const yyyy = d.getFullYear();
-      return `${mm}/${yyyy}`;
-    }
+  function pad2(n){ return String(n).padStart(2,"0"); }
 
-    function parseMesMMYYYY(mes){
-      const m = (mes || "").trim();
-      const parts = m.split("/");
-      if (parts.length !== 2) return null;
-      const mm = Number(parts[0]);
-      const yyyy = Number(parts[1]);
-      if (!mm || !yyyy || mm < 1 || mm > 12) return null;
-      return { mm, yyyy };
-    }
+  function monthKeyFromDateObj(d){
+    return `${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
+  }
 
-    function daysInMonth(mm, yyyy){
-      return new Date(yyyy, mm, 0).getDate();
-    }
+  function getDefaultMonth(){
+    return monthKeyFromDateObj(new Date());
+  }
 
-    function remainingDays(mm, yyyy){
-      const now = new Date();
-      const isCurrent = (now.getFullYear() === yyyy && (now.getMonth()+1) === mm);
-      const dim = daysInMonth(mm, yyyy);
-      if (!isCurrent) return dim;
-      return Math.max(dim - now.getDate() + 1, 1);
-    }
+  function getTodayBR(){
+    const d = new Date();
+    return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`;
+  }
 
-    function showLogin(){
-      loginBox.classList.remove("hidden");
-      financasBox.classList.add("hidden");
-      metasBox.classList.add("hidden");
-      tabs.classList.add("hidden");
-      btnSair.classList.add("hidden");
-      pillEmail.textContent = "Não logado";
-    }
+  function parseBRDateToISO(br){
+    // "DD/MM/AAAA" -> "AAAA-MM-DD"
+    const v = (br || "").trim();
+    const m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]);
+    if (mm < 1 || mm > 12) return null;
+    const dim = new Date(yyyy, mm, 0).getDate();
+    if (dd < 1 || dd > dim) return null;
+    return `${yyyy}-${pad2(mm)}-${pad2(dd)}`;
+  }
 
-    function showApp(email){
-      loginBox.classList.add("hidden");
+  function formatISOToBR(iso){
+    // "AAAA-MM-DD" -> "DD/MM/AAAA"
+    const m = (iso || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return "";
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
+  function parseMonthKey(mk){
+    const m = (mk || "").trim().match(/^(\d{2})\/(\d{4})$/);
+    if (!m) return null;
+    const mm = Number(m[1]), yyyy = Number(m[2]);
+    if (mm < 1 || mm > 12) return null;
+    return { mm, yyyy };
+  }
+
+  function monthStartEndISO(monthKey){
+    const p = parseMonthKey(monthKey);
+    if (!p) return null;
+    const start = `${p.yyyy}-${pad2(p.mm)}-01`;
+    const endDay = new Date(p.yyyy, p.mm, 0).getDate();
+    const end = `${p.yyyy}-${pad2(p.mm)}-${pad2(endDay)}`;
+    return { start, end };
+  }
+
+  function remainingDays(mm, yyyy){
+    const now = new Date();
+    const isCurrent = (now.getFullYear() === yyyy && (now.getMonth()+1) === mm);
+    const dim = new Date(yyyy, mm, 0).getDate();
+    if (!isCurrent) return dim;
+    return Math.max(dim - now.getDate() + 1, 1);
+  }
+
+  function showLogin(){
+    loginBox.classList.remove("hidden");
+    financasBox.classList.add("hidden");
+    metasBox.classList.add("hidden");
+    tabs.classList.add("hidden");
+    btnSair.classList.add("hidden");
+    pillEmail.textContent = "Não logado";
+  }
+
+  function showApp(email){
+    loginBox.classList.add("hidden");
+    financasBox.classList.remove("hidden");
+    tabs.classList.remove("hidden");
+    btnSair.classList.remove("hidden");
+    pillEmail.textContent = email || "Logado";
+  }
+
+  function activateTab(which){
+    if (which === "fin"){
+      tabFin.classList.add("active");
+      tabMeta.classList.remove("active");
       financasBox.classList.remove("hidden");
-      tabs.classList.remove("hidden");
-      btnSair.classList.remove("hidden");
-      pillEmail.textContent = email || "Logado";
+      metasBox.classList.add("hidden");
+    } else {
+      tabMeta.classList.add("active");
+      tabFin.classList.remove("active");
+      metasBox.classList.remove("hidden");
+      financasBox.classList.add("hidden");
+    }
+  }
+
+  async function captureTokenIfPresent(){
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      await supa.auth.getSessionFromUrl({ storeSession: true });
+      history.replaceState({}, document.title, "/");
+    }
+  }
+
+  // ====== DATA LOADERS ======
+  async function fetchAllDatesForUser(userId){
+    const { data, error } = await supa
+      .from("registros")
+      .select("data")
+      .eq("user_id", userId)
+      .order("data", { ascending: false })
+      .limit(5000);
+
+    if (error) throw error;
+    return (data || []).map(r => r.data).filter(Boolean);
+  }
+
+  async function fetchRegistrosByMonth(userId, monthKey){
+    const range = monthStartEndISO(monthKey);
+    if (!range) throw new Error("Mês inválido. Use MM/AAAA.");
+    const { data, error } = await supa
+      .from("registros")
+      .select("id, descricao, valor, data")
+      .eq("user_id", userId)
+      .gte("data", range.start)
+      .lte("data", range.end)
+      .order("data", { ascending: false });
+
+    if (error) throw error;
+
+    const rows = (data || []).map(r => ({
+      id: r.id,
+      descricao: r.descricao ?? "",
+      valor: Number(r.valor || 0),
+      dataISO: r.data
+    }));
+
+    let entradas = 0, saidas = 0, saldo = 0;
+    for (const r of rows){
+      saldo += r.valor;
+      if (r.valor >= 0) entradas += r.valor;
+      else saidas += Math.abs(r.valor);
+    }
+    return { rows, entradas, saidas, saldo };
+  }
+
+  function renderFinancas({ rows, entradas, saidas, saldo }){
+    kpiEntradas.textContent = brl(entradas);
+    kpiSaidas.textContent = brl(saidas);
+    kpiSaldo.textContent = brl(saldo);
+    kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
+    kpiQtd.textContent = String(rows.length);
+
+    if (!rows.length){
+      listaEl.innerHTML = `<div class="empty">Nenhum registro neste mês.</div>`;
+      return;
     }
 
-    function activateTab(which){
-      if (which === "fin") {
-        tabFin.classList.add("active");
-        tabMeta.classList.remove("active");
-        financasBox.classList.remove("hidden");
-        metasBox.classList.add("hidden");
-      } else {
-        tabMeta.classList.add("active");
-        tabFin.classList.remove("active");
-        metasBox.classList.remove("hidden");
-        financasBox.classList.add("hidden");
-      }
-    }
-
-    async function captureTokenIfPresent(){
-      if (window.location.hash && window.location.hash.includes("access_token=")) {
-        await supa.auth.getSessionFromUrl({ storeSession: true });
-        history.replaceState({}, document.title, "/");
-      }
-    }
-
-    // Busca registros (não mexe na UI)
-    async function fetchRegistros(userId, mesFiltro){
-      const { data, error } = await supa
-        .from("registros")
-        .select("id, descricao, valor, mes")
-        .eq("user_id", userId)
-        .eq("mes", mesFiltro)
-        .order("id", { ascending: false });
-
-      if (error) throw error;
-
-      const rows = data || [];
-      let saldo = 0;
-      rows.forEach(r => saldo += Number(r.valor || 0));
-      return { rows, saldo };
-    }
-
-    function renderFinancas(rows, saldo){
-      kpiQtd.textContent = String(rows.length);
-      kpiSaldo.textContent = brl(saldo);
-      kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
-
-      if (rows.length === 0){
-        listaEl.innerHTML = `<div class="empty">Nenhum registro neste mês.</div>`;
-        return;
-      }
-
-      listaEl.innerHTML = rows.map(r => {
-        const desc = (r.descricao ?? "").toString();
-        const mes  = (r.mes ?? "").toString();
-        const val  = Number(r.valor || 0);
-        const cls  = val >= 0 ? "pos" : "neg";
-        return `
-          <div class="item">
-            <div class="leftcol">
-              <div class="desc">${escapeHtml(desc)}</div>
-              <div class="meta"><span class="badge">${escapeHtml(mes)}</span></div>
+    listaEl.innerHTML = rows.map(r => {
+      const cls = r.valor >= 0 ? "pos" : "neg";
+      return `
+        <div class="item">
+          <div class="leftcol">
+            <div class="desc">${escapeHtml(r.descricao)}</div>
+            <div class="meta">
+              <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
+              <span class="badge">${escapeHtml(currentMonth)}</span>
             </div>
-            <div class="amount ${cls}">${brl(val)}</div>
           </div>
-        `;
-      }).join("");
+          <div class="amount ${cls}">${brl(r.valor)}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function fillMonthDropdown(months, selected){
+    mesSelect.innerHTML = "";
+    const unique = Array.from(new Set(months));
+    unique.sort((a,b) => {
+      const pa = parseMonthKey(a), pb = parseMonthKey(b);
+      if (!pa || !pb) return 0;
+      if (pa.yyyy !== pb.yyyy) return pb.yyyy - pa.yyyy;
+      return pb.mm - pa.mm;
+    });
+
+    for (const mk of unique){
+      const opt = document.createElement("option");
+      opt.value = mk;
+      opt.textContent = mk;
+      mesSelect.appendChild(opt);
     }
 
-    // Config/metas
-    async function getMeta(userId, mes){
-      const { data, error } = await supa
-        .from("config")
-        .select("meta")
-        .eq("user_id", userId)
-        .eq("mes", mes)
-        .maybeSingle();
+    mesSelect.value = selected;
+    if (mesSelect.value !== selected && unique.length){
+      mesSelect.value = unique[0];
+    }
+  }
 
-      if (error) throw error;
-      return Number(data?.meta || 0);
+  // ====== METAS (config) ======
+  async function getMeta(userId, mes){
+    const { data, error } = await supa
+      .from("config")
+      .select("meta")
+      .eq("user_id", userId)
+      .eq("mes", mes)
+      .maybeSingle();
+
+    if (error) throw error;
+    return Number(data?.meta || 0);
+  }
+
+  async function upsertMeta(userId, mes, meta){
+    const { error } = await supa
+      .from("config")
+      .upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
+
+    if (error) throw error;
+  }
+
+  async function atualizarMetasUI(mes){
+    const meta = await getMeta(currentUser.id, mes);
+    const fin = await fetchRegistrosByMonth(currentUser.id, mes);
+
+    metaKpi.textContent = brl(meta);
+    ganheiKpi.textContent = brl(fin.saldo);
+
+    const falta = Math.max(meta - fin.saldo, 0);
+    faltaKpi.textContent = brl(falta);
+
+    const p = parseMonthKey(mes);
+    const dias = p ? remainingDays(p.mm, p.yyyy) : 30;
+    const mediaDia = dias > 0 ? (falta / dias) : falta;
+    mediaDiaKpi.textContent = brl(mediaDia);
+
+    const perc = meta > 0 ? Math.min((fin.saldo / meta) * 100, 999) : 0;
+    bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
+    progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
+  }
+
+  // ====== MAIN REFRESH ======
+  async function refreshUI(){
+    const { data } = await supa.auth.getSession();
+    const session = data.session;
+
+    if (!session){
+      currentUser = null;
+      showLogin();
+      return;
     }
 
-    async function upsertMeta(userId, mes, meta){
-      const { error } = await supa
-        .from("config")
-        .upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
+    currentUser = session.user;
+    showApp(session.user.email);
 
-      if (error) throw error;
+    // defaults
+    if (!dataEl.value) dataEl.value = getTodayBR();
+
+    // carregar meses do usuário + incluir mês atual
+    let months = [getDefaultMonth()];
+    try{
+      const dates = await fetchAllDatesForUser(currentUser.id);
+      for (const iso of dates){
+        const d = new Date(iso + "T00:00:00");
+        months.push(monthKeyFromDateObj(d));
+      }
+    }catch(e){
+      showToast("Aviso", "Não consegui carregar a lista de meses ainda.");
     }
 
-    async function atualizarMetasUI(mes){
-      const meta = await getMeta(currentUser.id, mes);
-      const { saldo } = await fetchRegistros(currentUser.id, mes);
+    const desired = currentMonth || getDefaultMonth();
+    fillMonthDropdown(months, desired);
+    currentMonth = mesSelect.value;
 
-      metaKpi.textContent = brl(meta);
-      ganheiKpi.textContent = brl(saldo);
+    // metas: mês padrão acompanha o filtro
+    if (!metaMesEl.value) metaMesEl.value = currentMonth;
+    else metaMesEl.value = currentMonth; // mantém sempre sincronizado (premium)
 
-      const falta = Math.max(meta - saldo, 0);
-      faltaKpi.textContent = brl(falta);
-
-      const parsed = parseMesMMYYYY(mes);
-      const dias = parsed ? remainingDays(parsed.mm, parsed.yyyy) : 30;
-      const mediaDia = dias > 0 ? (falta / dias) : falta;
-      mediaDiaKpi.textContent = brl(mediaDia);
-
-      const perc = meta > 0 ? Math.min((saldo / meta) * 100, 999) : 0;
-      bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
-      progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
+    // carregar finanças do mês selecionado
+    try{
+      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      renderFinancas(fin);
+    }catch(e){
+      showToast("Finanças", e.message || String(e));
     }
 
-    async function refreshUI(){
-      const { data } = await supa.auth.getSession();
-      const session = data.session;
+    // carregar metas
+    try{
+      await atualizarMetasUI(currentMonth);
+    }catch(e){
+      showToast("Metas", e.message || String(e));
+    }
+  }
 
-      if (!session){
-        currentUser = null;
-        showLogin();
-        return;
-      }
-
-      currentUser = session.user;
-      showApp(session.user.email);
-
-      const mesDefault = getDefaultMesMMYYYY();
-      if (!mesEl.value) mesEl.value = mesDefault;
-      if (!metaMesEl.value) metaMesEl.value = mesDefault;
-
-      try{
-        const mesFin = mesEl.value.trim();
-        const fin = await fetchRegistros(currentUser.id, mesFin);
-        renderFinancas(fin.rows, fin.saldo);
-      }catch(e){
-        showToast("Finanças não carregou", e.message || String(e));
-      }
-
-      try{
-        await atualizarMetasUI(metaMesEl.value.trim());
-      }catch(e){
-        showToast("Meta não carregou", e.message || String(e));
+  // ====== EVENTS ======
+  tabFin.addEventListener("click", () => activateTab("fin"));
+  tabMeta.addEventListener("click", async () => {
+    activateTab("meta");
+    if (currentUser){
+      try{ await atualizarMetasUI(currentMonth); }catch(e){
+        showToast("Metas", e.message || String(e));
       }
     }
+  });
 
-    // Tabs
-    tabFin.addEventListener("click", () => activateTab("fin"));
-    tabMeta.addEventListener("click", async () => {
-      activateTab("meta");
-      if (currentUser){
-        try{ await atualizarMetasUI(metaMesEl.value.trim()); }catch(e){
-          showToast("Meta", e.message || String(e));
-        }
-      }
+  btnLogin.addEventListener("click", async () => {
+    const { error } = await supa.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) showToast("Login", error.message);
+  });
+
+  mesSelect.addEventListener("change", async () => {
+    if (!currentUser) return;
+    currentMonth = mesSelect.value;
+    metaMesEl.value = currentMonth;
+    try{
+      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      renderFinancas(fin);
+      await atualizarMetasUI(currentMonth);
+    }catch(e){
+      showToast("Filtro", e.message || String(e));
+    }
+  });
+
+  btnSalvar.addEventListener("click", async () => {
+    if (!currentUser){ showLogin(); return; }
+
+    const dataBR = dataEl.value.trim();
+    const dataISO = parseBRDateToISO(dataBR);
+    const valor = Number(valorEl.value);
+    const descricao = descricaoEl.value.trim();
+
+    if (!dataISO){
+      showToast("Data inválida", "Use o formato DD/MM/AAAA (ex: 03/02/2026).");
+      return;
+    }
+    if (!descricao){
+      showToast("Descrição", "Preencha a descrição.");
+      return;
+    }
+    if (Number.isNaN(valor)){
+      showToast("Valor", "Preencha um valor válido.");
+      return;
+    }
+
+    const { error } = await supa.from("registros").insert({
+      user_id: currentUser.id,
+      descricao,
+      valor,
+      data: dataISO
     });
 
-    // Login
-    btnLogin.addEventListener("click", async () => {
-      const { error } = await supa.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: window.location.origin }
-      });
-      if (error) showToast("Erro no login", error.message);
-    });
+    if (error){
+      showToast("Não salvou (registros)", error.message);
+      return;
+    }
 
-    // Salvar lançamento
-    btnSalvar.addEventListener("click", async () => {
-      if (!currentUser){ showLogin(); return; }
+    // limpa só descrição e valor, mantém data
+    descricaoEl.value = "";
+    valorEl.value = "";
 
-      const descricao = descricaoEl.value.trim();
-      const valor = Number(valorEl.value);
-      const mes = mesEl.value.trim();
+    // recarrega meses e o mês atual (pode ter mudado se a data foi outro mês)
+    const dNew = new Date(dataISO + "T00:00:00");
+    currentMonth = monthKeyFromDateObj(dNew);
+    await refreshUI();
+  });
 
-      if (!descricao || !mes || Number.isNaN(valor)){
-        showToast("Preenchimento", "Preencha descrição, valor e mês.");
-        return;
-      }
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser){ showLogin(); return; }
 
-      const { error } = await supa.from("registros").insert({
-        user_id: currentUser.id,
-        descricao,
-        valor,
-        mes
-      });
+    const mes = metaMesEl.value.trim();
+    const meta = Number(metaValorEl.value);
 
-      if (error){
-        showToast("Não salvou (registros)", error.message);
-        return;
-      }
+    if (!parseMonthKey(mes)){
+      showToast("Mês inválido", "Use MM/AAAA (ex: 02/2026).");
+      return;
+    }
+    if (Number.isNaN(meta) || meta < 0){
+      showToast("Meta inválida", "Digite uma meta válida (>= 0).");
+      return;
+    }
 
-      descricaoEl.value = "";
-      valorEl.value = "";
+    try{
+      await upsertMeta(currentUser.id, mes, meta);
+      await atualizarMetasUI(mes);
+      showToast("Meta salva ✅", "Sua meta foi salva no Supabase.");
+    }catch(e){
+      showToast("Meta", e.message || String(e));
+    }
+  });
 
-      try{
-        const fin = await fetchRegistros(currentUser.id, mes);
-        renderFinancas(fin.rows, fin.saldo);
-        await atualizarMetasUI(metaMesEl.value.trim());
-      }catch(e){
-        showToast("Atualização", e.message || String(e));
-      }
-    });
+  btnSair.addEventListener("click", async () => {
+    await supa.auth.signOut();
+    location.href = "/";
+  });
 
-    // Muda mês em Finanças
-    mesEl.addEventListener("change", async () => {
-      if (!currentUser) return;
-      try{
-        const fin = await fetchRegistros(currentUser.id, mesEl.value.trim());
-        renderFinancas(fin.rows, fin.saldo);
-      }catch(e){
-        showToast("Filtro de mês", e.message || String(e));
-      }
-    });
+  // ====== INIT ======
+  (async () => {
+    await captureTokenIfPresent();
+    activateTab("fin");
+    await refreshUI();
+  })();
 
-    // Salvar meta
-    btnSalvarMeta.addEventListener("click", async () => {
-      if (!currentUser){ showLogin(); return; }
-
-      const mes = metaMesEl.value.trim();
-      const meta = Number(metaValorEl.value);
-
-      if (!mes || Number.isNaN(meta) || meta < 0){
-        showToast("Meta inválida", "Preencha o mês e uma meta válida (>= 0).");
-        return;
-      }
-
-      try{
-        await upsertMeta(currentUser.id, mes, meta);
-        await atualizarMetasUI(mes);
-        showToast("Meta salva ✅", "Sua meta foi salva no Supabase.");
-      }catch(e){
-        showToast("Não salvou (meta)", e.message || String(e));
-      }
-    });
-
-    metaMesEl.addEventListener("change", async () => {
-      if (!currentUser) return;
-      try{ await atualizarMetasUI(metaMesEl.value.trim()); }catch(e){
-        showToast("Meta", e.message || String(e));
-      }
-    });
-
-    btnSair.addEventListener("click", async () => {
-      await supa.auth.signOut();
-      location.href = "/";
-    });
-
-    (async () => {
-      await captureTokenIfPresent();
-      activateTab("fin");
-      await refreshUI();
-    })();
-
-    supa.auth.onAuthStateChange(() => refreshUI());
-  </script>
+  supa.auth.onAuthStateChange(() => refreshUI());
+</script>
 </body>
 </html>
