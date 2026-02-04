@@ -268,6 +268,8 @@
     }
     .chip.in{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
     .chip.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
+
+    .headActions{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
   </style>
 </head>
 
@@ -311,7 +313,7 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Categorias + Filtro</span>
+          <span>Exportar CSV do mês</span>
         </div>
         <div class="body">
 
@@ -404,8 +406,13 @@
 
       <div class="card">
         <div class="head">
-          <h2>Movimentações</h2>
-          <span>Filtro por categoria</span>
+          <div>
+            <h2>Movimentações</h2>
+            <span>Exporta o mês (respeita filtro)</span>
+          </div>
+          <div class="headActions">
+            <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
+          </div>
         </div>
         <div class="list" id="lista">
           <div class="empty">Nenhum registro neste mês.</div>
@@ -520,6 +527,7 @@
   const categoriaEl = document.getElementById("categoria");
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
+  const btnExportar = document.getElementById("btnExportar");
   const listaEl = document.getElementById("lista");
 
   const kpiEntradas = document.getElementById("kpiEntradas");
@@ -555,8 +563,11 @@
 
   let currentUser = null;
   let currentMonth = null;
-  let pendingDelete = null; // item
+  let pendingDelete = null;
   let currentFiltroCategoria = "Todas";
+
+  // cache do mês atual (para exportar sem buscar de novo)
+  let lastFinCache = null;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -767,7 +778,7 @@
   }
 
   function buildResumoCategorias(rows){
-    const map = new Map(); // cat -> { in, out }
+    const map = new Map();
     for (const r of rows){
       const cat = r.categoria || "Outros";
       if (!map.has(cat)) map.set(cat, { in: 0, out: 0 });
@@ -777,12 +788,8 @@
     }
 
     const arr = Array.from(map.entries()).map(([cat, v]) => ({
-      cat,
-      in: v.in,
-      out: v.out
+      cat, in: v.in, out: v.out
     }));
-
-    // ordenar por maior "in" e depois maior "out"
     arr.sort((a,b) => (b.in - a.in) || (b.out - a.out) || a.cat.localeCompare(b.cat,"pt-BR"));
 
     if (!arr.length){
@@ -802,6 +809,8 @@
   }
 
   function renderFinancas(fin){
+    lastFinCache = fin;
+
     const { rows, entradas, saidas, saldo } = fin;
 
     kpiEntradas.textContent = brl(entradas);
@@ -810,11 +819,9 @@
     kpiSaldo.className = "v " + (saldo >= 0 ? "green" : "red");
     kpiQtd.textContent = String(rows.length);
 
-    // resumo por categoria (sempre do mês inteiro, independente do filtro)
     catHint.textContent = `Mês: ${currentMonth}`;
     buildResumoCategorias(rows);
 
-    // aplica filtro na lista
     let filtered = rows;
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
       filtered = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
@@ -878,7 +885,7 @@
 
   async function atualizarMetasUI(mes){
     const meta = await getMeta(currentUser.id, mes);
-    const fin = await fetchRegistrosByMonth(currentUser.id, mes);
+    const fin = lastFinCache && currentMonth === mes ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mes);
     const entradasMes = fin.entradas;
 
     metaKpi.textContent = brl(meta);
@@ -904,6 +911,41 @@
       .eq("id", id)
       .eq("user_id", currentUser.id);
     if (error) throw error;
+  }
+
+  function makeCSV(rows){
+    const header = ["Data","Tipo","Categoria","Descrição","Valor"];
+    const lines = [header];
+
+    for (const r of rows){
+      const tipo = r.valor >= 0 ? "Entrada" : "Saída";
+      const cat = r.categoria || "Outros";
+      const dataBR = formatISOToBR(r.dataISO);
+      const valor = r.valor; // mantém sinal
+      const desc = (r.descricao || "").replace(/\s+/g, " ").trim();
+
+      // CSV com separador ;
+      lines.push([dataBR, tipo, cat, desc, String(valor)].map(v => {
+        const s = String(v ?? "");
+        // aspas se tiver ; ou " ou quebra de linha
+        if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+        return s;
+      }));
+    }
+
+    return lines.map(l => l.join(";")).join("\n");
+  }
+
+  function downloadCSV(content, filename){
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 
   async function refreshUI(){
@@ -933,7 +975,6 @@
     currentMonth = mesSelect.value || getDefaultMonth();
     metaMesEl.value = currentMonth;
 
-    // carrega dados do mês e monta filtro categorias
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
@@ -949,7 +990,7 @@
     }
   }
 
-  // Eventos Tabs
+  // Tabs
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => {
     showMetas();
@@ -1022,6 +1063,32 @@
     await refreshUI();
   });
 
+  // Exportar CSV
+  btnExportar.addEventListener("click", () => {
+    if (!lastFinCache || !lastFinCache.rows) {
+      showToast("Exportar", "Sem dados carregados para exportar.");
+      return;
+    }
+
+    let rows = lastFinCache.rows;
+    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
+      rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+
+    if (!rows.length){
+      showToast("Exportar", "Não há registros para exportar neste filtro.");
+      return;
+    }
+
+    const csv = makeCSV(rows);
+    const safeMonth = (currentMonth || "mes").replace("/", "-");
+    const safeCat = (currentFiltroCategoria || "Todas").replace(/[^\wÀ-ÿ-]+/g, "_");
+    const filename = `controle-premium_${safeMonth}_${safeCat}.csv`;
+
+    downloadCSV(csv, filename);
+    showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
+  });
+
   // Salvar meta
   btnSalvarMeta.addEventListener("click", async () => {
     if (!currentUser){ showLogin(); return; }
@@ -1087,7 +1154,6 @@
   (async () => {
     await captureTokenIfPresent();
     if (!dataEl.value) dataEl.value = getTodayBR();
-    // inicia filtro como "Todas"
     currentFiltroCategoria = "Todas";
     await refreshUI();
   })();
