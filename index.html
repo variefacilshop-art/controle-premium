@@ -134,16 +134,17 @@
 
     .field{ display:flex; flex-direction:column; gap:6px; margin-bottom: 12px; }
     label{ font-size: 12px; color: var(--muted); }
-    input, select{
+    input, select, textarea{
       width:100%; padding: 12px 12px; border-radius: 12px;
       border: 1px solid rgba(148,163,184,.14);
       background: rgba(2,6,23,.55);
       color: var(--text);
       outline: none;
     }
+    textarea{ resize: vertical; min-height: 90px; }
     select{ cursor:pointer; }
     input::placeholder{ color: rgba(226,232,240,.45); }
-    input:focus, select:focus{ border-color: rgba(0,194,255,.35); box-shadow: 0 0 0 4px rgba(0,194,255,.10); }
+    input:focus, select:focus, textarea:focus{ border-color: rgba(0,194,255,.35); box-shadow: 0 0 0 4px rgba(0,194,255,.10); }
 
     .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
@@ -182,6 +183,7 @@
     .badge.in{ border-color: rgba(34,197,94,.28); background: rgba(34,197,94,.10); }
     .badge.out{ border-color: rgba(239,68,68,.28); background: rgba(239,68,68,.10); }
     .badge.cat{ border-color: rgba(0,194,255,.22); background: rgba(0,194,255,.08); }
+    .badge.bank{ border-color: rgba(99,102,241,.25); background: rgba(99,102,241,.10); }
 
     .rightcol{ display:flex; align-items:center; gap:10px; }
     .amount{ font-weight: 900; white-space: nowrap; font-size: 14px; }
@@ -233,7 +235,7 @@
     }
     .modalOverlay.show{ display:flex; }
     .modal{
-      width: 100%; max-width: 620px;
+      width: 100%; max-width: 860px;
       background: rgba(2,6,23,.92);
       border: 1px solid rgba(148,163,184,.18);
       border-radius: 18px;
@@ -329,6 +331,24 @@
 
     .a-info{ border-color: rgba(0,194,255,.22); background: rgba(0,194,255,.07); }
     .a-info .ico{ background: rgba(0,194,255,.16); border: 1px solid rgba(0,194,255,.22); }
+
+    /* OFX table */
+    .tableWrap{ overflow:auto; border-radius: 14px; border: 1px solid rgba(148,163,184,.14); background: rgba(2,6,23,.35); }
+    table{ width:100%; border-collapse: collapse; min-width: 760px; }
+    th, td{ padding: 10px 10px; border-bottom: 1px solid rgba(148,163,184,.10); font-size: 12px; }
+    th{ text-align:left; color: rgba(226,232,240,.75); background: rgba(2,6,23,.40); position: sticky; top:0; }
+    td input, td select{
+      padding: 10px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .tdCheck{ width: 44px; }
+    .tdMoney{ width: 140px; }
+    .tdDate{ width: 140px; }
+    .tdType{ width: 120px; }
+    .tdCat{ width: 170px; }
+    .tdBank{ width: 180px; }
+    .tdDesc{ width: 360px; }
   </style>
 </head>
 
@@ -373,7 +393,7 @@
       <div class="card">
         <div class="head">
           <h2>Adicionar lançamento</h2>
-          <span>Importar CSV</span>
+          <span>CSV + OFX + Bancos</span>
         </div>
         <div class="body">
 
@@ -398,16 +418,12 @@
 
           <div class="row">
             <div class="field">
-              <label>Data (DD/MM/AAAA)</label>
-              <input id="data" placeholder="Ex: 03/02/2026" />
+              <label>Banco</label>
+              <select id="bancoSelect"></select>
+              <div class="hint" style="margin-top:6px">
+                <button class="btn btn-ghost" id="btnGerenciarBancos" type="button">🏦 Gerenciar bancos</button>
+              </div>
             </div>
-            <div class="field">
-              <label>Valor (R$)</label>
-              <input id="valor" type="number" placeholder="Ex: 100 (sempre positivo)" />
-            </div>
-          </div>
-
-          <div class="row">
             <div class="field">
               <label>Categoria</label>
               <select id="categoria">
@@ -422,10 +438,22 @@
                 <option value="Outros">Outros</option>
               </select>
             </div>
+          </div>
+
+          <div class="row">
             <div class="field">
-              <label>Descrição</label>
-              <input id="descricao" placeholder="Ex: Venda Shopify, Mercado, Uber..." />
+              <label>Data (DD/MM/AAAA)</label>
+              <input id="data" placeholder="Ex: 03/02/2026" />
             </div>
+            <div class="field">
+              <label>Valor (R$)</label>
+              <input id="valor" type="number" placeholder="Ex: 100 (sempre positivo)" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Descrição</label>
+            <input id="descricao" placeholder="Ex: Venda Shopify, Mercado, Uber..." />
           </div>
 
           <button class="btn btn-primary" id="btnSalvar" type="button">Salvar lançamento</button>
@@ -460,10 +488,24 @@
               </div>
               <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                 <input id="fileCsv" type="file" accept=".csv,text/csv" class="hidden" />
-                <button class="btn btn-ghost" id="btnImportar" type="button">Selecionar arquivo</button>
+                <button class="btn btn-ghost" id="btnImportar" type="button">Selecionar CSV</button>
               </div>
             </div>
             <div class="hint" id="importInfo">Você pode arrastar o arquivo CSV aqui também.</div>
+          </div>
+
+          <div class="catBox">
+            <div class="dropZone" id="dropZoneOfx">
+              <div>
+                <strong>🏦 Importar OFX (Extrato)</strong><br/>
+                <span>Você poderá revisar/editar antes de lançar.</span>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <input id="fileOfx" type="file" accept=".ofx,.qfx,application/x-ofx,text/plain" class="hidden" />
+                <button class="btn btn-ghost" id="btnImportarOfx" type="button">Selecionar OFX</button>
+              </div>
+            </div>
+            <div class="hint" id="ofxInfo">Importe OFX e confirme somente o que quiser lançar.</div>
           </div>
 
         </div>
@@ -475,7 +517,7 @@
             <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
-          <div class="headActions">
+          <div class="headActions" style="display:flex; gap:10px; flex-wrap:wrap;">
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
@@ -647,19 +689,6 @@
 
             <div class="card">
               <div class="head">
-                <h2>Top categorias</h2>
-                <span>Baseado no mês do Dashboard</span>
-              </div>
-              <div class="body">
-                <div class="catBox" id="topCatsBox">
-                  <div class="empty">Sem dados ainda.</div>
-                </div>
-                <div class="hint" id="dashHintCats">—</div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="head">
                 <h2>Comparação por mês</h2>
                 <span>Ative “Comparar meses”</span>
               </div>
@@ -668,6 +697,19 @@
                   <canvas id="chartComparacao" style="width:100%;height:100%"></canvas>
                 </div>
                 <div class="hint" id="dashHintComparacao">Selecione meses para comparar.</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="head">
+                <h2>Top categorias</h2>
+                <span>Mês do Dashboard</span>
+              </div>
+              <div class="body">
+                <div class="catBox" id="topCatsBox">
+                  <div class="empty">Sem dados ainda.</div>
+                </div>
+                <div class="hint" id="dashHintCats">—</div>
               </div>
             </div>
 
@@ -689,7 +731,7 @@
 
   <!-- Modal excluir -->
   <div class="modalOverlay" id="modalOverlay">
-    <div class="modal">
+    <div class="modal" style="max-width:620px">
       <div class="modalHead">
         <h3>Confirmar exclusão</h3>
         <button class="btn btn-ghost btn-icon" id="btnModalClose" type="button">✕</button>
@@ -704,7 +746,7 @@
 
   <!-- Modal editar -->
   <div class="modalOverlay" id="editOverlay">
-    <div class="modal">
+    <div class="modal" style="max-width:620px">
       <div class="modalHead">
         <h3>Editar lançamento</h3>
         <button class="btn btn-ghost btn-icon" id="btnEditClose" type="button">✕</button>
@@ -733,15 +775,101 @@
             <input id="editCategoria" placeholder="Ex: Vendas, Mercado..." />
           </div>
         </div>
-        <div class="field">
-          <label>Descrição</label>
-          <input id="editDescricao" />
+
+        <div class="row">
+          <div class="field">
+            <label>Banco</label>
+            <select id="editBancoSelect"></select>
+          </div>
+          <div class="field">
+            <label>Descrição</label>
+            <input id="editDescricao" />
+          </div>
         </div>
+
         <div class="hint">Ao salvar, o mês (MM/AAAA) é recalculado pela data.</div>
       </div>
       <div class="modalFoot">
         <button class="btn btn-ghost" id="btnEditCancelar" type="button">Cancelar</button>
         <button class="btn btn-primary" id="btnEditSalvar" type="button">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal bancos -->
+  <div class="modalOverlay" id="banksOverlay">
+    <div class="modal" style="max-width:620px">
+      <div class="modalHead">
+        <h3>🏦 Gerenciar bancos</h3>
+        <button class="btn btn-ghost btn-icon" id="btnBanksClose" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="row">
+          <div class="field">
+            <label>Novo banco (nome)</label>
+            <input id="bankName" placeholder="Ex: Nubank, Itaú, Caixa..." />
+          </div>
+          <div class="field" style="display:flex; align-items:flex-end;">
+            <button class="btn btn-primary" id="btnAddBank" type="button" style="width:100%">Adicionar</button>
+          </div>
+        </div>
+
+        <div class="catBox" style="margin-top:8px">
+          <div class="hint" style="margin:0 0 8px 0">Seus bancos</div>
+          <div id="banksList" class="list" style="max-height:280px">
+            <div class="empty">Carregando…</div>
+          </div>
+          <div class="hint" id="banksHint">—</div>
+        </div>
+      </div>
+      <div class="modalFoot">
+        <button class="btn btn-ghost" id="btnBanksDone" type="button">Concluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal OFX Preview -->
+  <div class="modalOverlay" id="ofxOverlay">
+    <div class="modal">
+      <div class="modalHead">
+        <h3>🏦 OFX — revisar antes de lançar</h3>
+        <button class="btn btn-ghost btn-icon" id="btnOfxClose" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="row">
+          <div class="field">
+            <label>Banco padrão para este extrato</label>
+            <select id="ofxBancoSelect"></select>
+          </div>
+          <div class="field">
+            <label>Dica</label>
+            <div class="hint" style="margin-top:6px">Marque o que deseja lançar. Você pode editar data, descrição, tipo, categoria e valor.</div>
+          </div>
+        </div>
+
+        <div class="tableWrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th class="tdCheck">OK</th>
+                <th class="tdDate">Data</th>
+                <th class="tdType">Tipo</th>
+                <th class="tdMoney">Valor</th>
+                <th class="tdCat">Categoria</th>
+                <th class="tdDesc">Descrição</th>
+              </tr>
+            </thead>
+            <tbody id="ofxTbody">
+              <tr><td colspan="6" class="empty">Carregando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="hint" id="ofxPreviewHint" style="margin-top:10px">—</div>
+      </div>
+      <div class="modalFoot">
+        <button class="btn btn-ghost" id="btnOfxCancel" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="btnOfxLaunch" type="button">Lançar selecionados</button>
       </div>
     </div>
   </div>
@@ -770,6 +898,9 @@
   const mesSelect = document.getElementById("mesSelect");
   const filtroCategoriaEl = document.getElementById("filtroCategoria");
   const tipoEl = document.getElementById("tipo");
+  const bancoSelect = document.getElementById("bancoSelect");
+  const btnGerenciarBancos = document.getElementById("btnGerenciarBancos");
+
   const dataEl = document.getElementById("data");
   const valorEl = document.getElementById("valor");
   const categoriaEl = document.getElementById("categoria");
@@ -786,11 +917,17 @@
   const kpiSaldo = document.getElementById("kpiSaldo");
   const kpiQtd = document.getElementById("kpiQtd");
 
-  // Import
+  // Import CSV
   const dropZone = document.getElementById("dropZone");
   const fileCsv = document.getElementById("fileCsv");
   const btnImportar = document.getElementById("btnImportar");
   const importInfo = document.getElementById("importInfo");
+
+  // Import OFX
+  const dropZoneOfx = document.getElementById("dropZoneOfx");
+  const fileOfx = document.getElementById("fileOfx");
+  const btnImportarOfx = document.getElementById("btnImportarOfx");
+  const ofxInfo = document.getElementById("ofxInfo");
 
   // Metas
   const metaMesEl = document.getElementById("metaMes");
@@ -826,6 +963,25 @@
   const editValorEl = document.getElementById("editValor");
   const editCategoriaEl = document.getElementById("editCategoria");
   const editDescricaoEl = document.getElementById("editDescricao");
+  const editBancoSelect = document.getElementById("editBancoSelect");
+
+  // Modal bancos
+  const banksOverlay = document.getElementById("banksOverlay");
+  const btnBanksClose = document.getElementById("btnBanksClose");
+  const btnBanksDone = document.getElementById("btnBanksDone");
+  const bankName = document.getElementById("bankName");
+  const btnAddBank = document.getElementById("btnAddBank");
+  const banksList = document.getElementById("banksList");
+  const banksHint = document.getElementById("banksHint");
+
+  // Modal OFX preview
+  const ofxOverlay = document.getElementById("ofxOverlay");
+  const btnOfxClose = document.getElementById("btnOfxClose");
+  const btnOfxCancel = document.getElementById("btnOfxCancel");
+  const btnOfxLaunch = document.getElementById("btnOfxLaunch");
+  const ofxBancoSelect = document.getElementById("ofxBancoSelect");
+  const ofxTbody = document.getElementById("ofxTbody");
+  const ofxPreviewHint = document.getElementById("ofxPreviewHint");
 
   // Dashboard
   const dashTitleSub = document.getElementById("dashTitleSub");
@@ -846,7 +1002,6 @@
   const dashHintDiario = document.getElementById("dashHintDiario");
   const dashHintCats = document.getElementById("dashHintCats");
   const dashHintComparacao = document.getElementById("dashHintComparacao");
-
   const dashAlerts = document.getElementById("dashAlerts");
   const dashHintAlerts = document.getElementById("dashHintAlerts");
 
@@ -866,6 +1021,13 @@
   let currentSearch = "";
   let lastFinCache = null;
   let editingItem = null;
+
+  // Bancos
+  let banksCache = []; // [{id,nome}]
+  let currentBankId = ""; // select atual (pode ser "")
+
+  // OFX preview
+  let ofxRows = []; // rows em memória para editar antes de lançar
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1037,6 +1199,103 @@
     filtroCategoriaEl.value = selected || "Todas";
   }
 
+  // ===== BANCOS =====
+  function fillBanksSelect(selectEl, selectedId){
+    selectEl.innerHTML = "";
+
+    const optNone = document.createElement("option");
+    optNone.value = "";
+    optNone.textContent = "— Sem banco (opcional) —";
+    selectEl.appendChild(optNone);
+
+    for (const b of banksCache){
+      const opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = b.nome;
+      selectEl.appendChild(opt);
+    }
+
+    selectEl.value = selectedId || "";
+  }
+
+  async function fetchBanks(userId){
+    try{
+      const { data, error } = await supa
+        .from("bancos")
+        .select("id, nome")
+        .eq("user_id", userId)
+        .order("nome", { ascending: true });
+      if (error) throw error;
+      return (data || []).map(x => ({ id: x.id, nome: x.nome }));
+    }catch(e){
+      // se a tabela não existir, não quebra o app
+      return [];
+    }
+  }
+
+  async function refreshBanksUI(){
+    banksCache = await fetchBanks(currentUser.id);
+
+    // selects
+    fillBanksSelect(bancoSelect, currentBankId);
+    fillBanksSelect(editBancoSelect, "");
+    fillBanksSelect(ofxBancoSelect, currentBankId);
+
+    // lista no modal
+    if (!banksCache.length){
+      banksList.innerHTML = `<div class="empty">Nenhum banco cadastrado ainda.</div>`;
+      banksHint.textContent = "Dica: cadastre pelo menos 1 banco para organizar.";
+      return;
+    }
+
+    banksList.innerHTML = banksCache.map(b => `
+      <div class="item" style="padding:10px 12px">
+        <div class="leftcol">
+          <div class="desc">${escapeHtml(b.nome)}</div>
+          <div class="hint" style="margin:0">ID: ${escapeHtml(b.id)}</div>
+        </div>
+      </div>
+    `).join("");
+
+    banksHint.textContent = `${banksCache.length} banco(s) carregado(s).`;
+  }
+
+  function openBanksModal(){
+    bankName.value = "";
+    banksOverlay.classList.add("show");
+    refreshBanksUI();
+  }
+  function closeBanksModal(){
+    banksOverlay.classList.remove("show");
+  }
+
+  btnGerenciarBancos.addEventListener("click", () => {
+    if (!currentUser) return showToast("Bancos", "Faça login primeiro.");
+    openBanksModal();
+  });
+  btnBanksClose.addEventListener("click", closeBanksModal);
+  btnBanksDone.addEventListener("click", closeBanksModal);
+  banksOverlay.addEventListener("click", (e) => { if (e.target === banksOverlay) closeBanksModal(); });
+
+  btnAddBank.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const nome = (bankName.value || "").trim();
+    if (!nome) return showToast("Bancos", "Digite o nome do banco.");
+    try{
+      const { error } = await supa.from("bancos").insert({ user_id: currentUser.id, nome });
+      if (error) throw error;
+      showToast("Bancos ✅", "Banco adicionado.");
+      await refreshBanksUI();
+    }catch(e){
+      showToast("Bancos", e.message || String(e));
+    }
+  });
+
+  bancoSelect.addEventListener("change", () => {
+    currentBankId = bancoSelect.value || "";
+  });
+
+  // ===== REGISTROS =====
   async function fetchMonthsFromRegistros(userId){
     const { data, error } = await supa
       .from("registros")
@@ -1052,9 +1311,12 @@
     const range = monthStartEndISO(monthKey);
     if (!range) throw new Error("Mês inválido.");
 
+    // tenta puxar nome do banco via relacionamento (se existir)
+    const selectStr = "id, descricao, valor, data, mes, categoria, banco_id, banco:bancos(nome)";
+
     const { data, error } = await supa
       .from("registros")
-      .select("id, descricao, valor, data, mes, categoria")
+      .select(selectStr)
       .eq("user_id", userId)
       .gte("data", range.start)
       .lte("data", range.end)
@@ -1063,13 +1325,16 @@
 
     const rows = (data || []).map(r => {
       const v = Number(r.valor || 0);
+      const bankName = (r.banco && r.banco.nome) ? r.banco.nome : "";
       return ({
         id: r.id,
         descricao: r.descricao ?? "",
         valor: v,
         dataISO: r.data,
         mes: r.mes,
-        categoria: r.categoria || "Outros"
+        categoria: r.categoria || "Outros",
+        banco_id: r.banco_id || "",
+        banco_nome: bankName
       });
     });
 
@@ -1117,6 +1382,8 @@
       const bCls = r.valor >= 0 ? "in" : "out";
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
+      const bankTxt = r.banco_nome || "";
+
       return `
         <div class="item">
           <div class="leftcol">
@@ -1124,6 +1391,7 @@
             <div class="meta">
               <span class="badge ${bCls}">${bTxt}</span>
               <span class="badge cat">${escapeHtml(catTxt)}</span>
+              ${bankTxt ? `<span class="badge bank">🏦 ${escapeHtml(bankTxt)}</span>` : ``}
               <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
             </div>
           </div>
@@ -1137,6 +1405,7 @@
               data-valor="${escapeHtml(String(r.valor))}"
               data-data="${escapeHtml(String(r.dataISO))}"
               data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
+              data-bankid="${escapeHtml(String(r.banco_id || ""))}"
             >✏️</button>
             <button class="btn btn-icon btn-icon-danger" type="button"
               title="Excluir"
@@ -1153,6 +1422,7 @@
     }).join("");
   }
 
+  // ===== METAS =====
   async function getMeta(userId, mes){
     const { data, error } = await supa
       .from("config")
@@ -1192,6 +1462,7 @@
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
   }
 
+  // ===== CSV EXPORT =====
   function makeCSV(rows){
     const header = ["Data","Tipo","Categoria","Descrição","Valor"];
     const lines = [header];
@@ -1374,7 +1645,7 @@
 
       renderTopCategorias(fin);
 
-      // ===== Alertas inteligentes =====
+      // Alertas
       const alerts = [];
       const p = parseMonthKey(dashMk);
       const diasRest = p ? remainingDays(p.mm, p.yyyy) : 30;
@@ -1396,31 +1667,24 @@
           });
         }
       } else {
-        alerts.push({
-          kind: "a-info",
-          icon: "ℹ️",
-          title: "Meta não definida",
-          msg: `Se quiser, defina uma meta para ${dashMk} na aba “Metas” para ver alertas de ritmo.`
-        });
+        alerts.push({ kind:"a-info", icon:"ℹ️", title:"Meta não definida", msg:`Defina uma meta para ${dashMk} na aba “Metas”.` });
       }
 
       if (fin.entradas > 0){
         const percGasto = (fin.saidas / fin.entradas) * 100;
-        let kind = "a-info";
-        let icon = "📊";
-        let title = "Relação gastos x entradas";
-        if (percGasto >= 100){ kind = "a-bad"; icon="🚨"; title="Gastos acima das entradas"; }
-        else if (percGasto >= 80){ kind = "a-warn"; icon="⚠️"; title="Gastos altos"; }
-        else if (percGasto <= 50){ kind = "a-good"; icon="✅"; title="Gastos controlados"; }
-        alerts.push({ kind, icon, title, msg: `Você gastou ${brl(fin.saidas)} no mês (${percGasto.toFixed(1)}% das entradas de ${brl(fin.entradas)}).` });
+        let kind = "a-info", icon = "📊", title = "Relação gastos x entradas";
+        if (percGasto >= 100){ kind="a-bad"; icon="🚨"; title="Gastos acima das entradas"; }
+        else if (percGasto >= 80){ kind="a-warn"; icon="⚠️"; title="Gastos altos"; }
+        else if (percGasto <= 50){ kind="a-good"; icon="✅"; title="Gastos controlados"; }
+        alerts.push({ kind, icon, title, msg:`Você gastou ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas de ${brl(fin.entradas)}).` });
       } else if (fin.saidas > 0){
-        alerts.push({ kind:"a-warn", icon:"⚠️", title:"Sem entradas registradas", msg:`Você tem ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada ainda.` });
+        alerts.push({ kind:"a-warn", icon:"⚠️", title:"Sem entradas registradas", msg:`Há ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada ainda.` });
       } else {
-        alerts.push({ kind:"a-good", icon:"✅", title:"Sem movimentações", msg:`Nenhuma entrada/saída registrada ainda para ${dashMk}.` });
+        alerts.push({ kind:"a-good", icon:"✅", title:"Sem movimentações", msg:`Nenhuma movimentação registrada para ${dashMk}.` });
       }
 
       if (fin.saldo < 0){
-        alerts.push({ kind:"a-bad", icon:"💸", title:"Saldo negativo", msg:`Seu saldo do mês está em ${brl(fin.saldo)}. Considere reduzir saídas ou aumentar entradas.` });
+        alerts.push({ kind:"a-bad", icon:"💸", title:"Saldo negativo", msg:`Seu saldo do mês está em ${brl(fin.saldo)}.` });
       } else if (fin.saldo > 0 && fin.rows.length){
         alerts.push({ kind:"a-good", icon:"💰", title:"Saldo positivo", msg:`Seu saldo do mês está em ${brl(fin.saldo)}.` });
       }
@@ -1428,7 +1692,7 @@
       renderAlerts(alerts);
       dashHintAlerts.textContent = "Alertas atualizados.";
 
-      // ===== Gráfico diário =====
+      // Gráfico diário
       const daily = buildDailySeries(fin);
       const ctxD = document.getElementById("chartDiario");
 
@@ -1445,7 +1709,7 @@
       }
       dashHintDiario.textContent = "Gráfico diário atualizado.";
 
-      // ===== Comparação =====
+      // Comparação
       const ctxC = document.getElementById("chartComparacao");
       if (!chartComparacao){
         chartComparacao = new Chart(ctxC, {
@@ -1474,14 +1738,10 @@
       const agg = await fetchAggByMonths(currentUser.id, months);
 
       const labels = agg.keys;
-      const entradasArr = labels.map(k => agg.byMonth[k]?.entradas || 0);
-      const saidasArr = labels.map(k => agg.byMonth[k]?.saidas || 0);
-      const saldoArr = labels.map(k => agg.byMonth[k]?.saldo || 0);
-
       chartComparacao.data.labels = labels;
-      chartComparacao.data.datasets[0].data = entradasArr;
-      chartComparacao.data.datasets[1].data = saidasArr;
-      chartComparacao.data.datasets[2].data = saldoArr;
+      chartComparacao.data.datasets[0].data = labels.map(k => agg.byMonth[k]?.entradas || 0);
+      chartComparacao.data.datasets[1].data = labels.map(k => agg.byMonth[k]?.saidas || 0);
+      chartComparacao.data.datasets[2].data = labels.map(k => agg.byMonth[k]?.saldo || 0);
       chartComparacao.update();
 
       dashHintComparacao.textContent = `Comparando ${labels.length} mês(es).`;
@@ -1496,6 +1756,7 @@
     }
   }
 
+  // ===== UI Refresh =====
   async function refreshUI(){
     const { data } = await supa.auth.getSession();
     const session = data.session;
@@ -1510,6 +1771,9 @@
     showApp(session.user.email);
 
     if (!dataEl.value) dataEl.value = getTodayBR();
+
+    // bancos
+    await refreshBanksUI();
 
     let months = [getDefaultMonth()];
     try{
@@ -1527,7 +1791,6 @@
     dashboardMonth = dashMesSelect.value || desiredDash;
 
     fillDashboardMulti(months);
-
     metaMesEl.value = currentMonth;
 
     try{
@@ -1615,6 +1878,7 @@
     const valorDigitado = Number(valorEl.value);
     const descricao = descricaoEl.value.trim();
     const categoria = (categoriaEl.value || "Outros").trim();
+    const bancoId = bancoSelect.value || null;
 
     if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
     if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
@@ -1627,15 +1891,17 @@
     const d = new Date(dataISO + "T00:00:00");
     const mesAuto = monthKeyFromDateObj(d);
 
-    const { error } = await supa.from("registros").insert({
+    const payload = {
       user_id: currentUser.id,
       descricao,
       valor: valorFinal,
       data: dataISO,
       mes: mesAuto,
       categoria
-    });
+    };
+    if (bancoId) payload.banco_id = bancoId;
 
+    const { error } = await supa.from("registros").insert(payload);
     if (error){ showToast("Não salvou", error.message); return; }
 
     descricaoEl.value = "";
@@ -1677,7 +1943,7 @@
     showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
   });
 
-  // ===== EDITAR / EXCLUIR (FUNCIONANDO) =====
+  // ===== EDITAR / EXCLUIR =====
   function openDeleteModal(item){
     pendingDelete = item;
     modalBody.innerHTML = `
@@ -1699,6 +1965,10 @@
     editValorEl.value = Math.abs(Number(item.valor || 0));
     editCategoriaEl.value = item.categoria || "Outros";
     editDescricaoEl.value = item.descricao || "";
+
+    // banco
+    fillBanksSelect(editBancoSelect, item.banco_id || "");
+
     editOverlay.classList.add("show");
   }
   function closeEditModal(){
@@ -1730,6 +2000,7 @@
         valor: Number(editBtn.dataset.valor || 0),
         dataISO: editBtn.dataset.data || "",
         categoria: editBtn.dataset.cat || "Outros",
+        banco_id: editBtn.dataset.bankid || ""
       };
       openEditModal(item);
       return;
@@ -1785,20 +2056,24 @@
     if (!desc){ showToast("Descrição", "Preencha a descrição."); return; }
 
     const cat = (editCategoriaEl.value || "Outros").trim() || "Outros";
+    const bankId = editBancoSelect.value || null;
 
     const d = new Date(dataISO + "T00:00:00");
     const mesAuto = monthKeyFromDateObj(d);
 
     try{
+      const payload = {
+        data: dataISO,
+        mes: mesAuto,
+        valor: valorFinal,
+        descricao: desc,
+        categoria: cat,
+        banco_id: bankId
+      };
+
       const { error } = await supa
         .from("registros")
-        .update({
-          data: dataISO,
-          mes: mesAuto,
-          valor: valorFinal,
-          descricao: desc,
-          categoria: cat
-        })
+        .update(payload)
         .eq("id", editingItem.id)
         .eq("user_id", currentUser.id);
 
@@ -1813,7 +2088,6 @@
       showToast("Editar", err.message || String(err));
     }
   });
-  // ===== /EDITAR / EXCLUIR =====
 
   // Sair
   btnSair.addEventListener("click", async () => {
@@ -1884,6 +2158,8 @@
     const inserts = [];
     let latestISO = null;
 
+    const bancoId = bancoSelect.value || null;
+
     for (const r of parsed.rows){
       const dataBR = r[col.data] ?? "";
       const tipoRaw = (r[col.tipo] ?? "").trim().toLowerCase();
@@ -1903,14 +2179,17 @@
       const d = new Date(dataISO + "T00:00:00");
       const mesAuto = monthKeyFromDateObj(d);
 
-      inserts.push({
+      const payload = {
         user_id: currentUser.id,
         data: dataISO,
         mes: mesAuto,
         categoria,
         descricao,
         valor: valorFinal
-      });
+      };
+      if (bancoId) payload.banco_id = bancoId;
+
+      inserts.push(payload);
 
       if (!latestISO || dataISO > latestISO) latestISO = dataISO;
     }
@@ -1933,7 +2212,6 @@
         inserted += chunk.length;
       }
 
-      // aqui é o pulo do gato: já seleciona o mês correto do CSV
       if (latestISO){
         const d = new Date(latestISO + "T00:00:00");
         currentMonth = monthKeyFromDateObj(d);
@@ -1942,7 +2220,6 @@
       importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
       showToast("Importação concluída ✅", `${inserted} lançamentos importados.`);
 
-      // força atualizar UI e lista imediatamente no mês importado
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
 
@@ -1967,9 +2244,230 @@
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
     if (f) await importCSVFile(f);
   });
-  // ===== /IMPORT CSV =====
 
-  // Salvar meta
+  // ===== OFX =====
+  function openOfxModal(){
+    ofxOverlay.classList.add("show");
+  }
+  function closeOfxModal(){
+    ofxOverlay.classList.remove("show");
+    ofxRows = [];
+    ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Carregando…</td></tr>`;
+    ofxPreviewHint.textContent = "—";
+  }
+  btnOfxClose.addEventListener("click", closeOfxModal);
+  btnOfxCancel.addEventListener("click", closeOfxModal);
+  ofxOverlay.addEventListener("click", (e) => { if (e.target === ofxOverlay) closeOfxModal(); });
+
+  function ofxExtractTag(block, tag){
+    const re = new RegExp(`<${tag}>([^<\\r\\n]+)`, "i");
+    const m = block.match(re);
+    return m ? String(m[1]).trim() : "";
+  }
+  function ofxParseDate(dt){
+    // geralmente: YYYYMMDDHHMMSS...
+    const s = String(dt || "").trim();
+    const m = s.match(/^(\d{4})(\d{2})(\d{2})/);
+    if (!m) return null;
+    return `${m[1]}-${m[2]}-${m[3]}`;
+  }
+  function ofxToBR(iso){
+    return formatISOToBR(iso);
+  }
+  function ofxParse(text){
+    const t = String(text || "");
+    const blocks = t.split(/<STMTTRN>/i).slice(1).map(x => x.split(/<\/STMTTRN>/i)[0] || "");
+    const rows = [];
+
+    for (const b of blocks){
+      const dt = ofxExtractTag(b, "DTPOSTED") || ofxExtractTag(b, "DTUSER");
+      const iso = ofxParseDate(dt);
+      const amtRaw = ofxExtractTag(b, "TRNAMT");
+      const memo = ofxExtractTag(b, "MEMO") || ofxExtractTag(b, "NAME") || ofxExtractTag(b, "PAYEE") || "Movimentação";
+
+      const val = Number(String(amtRaw).replace(",", "."));
+      if (!iso || !Number.isFinite(val)) continue;
+
+      const tipo = val >= 0 ? "entrada" : "saida";
+      rows.push({
+        ok: true,
+        dataISO: iso,
+        tipo,
+        valor: Math.abs(val),
+        categoria: "Outros",
+        descricao: memo.replace(/\s+/g, " ").trim()
+      });
+    }
+
+    return rows;
+  }
+
+  function renderOfxTable(){
+    if (!ofxRows.length){
+      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada neste OFX.</td></tr>`;
+      ofxPreviewHint.textContent = "Sem itens.";
+      return;
+    }
+
+    ofxTbody.innerHTML = ofxRows.map((r, idx) => `
+      <tr data-idx="${idx}">
+        <td class="tdCheck"><input type="checkbox" ${r.ok ? "checked" : ""} data-k="ok"></td>
+        <td class="tdDate"><input value="${escapeHtml(ofxToBR(r.dataISO))}" placeholder="DD/MM/AAAA" data-k="dataBR"></td>
+        <td class="tdType">
+          <select data-k="tipo">
+            <option value="entrada" ${r.tipo==="entrada" ? "selected":""}>Entrada</option>
+            <option value="saida" ${r.tipo==="saida" ? "selected":""}>Saída</option>
+          </select>
+        </td>
+        <td class="tdMoney"><input type="number" value="${escapeHtml(String(r.valor))}" data-k="valor"></td>
+        <td class="tdCat">
+          <select data-k="categoria">
+            <option value="Vendas" ${r.categoria==="Vendas"?"selected":""}>Vendas</option>
+            <option value="Tráfego" ${r.categoria==="Tráfego"?"selected":""}>Tráfego</option>
+            <option value="Fornecedor" ${r.categoria==="Fornecedor"?"selected":""}>Fornecedor</option>
+            <option value="Embalagem" ${r.categoria==="Embalagem"?"selected":""}>Embalagem</option>
+            <option value="Frete/Logística" ${r.categoria==="Frete/Logística"?"selected":""}>Frete/Logística</option>
+            <option value="Impostos/Taxas" ${r.categoria==="Impostos/Taxas"?"selected":""}>Impostos/Taxas</option>
+            <option value="Mercado" ${r.categoria==="Mercado"?"selected":""}>Mercado</option>
+            <option value="Lazer" ${r.categoria==="Lazer"?"selected":""}>Lazer</option>
+            <option value="Outros" ${r.categoria==="Outros"?"selected":""}>Outros</option>
+          </select>
+        </td>
+        <td class="tdDesc"><input value="${escapeHtml(r.descricao)}" data-k="descricao"></td>
+      </tr>
+    `).join("");
+
+    const okCount = ofxRows.filter(x => x.ok).length;
+    ofxPreviewHint.textContent = `${okCount} selecionado(s) de ${ofxRows.length}.`;
+  }
+
+  // eventos de edição na tabela OFX
+  ofxTbody.addEventListener("input", (e) => {
+    const tr = e.target.closest("tr[data-idx]");
+    if (!tr) return;
+    const idx = Number(tr.dataset.idx);
+    const k = e.target.getAttribute("data-k");
+    if (!k || !ofxRows[idx]) return;
+
+    if (k === "dataBR"){
+      const iso = parseBRDateToISO(e.target.value);
+      if (iso) ofxRows[idx].dataISO = iso;
+    } else if (k === "valor"){
+      const v = Number(e.target.value);
+      if (Number.isFinite(v) && v >= 0) ofxRows[idx].valor = v;
+    } else if (k === "descricao"){
+      ofxRows[idx].descricao = e.target.value;
+    } else if (k === "categoria"){
+      ofxRows[idx].categoria = e.target.value;
+    } else if (k === "tipo"){
+      ofxRows[idx].tipo = e.target.value;
+    } else if (k === "ok"){
+      ofxRows[idx].ok = e.target.checked;
+    }
+
+    const okCount = ofxRows.filter(x => x.ok).length;
+    ofxPreviewHint.textContent = `${okCount} selecionado(s) de ${ofxRows.length}.`;
+  });
+  ofxTbody.addEventListener("change", (e) => {
+    // para selects/checkbox
+    ofxTbody.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+
+  async function importOFXFile(file){
+    if (!currentUser){ showToast("OFX", "Faça login primeiro."); return; }
+    const text = await file.text();
+    ofxRows = ofxParse(text);
+
+    fillBanksSelect(ofxBancoSelect, bancoSelect.value || "");
+    openOfxModal();
+    renderOfxTable();
+  }
+
+  btnImportarOfx.addEventListener("click", () => fileOfx.click());
+  fileOfx.addEventListener("change", async () => {
+    const f = fileOfx.files && fileOfx.files[0];
+    if (f) await importOFXFile(f);
+    fileOfx.value = "";
+  });
+
+  dropZoneOfx.addEventListener("dragover", (e) => { e.preventDefault(); dropZoneOfx.style.borderColor = "rgba(0,194,255,.65)"; });
+  dropZoneOfx.addEventListener("dragleave", () => { dropZoneOfx.style.borderColor = "rgba(0,194,255,.35)"; });
+  dropZoneOfx.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dropZoneOfx.style.borderColor = "rgba(0,194,255,.35)";
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) await importOFXFile(f);
+  });
+
+  btnOfxLaunch.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const bancoId = ofxBancoSelect.value || null;
+
+    const selected = ofxRows.filter(r => r.ok);
+    if (!selected.length){
+      showToast("OFX", "Selecione pelo menos 1 lançamento.");
+      return;
+    }
+
+    // valida e monta inserts
+    const inserts = [];
+    let latestISO = null;
+
+    for (const r of selected){
+      const dataISO = r.dataISO;
+      if (!dataISO) continue;
+
+      const v = Number(r.valor);
+      if (!Number.isFinite(v) || v <= 0) continue;
+
+      const valorFinal = (r.tipo === "saida") ? -Math.abs(v) : Math.abs(v);
+
+      const d = new Date(dataISO + "T00:00:00");
+      const mesAuto = monthKeyFromDateObj(d);
+
+      const payload = {
+        user_id: currentUser.id,
+        data: dataISO,
+        mes: mesAuto,
+        categoria: (r.categoria || "Outros"),
+        descricao: (r.descricao || "Movimentação"),
+        valor: valorFinal
+      };
+      if (bancoId) payload.banco_id = bancoId;
+
+      inserts.push(payload);
+      if (!latestISO || dataISO > latestISO) latestISO = dataISO;
+    }
+
+    if (!inserts.length){
+      showToast("OFX", "Nenhum item válido para lançar.");
+      return;
+    }
+
+    try{
+      const chunkSize = 200;
+      for (let i=0;i<inserts.length;i+=chunkSize){
+        const chunk = inserts.slice(i, i+chunkSize);
+        const { error } = await supa.from("registros").insert(chunk);
+        if (error) throw error;
+      }
+
+      if (latestISO){
+        const d = new Date(latestISO + "T00:00:00");
+        currentMonth = monthKeyFromDateObj(d);
+      }
+
+      closeOfxModal();
+      showToast("OFX ✅", `${inserts.length} lançamento(s) adicionados.`);
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+
+    }catch(e){
+      showToast("OFX", e.message || String(e));
+    }
+  });
+
+  // ===== SALVAR META =====
   btnSalvarMeta.addEventListener("click", async () => {
     if (!currentUser){ showLogin(); return; }
 
@@ -2003,6 +2501,12 @@
 
   supa.auth.onAuthStateChange(async () => {
     await refreshUI();
+  });
+
+  // Logout
+  btnSair.addEventListener("click", async () => {
+    await supa.auth.signOut();
+    location.href = "/";
   });
 </script>
 </body>
