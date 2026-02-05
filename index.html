@@ -77,22 +77,9 @@
       color: rgba(226,232,240,.85);
     }
     .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    .btn-icon{
-      width: 36px; height: 36px; padding: 0;
-      border-radius: 12px;
-      font-weight: 900;
-    }
-    .btn-icon-danger{
-      background: rgba(239,68,68,.12);
-      border: 1px solid rgba(239,68,68,.22);
-      color: #ffb4b4;
-    }
-    .btn-icon-edit{
-      background: rgba(0,194,255,.10);
-      border: 1px solid rgba(0,194,255,.22);
-      color: rgba(200,245,255,.95);
-    }
+    .btn-icon{ width: 36px; height: 36px; padding: 0; border-radius: 12px; font-weight: 900; }
+    .btn-icon-danger{ background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.22); color: #ffb4b4; }
+    .btn-icon-edit{ background: rgba(0,194,255,.10); border: 1px solid rgba(0,194,255,.22); color: rgba(200,245,255,.95); }
 
     .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; flex-wrap:wrap; }
     .tab{
@@ -241,7 +228,6 @@
     }
     .modalHead h3{ margin:0; font-size: 14px; letter-spacing:.2px; }
 
-    /* ✅ CORREÇÃO OFX: body rola, footer fica sempre visível */
     .modalBody{
       padding: 16px;
       color: rgba(226,232,240,.80);
@@ -298,7 +284,7 @@
     .multiMonths{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; width:100%; }
     .multiMonths select{ min-height: 120px; padding: 10px; }
 
-    /* OFX Table */
+    /* OFX */
     .ofxTopRow{
       display:flex; gap:10px; align-items:center; flex-wrap:wrap;
       justify-content:space-between;
@@ -308,16 +294,12 @@
     .ofxNote{ font-size:12px; color: rgba(226,232,240,.70); }
     .ofxTableWrap{
       width:100%;
-      overflow:auto; /* ✅ se ficar largo, rola */
+      overflow:auto;
       border-radius: 16px;
       border: 1px solid rgba(148,163,184,.12);
       background: rgba(2,6,23,.35);
     }
-    table.ofx{
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 980px; /* ✅ evita quebrar feio */
-    }
+    table.ofx{ width: 100%; border-collapse: collapse; min-width: 980px; }
     table.ofx th, table.ofx td{
       padding: 10px 10px;
       border-bottom: 1px solid rgba(148,163,184,.10);
@@ -333,10 +315,7 @@
       color: rgba(226,232,240,.80);
       text-align: left;
     }
-    table.ofx td input, table.ofx td select{
-      padding: 10px 10px;
-      border-radius: 12px;
-    }
+    table.ofx td input, table.ofx td select{ padding: 10px 10px; border-radius: 12px; }
     .ofxDesc{ min-width: 260px; width: 100%; }
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
@@ -394,7 +373,6 @@
         </div>
 
         <div class="body">
-
           <div class="field">
             <label>Mês selecionado</label>
             <select id="mesSelect"></select>
@@ -458,22 +436,10 @@
           <div style="height:14px"></div>
 
           <div class="summary">
-            <div class="kpi">
-              <div class="k">Entradas</div>
-              <div class="v green" id="kpiEntradas">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Saídas</div>
-              <div class="v red" id="kpiSaidas">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Saldo</div>
-              <div class="v" id="kpiSaldo">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Registros</div>
-              <div class="v" id="kpiQtd">0</div>
-            </div>
+            <div class="kpi"><div class="k">Entradas</div><div class="v green" id="kpiEntradas">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Saídas</div><div class="v red" id="kpiSaidas">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Saldo</div><div class="v" id="kpiSaldo">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Registros</div><div class="v" id="kpiQtd">0</div></div>
           </div>
 
           <div class="catBox">
@@ -503,7 +469,6 @@
             </div>
             <div class="hint" id="ofxInfo">Dica: escolha um banco acima para vincular as transações.</div>
           </div>
-
         </div>
       </div>
 
@@ -552,22 +517,10 @@
           <div style="height:18px"></div>
 
           <div class="summary">
-            <div class="kpi">
-              <div class="k">Meta</div>
-              <div class="v" id="metaKpi">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Entradas do mês</div>
-              <div class="v green" id="ganheiKpi">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Falta</div>
-              <div class="v red" id="faltaKpi">R$ 0,00</div>
-            </div>
-            <div class="kpi">
-              <div class="k">Média por dia</div>
-              <div class="v" id="mediaDiaKpi">R$ 0,00</div>
-            </div>
+            <div class="kpi"><div class="k">Meta</div><div class="v" id="metaKpi">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Entradas do mês</div><div class="v green" id="ganheiKpi">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Falta</div><div class="v red" id="faltaKpi">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Média por dia</div><div class="v" id="mediaDiaKpi">R$ 0,00</div></div>
           </div>
 
           <div style="height:14px"></div>
@@ -584,7 +537,7 @@
       </div>
     </div>
 
-    <!-- DASHBOARD (mantido como você já gostou) -->
+    <!-- DASHBOARD -->
     <div class="hidden" id="dashboardBox">
       <div class="card">
         <div class="head">
@@ -604,7 +557,7 @@
               Comparar meses
             </label>
 
-            <div class="miniHint" id="dashMonthLabel">Mês: —</div>
+            <div class="hint" id="dashMonthLabel">Mês: —</div>
           </div>
         </div>
 
@@ -633,10 +586,7 @@
 
           <div class="dashGrid">
             <div class="card">
-              <div class="head">
-                <h2>Resumo rápido</h2>
-                <span>Mês do Dashboard</span>
-              </div>
+              <div class="head"><h2>Resumo rápido</h2><span>Mês do Dashboard</span></div>
               <div class="body">
                 <div class="summary">
                   <div class="kpi"><div class="k">Entradas</div><div class="v green" id="dashEntradas">R$ 0,00</div></div>
@@ -649,10 +599,7 @@
             </div>
 
             <div class="card">
-              <div class="head">
-                <h2>Top categorias</h2>
-                <span>Mês do Dashboard</span>
-              </div>
+              <div class="head"><h2>Top categorias</h2><span>Mês do Dashboard</span></div>
               <div class="body">
                 <div class="catBox" id="topCatsBox"><div class="empty">Sem dados ainda.</div></div>
                 <div class="hint" id="dashHintCats">—</div>
@@ -678,7 +625,7 @@
             <div class="card" style="grid-column: 1 / -1;">
               <div class="head"><h2>Alertas inteligentes</h2><span>Rodapé do dashboard</span></div>
               <div class="body">
-                <div class="alertList" id="dashAlerts"><div class="empty">Carregando…</div></div>
+                <div id="dashAlerts"><div class="empty">Carregando…</div></div>
                 <div class="hint" id="dashHintAlerts">—</div>
               </div>
             </div>
@@ -722,10 +669,7 @@
       </div>
       <div class="modalBody">
         <div class="row">
-          <div class="field">
-            <label>Data (DD/MM/AAAA)</label>
-            <input id="editData" />
-          </div>
+          <div class="field"><label>Data (DD/MM/AAAA)</label><input id="editData" /></div>
           <div class="field">
             <label>Tipo</label>
             <select id="editTipo">
@@ -735,23 +679,11 @@
           </div>
         </div>
         <div class="row">
-          <div class="field">
-            <label>Valor (R$)</label>
-            <input id="editValor" type="number" />
-          </div>
-          <div class="field">
-            <label>Categoria</label>
-            <input id="editCategoria" placeholder="Ex: Vendas, Mercado..." />
-          </div>
+          <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
+          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
         </div>
-        <div class="field">
-          <label>Banco</label>
-          <select id="editBancoSelect"></select>
-        </div>
-        <div class="field">
-          <label>Descrição</label>
-          <input id="editDescricao" />
-        </div>
+        <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
+        <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
         <div class="hint">Ao salvar, o mês (MM/AAAA) é recalculado pela data.</div>
       </div>
       <div class="modalFoot">
@@ -770,15 +702,9 @@
       </div>
       <div class="modalBody">
         <div class="row">
-          <div class="field">
-            <label>Novo banco</label>
-            <input id="bankNome" placeholder="Ex: Nubank, Inter, PicPay..." />
-          </div>
-          <div class="field" style="display:flex;align-items:flex-end">
-            <button class="btn btn-primary" id="btnBankAdd" type="button" style="width:100%">Adicionar</button>
-          </div>
+          <div class="field"><label>Novo banco</label><input id="bankNome" placeholder="Ex: Nubank, Inter, PicPay..." /></div>
+          <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" id="btnBankAdd" type="button" style="width:100%">Adicionar</button></div>
         </div>
-
         <div class="catBox" style="margin-top:10px">
           <div class="hint" style="margin:0 0 8px 0">Seus bancos</div>
           <div id="bankList" class="empty">Carregando…</div>
@@ -790,7 +716,7 @@
     </div>
   </div>
 
-  <!-- Modal OFX (✅ corrigido: rola e botões aparecem sempre) -->
+  <!-- Modal OFX -->
   <div class="modalOverlay" id="ofxOverlay">
     <div class="modal lg">
       <div class="modalHead">
@@ -848,7 +774,7 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
-  // UI
+  // UI refs
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
@@ -873,22 +799,18 @@
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
-
   const bancoSelect = document.getElementById("bancoSelect");
 
-  // KPIs
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
   const kpiSaldo = document.getElementById("kpiSaldo");
   const kpiQtd = document.getElementById("kpiQtd");
 
-  // Import CSV
   const dropZone = document.getElementById("dropZone");
   const fileCsv = document.getElementById("fileCsv");
   const btnImportar = document.getElementById("btnImportar");
   const importInfo = document.getElementById("importInfo");
 
-  // OFX
   const dropZoneOfx = document.getElementById("dropZoneOfx");
   const fileOfx = document.getElementById("fileOfx");
   const btnImportarOfx = document.getElementById("btnImportarOfx");
@@ -903,9 +825,7 @@
   const ofxBancoSelect = document.getElementById("ofxBancoSelect");
   const ofxTbody = document.getElementById("ofxTbody");
   const ofxCount = document.getElementById("ofxCount");
-  const ofxHint = document.getElementById("ofxHint");
 
-  // Metas
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
   const btnSalvarMeta = document.getElementById("btnSalvarMeta");
@@ -916,20 +836,17 @@
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
 
-  // Toast
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
   const toastMsg = document.getElementById("toastMsg");
   let toastTimer = null;
 
-  // Modal excluir
   const modalOverlay = document.getElementById("modalOverlay");
   const modalBody = document.getElementById("modalBody");
   const btnModalClose = document.getElementById("btnModalClose");
   const btnCancelar = document.getElementById("btnCancelar");
   const btnConfirmar = document.getElementById("btnConfirmar");
 
-  // Modal editar
   const editOverlay = document.getElementById("editOverlay");
   const btnEditClose = document.getElementById("btnEditClose");
   const btnEditCancelar = document.getElementById("btnEditCancelar");
@@ -941,7 +858,6 @@
   const editDescricaoEl = document.getElementById("editDescricao");
   const editBancoSelect = document.getElementById("editBancoSelect");
 
-  // Modal bancos
   const bankOverlay = document.getElementById("bankOverlay");
   const btnGerenciarBancos = document.getElementById("btnGerenciarBancos");
   const btnBankClose = document.getElementById("btnBankClose");
@@ -950,7 +866,6 @@
   const btnBankAdd = document.getElementById("btnBankAdd");
   const bankList = document.getElementById("bankList");
 
-  // Dashboard
   const dashTitleSub = document.getElementById("dashTitleSub");
   const chkComparar = document.getElementById("chkComparar");
   const multiMonthsWrap = document.getElementById("multiMonthsWrap");
@@ -985,8 +900,8 @@
   let lastFinCache = null;
   let editingItem = null;
 
-  let banksCache = []; // {id, nome}
-  let ofxRows = []; // rows editáveis no modal
+  let banksCache = [];
+  let ofxRows = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -995,7 +910,6 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("show"), 6500);
   }
-
   function brl(n){
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
   }
@@ -1092,13 +1006,11 @@
   function fillCategoriaFilter(categorias, selected){
     const unique = Array.from(new Set(categorias.filter(Boolean)));
     unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
-
     filtroCategoriaEl.innerHTML = "";
     const optAll = document.createElement("option");
     optAll.value = "Todas";
     optAll.textContent = "Todas";
     filtroCategoriaEl.appendChild(optAll);
-
     for (const c of unique){
       const opt = document.createElement("option");
       opt.value = c;
@@ -1165,17 +1077,14 @@
     if (error) throw error;
     banksCache = data || [];
   }
-
   function fillBankSelects(){
     const opts = [`<option value="">— Sem banco (opcional) —</option>`]
       .concat(banksCache.map(b => `<option value="${b.id}">${escapeHtml(b.nome)}</option>`))
       .join("");
-
     bancoSelect.innerHTML = opts;
     editBancoSelect.innerHTML = opts;
     ofxBancoSelect.innerHTML = opts;
   }
-
   function openBankModal(){
     bankOverlay.classList.add("show");
     renderBankList();
@@ -1213,11 +1122,9 @@
     if (error) throw error;
     return (data || []).map(r => r.mes).filter(Boolean);
   }
-
   async function fetchRegistrosByMonth(userId, monthKey){
     const range = monthStartEndISO(monthKey);
     if (!range) throw new Error("Mês inválido.");
-
     const { data, error } = await supa
       .from("registros")
       .select("id, descricao, valor, data, mes, categoria, banco_id")
@@ -1225,7 +1132,6 @@
       .gte("data", range.start)
       .lte("data", range.end)
       .order("data", { ascending: false });
-
     if (error) throw error;
 
     const rows = (data || []).map(r => ({
@@ -1244,14 +1150,12 @@
       if (r.valor >= 0) entradas += r.valor;
       else saidas += Math.abs(r.valor);
     }
-
     const categorias = rows.map(r => r.categoria || "Outros");
     return { rows, entradas, saidas, saldo, categorias, range };
   }
 
   function renderFinancas(fin){
     lastFinCache = fin;
-
     kpiEntradas.textContent = brl(fin.entradas);
     kpiSaidas.textContent = brl(fin.saidas);
     kpiSaldo.textContent = brl(fin.saldo);
@@ -1259,7 +1163,6 @@
     kpiQtd.textContent = String(fin.rows.length);
 
     let filtered = fin.rows;
-
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
       filtered = filtered.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
     }
@@ -1282,6 +1185,7 @@
       const bCls = r.valor >= 0 ? "in" : "out";
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
+      const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
         <div class="item">
           <div class="leftcol">
@@ -1290,7 +1194,7 @@
               <span class="badge ${bCls}">${bTxt}</span>
               <span class="badge cat">${escapeHtml(catTxt)}</span>
               <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
-              ${r.banco_id ? `<span class="badge">🏦 ${escapeHtml((banksCache.find(x=>String(x.id)===String(r.banco_id))?.nome) || "Banco")}</span>` : ``}
+              ${bankName ? `<span class="badge">🏦 ${escapeHtml(bankName)}</span>` : ``}
             </div>
           </div>
           <div class="rightcol">
@@ -1322,19 +1226,12 @@
 
   // ===== METAS =====
   async function getMeta(userId, mes){
-    const { data, error } = await supa
-      .from("config")
-      .select("meta")
-      .eq("user_id", userId)
-      .eq("mes", mes)
-      .maybeSingle();
+    const { data, error } = await supa.from("config").select("meta").eq("user_id", userId).eq("mes", mes).maybeSingle();
     if (error) throw error;
     return Number(data?.meta || 0);
   }
   async function upsertMeta(userId, mes, meta){
-    const { error } = await supa
-      .from("config")
-      .upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
+    const { error } = await supa.from("config").upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
     if (error) throw error;
   }
   async function atualizarMetasUI(mes){
@@ -1368,7 +1265,6 @@
       const dataBR = formatISOToBR(r.dataISO);
       const valor = r.valor;
       const desc = (r.descricao || "").replace(/\s+/g, " ").trim();
-
       lines.push([dataBR, tipo, cat, desc, String(valor)].map(v => {
         const s = String(v ?? "");
         if (/[;"\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
@@ -1389,7 +1285,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // ===== DASHBOARD (mantido) =====
+  // ===== DASHBOARD (compacto) =====
   function makeChartCommonOptions(){
     return {
       responsive: true,
@@ -1407,14 +1303,12 @@
   function buildDailySeries(fin){
     const endDay = fin.range?.endDay || 30;
     const daily = Array.from({length: endDay}, (_,i) => ({ day: i+1, total: 0 }));
-
     for (const r of fin.rows){
       const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
       if (!m) continue;
       const d = Number(m[1]);
       if (d >= 1 && d <= endDay) daily[d-1].total += Number(r.valor || 0);
     }
-
     let acc = 0;
     const labels = daily.map(x => String(x.day));
     const values = daily.map(x => (acc += x.total));
@@ -1430,9 +1324,8 @@
       else obj.out += Math.abs(r.valor);
     }
     const arr = Array.from(map.entries()).map(([cat, v]) => ({ cat, in: v.in, out: v.out }));
-    arr.sort((a,b) => (b.out - a.out) || (b.in - a.in) || a.cat.localeCompare(b.cat,"pt-BR"));
+    arr.sort((a,b) => (b.out - a.out) || (b.in - a.in));
     const top = arr.slice(0, 7);
-
     topCatsBox.innerHTML = top.length ? top.map(x => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
@@ -1442,15 +1335,14 @@
         <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
       </div>
     `).join("") : `<div class="empty">Sem dados neste mês.</div>`;
-
     dashHintCats.textContent = top.length ? "Top categorias carregadas." : "Sem dados.";
   }
-  function renderAlerts(alerts){
-    if (!alerts.length){
-      dashAlerts.innerHTML = `<div class="empty">Sem alertas por enquanto ✅</div>`;
+  function renderAlertsSimple(list){
+    if (!list.length){
+      dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
       return;
     }
-    dashAlerts.innerHTML = alerts.map(a => `
+    dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
         <div class="hint" style="margin:0">${escapeHtml(a.msg)}</div>
@@ -1460,34 +1352,24 @@
   async function fetchAggByMonths(userId, monthKeys){
     const valid = monthKeys.filter(Boolean);
     if (!valid.length) return { keys: [], byMonth: {} };
-
     const sorted = [...valid].sort((a,b) => {
       const pa = parseMonthKey(a), pb = parseMonthKey(b);
       if (!pa || !pb) return 0;
       if (pa.yyyy !== pb.yyyy) return pa.yyyy - pb.yyyy;
       return pa.mm - pb.mm;
     });
-
-    const first = sorted[0];
-    const last = sorted[sorted.length-1];
-
-    const r1 = monthStartEndISO(first);
-    const r2 = monthStartEndISO(last);
-    if (!r1 || !r2) throw new Error("Range inválido");
-
+    const first = sorted[0], last = sorted[sorted.length-1];
+    const r1 = monthStartEndISO(first), r2 = monthStartEndISO(last);
     const { data, error } = await supa
       .from("registros")
       .select("valor, data")
       .eq("user_id", userId)
       .gte("data", r1.start)
       .lte("data", r2.end);
-
     if (error) throw error;
 
     const byMonth = {};
-    for (const k of valid){
-      byMonth[k] = { entradas:0, saidas:0, saldo:0 };
-    }
+    for (const k of valid) byMonth[k] = { entradas:0, saidas:0, saldo:0 };
 
     for (const row of (data || [])){
       const iso = row.data;
@@ -1495,30 +1377,18 @@
       if (!m) continue;
       const mk = `${m[2]}/${m[1]}`;
       if (!byMonth[mk]) continue;
-
       const v = Number(row.valor || 0);
       byMonth[mk].saldo += v;
       if (v >= 0) byMonth[mk].entradas += v;
       else byMonth[mk].saidas += Math.abs(v);
     }
-
     return { keys: valid, byMonth };
   }
-
   async function refreshDashboard(){
     if (!currentUser) return;
-
     const dashMk = dashboardMonth || currentMonth || getDefaultMonth();
-
     try{
-      dashHintResumo.textContent = "Atualizando…";
-      dashHintDiario.textContent = "Atualizando…";
-      dashHintComparacao.textContent = chkComparar.checked ? "Carregando comparação…" : "Ative para comparar meses.";
-      dashHintAlerts.textContent = "Atualizando…";
-      dashAlerts.innerHTML = `<div class="empty">Carregando…</div>`;
-
       const fin = await fetchRegistrosByMonth(currentUser.id, dashMk);
-
       dashMonthLabel.textContent = `Mês: ${dashMk}`;
       dashTitleSub.textContent = chkComparar.checked ? "Mês do Dashboard + comparação" : "Somente mês do Dashboard";
 
@@ -1528,7 +1398,6 @@
       dashSaldo.className = "v " + (fin.saldo >= 0 ? "green" : "red");
       dashQtd.textContent = String(fin.rows.length);
       dashHintResumo.textContent = "Resumo carregado.";
-
       renderTopCategorias(fin);
 
       const alerts = [];
@@ -1539,33 +1408,22 @@
       try{ meta = await getMeta(currentUser.id, dashMk); }catch(e){ meta = 0; }
 
       if (meta > 0){
-        if (fin.entradas >= meta){
-          alerts.push({ title:"✅ Meta batida!", msg:`Você fez ${brl(fin.entradas)} (meta ${brl(meta)}).` });
-        } else {
+        if (fin.entradas >= meta) alerts.push({ title:"✅ Meta batida!", msg:`Você fez ${brl(fin.entradas)} (meta ${brl(meta)}).` });
+        else {
           const falta = Math.max(meta - fin.entradas, 0);
           const porDia = diasRest > 0 ? (falta / diasRest) : falta;
-          alerts.push({ title:"🎯 Ritmo da meta", msg:`Faltam ${brl(falta)} • ~${brl(porDia)}/dia (restam ${diasRest} dias).` });
+          alerts.push({ title:"🎯 Ritmo da meta", msg:`Faltam ${brl(falta)} • ~${brl(porDia)}/dia.` });
         }
-      } else {
-        alerts.push({ title:"ℹ️ Meta não definida", msg:`Defina uma meta para ${dashMk} na aba Metas.` });
-      }
+      } else alerts.push({ title:"ℹ️ Meta não definida", msg:`Defina uma meta para ${dashMk} na aba Metas.` });
 
-      if (fin.entradas > 0){
-        const percGasto = (fin.saidas / fin.entradas) * 100;
-        if (percGasto >= 100) alerts.push({ title:"🚨 Gastos acima das entradas", msg:`Saídas: ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas).` });
-        else if (percGasto >= 80) alerts.push({ title:"⚠️ Gastos altos", msg:`Saídas: ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas).` });
-        else alerts.push({ title:"✅ Gastos controlados", msg:`Saídas: ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas).` });
-      }
+      if (fin.saldo < 0) alerts.push({ title:"💸 Saldo negativo", msg:`Saldo do mês: ${brl(fin.saldo)}.` });
+      else if (fin.rows.length) alerts.push({ title:"💰 Saldo", msg:`Saldo do mês: ${brl(fin.saldo)}.` });
 
-      if (fin.saldo < 0) alerts.push({ title:"💸 Saldo negativo", msg:`Seu saldo do mês está em ${brl(fin.saldo)}.` });
-      else if (fin.saldo > 0 && fin.rows.length) alerts.push({ title:"💰 Saldo positivo", msg:`Seu saldo do mês está em ${brl(fin.saldo)}.` });
-
-      renderAlerts(alerts);
+      renderAlertsSimple(alerts);
       dashHintAlerts.textContent = "Alertas atualizados.";
 
       const daily = buildDailySeries(fin);
       const ctxD = document.getElementById("chartDiario");
-
       if (!chartDiario){
         chartDiario = new Chart(ctxD, {
           type: "line",
@@ -1591,81 +1449,65 @@
           options: makeChartCommonOptions()
         });
       }
-
       if (!chkComparar.checked){
         chartComparacao.data.labels = [];
-        chartComparacao.data.datasets[0].data = [];
-        chartComparacao.data.datasets[1].data = [];
-        chartComparacao.data.datasets[2].data = [];
+        chartComparacao.data.datasets.forEach(d => d.data = []);
         chartComparacao.update();
         return;
       }
 
       const selected = Array.from(dashMonthsMulti.selectedOptions).map(o => o.value).filter(Boolean);
       const months = selected.length ? selected : [dashMk];
-
       const agg = await fetchAggByMonths(currentUser.id, months);
-      const labels = agg.keys;
 
-      chartComparacao.data.labels = labels;
-      chartComparacao.data.datasets[0].data = labels.map(k => agg.byMonth[k]?.entradas || 0);
-      chartComparacao.data.datasets[1].data = labels.map(k => agg.byMonth[k]?.saidas || 0);
-      chartComparacao.data.datasets[2].data = labels.map(k => agg.byMonth[k]?.saldo || 0);
+      chartComparacao.data.labels = agg.keys;
+      chartComparacao.data.datasets[0].data = agg.keys.map(k => agg.byMonth[k]?.entradas || 0);
+      chartComparacao.data.datasets[1].data = agg.keys.map(k => agg.byMonth[k]?.saidas || 0);
+      chartComparacao.data.datasets[2].data = agg.keys.map(k => agg.byMonth[k]?.saldo || 0);
       chartComparacao.update();
-
-      dashHintComparacao.textContent = `Comparando ${labels.length} mês(es).`;
+      dashHintComparacao.textContent = `Comparando ${agg.keys.length} mês(es).`;
     }catch(e){
       showToast("Dashboard", e.message || String(e));
-      dashAlerts.innerHTML = `<div class="empty">Falha ao gerar alertas.</div>`;
     }
   }
 
-  // ===== OFX PARSER + MODAL =====
+  // ===== OFX =====
   function normalizeOfxText(raw){
     let t = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-    // remove headers before <OFX>
     const idx = t.toUpperCase().indexOf("<OFX>");
     if (idx >= 0) t = t.slice(idx);
     return t;
   }
-
   function getTagValue(block, tag){
     const up = block.toUpperCase();
     const t = tag.toUpperCase();
     const i = up.indexOf("<" + t + ">");
     if (i < 0) return "";
     const start = i + t.length + 2;
-    // value ends at next < or line break
     let end = block.indexOf("<", start);
     if (end < 0) end = block.length;
     let v = block.slice(start, end);
     v = v.replace(/\n/g, " ").trim();
     return v;
   }
-
   function parseOfxDateToISO(dt){
-    // OFX geralmente: YYYYMMDD ou YYYYMMDDHHMMSS
     const s = (dt || "").trim();
     const m = s.match(/^(\d{4})(\d{2})(\d{2})/);
     if (!m) return null;
     return `${m[1]}-${m[2]}-${m[3]}`;
   }
-
   function parseOfx(text){
     const t = normalizeOfxText(text);
     const blocks = t.split(/<STMTTRN>/i).slice(1);
     const rows = [];
-    for (const b0 of blocks){
-      const b = b0; // até </STMTTRN> geralmente
+    for (const b of blocks){
       const dt = getTagValue(b, "DTPOSTED") || getTagValue(b, "DTUSER");
       const iso = parseOfxDateToISO(dt);
       const amtStr = getTagValue(b, "TRNAMT");
       const memo = getTagValue(b, "MEMO") || getTagValue(b, "NAME") || "Lançamento OFX";
       const fitid = getTagValue(b, "FITID");
-
       const amt = Number(String(amtStr || "").replace(",", "."));
       if (!iso || !Number.isFinite(amt)) continue;
-
       rows.push({
         id: fitid || (iso + "_" + Math.random().toString(16).slice(2)),
         ok: true,
@@ -1678,7 +1520,6 @@
     }
     return rows;
   }
-
   function openOfxModal(rows){
     ofxRows = rows;
     ofxOverlay.classList.add("show");
@@ -1687,15 +1528,13 @@
   function closeOfxModal(){
     ofxOverlay.classList.remove("show");
     ofxRows = [];
-    ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">—</td></tr>`;
   }
   function renderOfxTable(){
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
-      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada no OFX.</td></tr>`;
+      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
       return;
     }
-
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -1723,15 +1562,12 @@
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
       </tr>
     `).join("");
-
-    // ajusta categorias selecionadas
     for (const tr of ofxTbody.querySelectorAll("tr")){
       const i = Number(tr.dataset.i);
       const sel = tr.querySelector("[data-ofx-cat]");
       if (sel) sel.value = ofxRows[i].categoria || "Outros";
     }
   }
-
   function syncOfxFromTable(){
     for (const tr of ofxTbody.querySelectorAll("tr")){
       const i = Number(tr.dataset.i);
@@ -1741,7 +1577,6 @@
       const valor = Number(tr.querySelector("[data-ofx-valor]")?.value ?? 0);
       const cat = tr.querySelector("[data-ofx-cat]")?.value ?? "Outros";
       const desc = tr.querySelector("[data-ofx-desc]")?.value ?? "";
-
       const iso = parseBRDateToISO(dateBR);
       ofxRows[i].ok = ok;
       ofxRows[i].tipo = tipo;
@@ -1751,25 +1586,17 @@
       ofxRows[i].dataISO = iso || ofxRows[i].dataISO;
     }
   }
-
   async function confirmOfx(){
     if (!currentUser) return;
     syncOfxFromTable();
-
     const bankId = (ofxBancoSelect.value || bancoSelect.value || "").trim() || null;
 
     const toInsert = [];
-    let invalid = 0;
-
     for (const r of ofxRows){
       if (!r.ok) continue;
-      if (!r.dataISO || !r.descricao || !Number.isFinite(Number(r.valor)) || Number(r.valor) <= 0){
-        invalid++;
-        continue;
-      }
+      if (!r.dataISO || !r.descricao || !Number.isFinite(Number(r.valor)) || Number(r.valor) <= 0) continue;
       const mesAuto = monthKeyFromDateObj(new Date(r.dataISO + "T00:00:00"));
       const valorFinal = (r.tipo === "saida") ? -Math.abs(Number(r.valor)) : Math.abs(Number(r.valor));
-
       toInsert.push({
         user_id: currentUser.id,
         descricao: r.descricao.trim(),
@@ -1780,34 +1607,21 @@
         banco_id: bankId ? Number(bankId) : null
       });
     }
-
-    if (!toInsert.length){
-      showToast("OFX", "Nenhum lançamento selecionado para confirmar.");
-      return;
-    }
+    if (!toInsert.length){ showToast("OFX", "Nenhum lançamento selecionado."); return; }
 
     btnOfxConfirmar.disabled = true;
     btnOfxConfirmar.textContent = "Confirmando…";
-
     try{
-      // insere em lotes
       const chunkSize = 200;
       for (let i=0;i<toInsert.length;i+=chunkSize){
         const chunk = toInsert.slice(i, i+chunkSize);
         const { error } = await supa.from("registros").insert(chunk);
         if (error) throw error;
       }
-
-      showToast("OFX importado ✅", `${toInsert.length} lançamentos adicionados${invalid ? ` • ${invalid} ignorados` : ""}.`);
+      showToast("OFX ✅", `${toInsert.length} lançamentos adicionados.`);
       closeOfxModal();
-
-      // define o mês para o mais recente do lote
-      const latest = toInsert.map(x => x.data).sort().pop();
-      if (latest) currentMonth = monthKeyFromDateObj(new Date(latest + "T00:00:00"));
-
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-
     }catch(e){
       showToast("OFX", e.message || String(e));
     }finally{
@@ -1850,16 +1664,11 @@
     const d = idx("descricao") >= 0 ? idx("descricao") : idx("descrição");
     return { data: idx("data"), tipo: idx("tipo"), categoria: idx("categoria"), descricao: d, valor: idx("valor") };
   }
-
   async function importCSVFile(file){
     if (!currentUser){ showToast("Importar", "Faça login primeiro."); return; }
     const text = await file.text();
     const parsed = parseCSV(text);
-
-    if (!parsed.rows.length){
-      showToast("Importar", "Arquivo vazio ou inválido.");
-      return;
-    }
+    if (!parsed.rows.length){ showToast("Importar", "Arquivo vazio ou inválido."); return; }
 
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
@@ -1870,7 +1679,6 @@
     let ok = 0, bad = 0;
     const inserts = [];
     let latestISO = null;
-
     const bankId = (bancoSelect.value || "").trim() || null;
 
     for (const r of parsed.rows){
@@ -1905,27 +1713,21 @@
       if (!latestISO || dataISO > latestISO) latestISO = dataISO;
     }
 
-    if (!inserts.length){
-      showToast("Importar", "Nenhuma linha válida encontrada.");
-      return;
-    }
+    if (!inserts.length){ showToast("Importar", "Nenhuma linha válida encontrada."); return; }
 
     importInfo.textContent = `Importando… (${ok} válidas, ${bad} inválidas)`;
-
-    const chunkSize = 200;
-    let inserted = 0;
     try{
+      const chunkSize = 200;
+      let inserted = 0;
       for (let i=0;i<inserts.length;i+=chunkSize){
         const chunk = inserts.slice(i, i+chunkSize);
         const { error } = await supa.from("registros").insert(chunk);
         if (error) throw error;
         inserted += chunk.length;
       }
-
       if (latestISO) currentMonth = monthKeyFromDateObj(new Date(latestISO + "T00:00:00"));
-
       importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
-      showToast("Importação concluída ✅", `${inserted} lançamentos importados.`);
+      showToast("CSV ✅", `${inserted} lançamentos importados.`);
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(e){
@@ -1934,7 +1736,7 @@
     }
   }
 
-  // ===== LISTENERS =====
+  // ===== LISTENERS (LOGIN + NAV) =====
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
@@ -2009,15 +1811,12 @@
 
   btnExportar.addEventListener("click", () => {
     if (!lastFinCache || !lastFinCache.rows) { showToast("Exportar", "Sem dados para exportar."); return; }
-
     let rows = lastFinCache.rows;
-
     if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
       rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
     }
     const q = (currentSearch || "").trim().toLowerCase();
     if (q) rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q));
-
     if (!rows.length){ showToast("Exportar", "Não há registros neste filtro/busca."); return; }
 
     const csv = makeCSV(rows);
@@ -2027,14 +1826,10 @@
     showToast("Exportado ✅", `Arquivo: ${filename}`);
   });
 
-  // Modais editar/excluir
+  // Editar / Excluir (mesmo esquema)
   function openDeleteModal(item){
     pendingDelete = item;
-    modalBody.innerHTML = `
-      Você quer excluir este lançamento?<br><br>
-      <b>${escapeHtml(item.descricao || "")}</b><br>
-      ${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>
-    `;
+    modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
     modalOverlay.classList.add("show");
   }
   function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
@@ -2073,7 +1868,6 @@
         categoria: editBtn.dataset.cat || "Outros",
         banco_id: editBtn.dataset.bankid || ""
       });
-      return;
     }
   });
 
@@ -2116,7 +1910,6 @@
 
     const cat = (editCategoriaEl.value || "Outros").trim() || "Outros";
     const bankId = (editBancoSelect.value || "").trim() || null;
-
     const mesAuto = monthKeyFromDateObj(new Date(dataISO + "T00:00:00"));
 
     try{
@@ -2141,7 +1934,7 @@
     }
   });
 
-  // CSV import
+  // CSV
   btnImportar.addEventListener("click", () => fileCsv.click());
   fileCsv.addEventListener("change", async () => {
     const f = fileCsv.files && fileCsv.files[0];
@@ -2157,7 +1950,7 @@
     if (f) await importCSVFile(f);
   });
 
-  // OFX import
+  // OFX
   btnImportarOfx.addEventListener("click", () => fileOfx.click());
   fileOfx.addEventListener("change", async () => {
     const f = fileOfx.files && fileOfx.files[0];
@@ -2165,9 +1958,8 @@
     try{
       const text = await f.text();
       const rows = parseOfx(text);
-      if (!rows.length){
-        showToast("OFX", "Não encontrei transações nesse OFX.");
-      } else {
+      if (!rows.length) showToast("OFX", "Não encontrei transações nesse OFX.");
+      else {
         ofxInfo.textContent = `Arquivo carregado: ${f.name} • ${rows.length} transações`;
         openOfxModal(rows);
       }
@@ -2178,38 +1970,15 @@
     }
   });
 
-  dropZoneOfx.addEventListener("dragover", (e) => { e.preventDefault(); dropZoneOfx.style.borderColor = "rgba(0,194,255,.65)"; });
-  dropZoneOfx.addEventListener("dragleave", () => { dropZoneOfx.style.borderColor = "rgba(0,194,255,.35)"; });
-  dropZoneOfx.addEventListener("drop", async (e) => {
-    e.preventDefault();
-    dropZoneOfx.style.borderColor = "rgba(0,194,255,.35)";
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (!f) return;
-    try{
-      const text = await f.text();
-      const rows = parseOfx(text);
-      if (!rows.length) showToast("OFX", "Não encontrei transações nesse OFX.");
-      else openOfxModal(rows);
-    }catch(err){
-      showToast("OFX", err.message || String(err));
-    }
-  });
-
   btnOfxClose.addEventListener("click", closeOfxModal);
   btnOfxCancelar.addEventListener("click", closeOfxModal);
   ofxOverlay.addEventListener("click", (e) => { if (e.target === ofxOverlay) closeOfxModal(); });
 
-  btnOfxSelectAll.addEventListener("click", () => {
-    for (const r of ofxRows) r.ok = true;
-    renderOfxTable();
-  });
-  btnOfxUnselectAll.addEventListener("click", () => {
-    for (const r of ofxRows) r.ok = false;
-    renderOfxTable();
-  });
+  btnOfxSelectAll.addEventListener("click", () => { for (const r of ofxRows) r.ok = true; renderOfxTable(); });
+  btnOfxUnselectAll.addEventListener("click", () => { for (const r of ofxRows) r.ok = false; renderOfxTable(); });
   btnOfxConfirmar.addEventListener("click", confirmOfx);
 
-  // Bancos modal
+  // Bancos
   btnGerenciarBancos.addEventListener("click", async () => {
     if (!currentUser) return;
     try{
@@ -2257,23 +2026,6 @@
     }
   });
 
-  // Metas salvar
-  btnSalvarMeta.addEventListener("click", async () => {
-    if (!currentUser){ showLogin(); return; }
-    const mes = (metaMesEl.value || "").trim();
-    const meta = Number(metaValorEl.value);
-    if (!parseMonthKey(mes)){ showToast("Meta", "Use MM/AAAA."); return; }
-    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Valor inválido."); return; }
-    try{
-      await upsertMeta(currentUser.id, mes, meta);
-      showToast("Meta salva ✅", `Meta definida para ${mes}.`);
-      currentMonth = mes;
-      await refreshUI();
-    }catch(e){
-      showToast("Meta", e.message || String(e));
-    }
-  });
-
   // Dashboard controls
   chkComparar.addEventListener("change", async () => {
     multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
@@ -2284,9 +2036,7 @@
     if (!n) return;
     const keys = getLastNMonthKeys(n);
     const set = new Set(keys);
-    for (const opt of dashMonthsMulti.options){
-      opt.selected = set.has(opt.value);
-    }
+    for (const opt of dashMonthsMulti.options) opt.selected = set.has(opt.value);
   });
   btnAplicarComparacao.addEventListener("click", async () => {
     chkComparar.checked = true;
@@ -2318,18 +2068,15 @@
       await loadBanks();
       fillBankSelects();
     }catch(e){
-      // se bancos não estiver ok, pelo menos não derruba tudo
       bancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
-      editBancoSelect.inner\HTML = `<option value="">— Sem banco (opcional) —</option>`;
+      editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
 
     let months = [getDefaultMonth()];
     try{
       months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
-    }catch(e){
-      showToast("Aviso", "Não consegui carregar meses ainda.");
-    }
+    }catch(e){}
 
     const desiredFin = currentMonth || getDefaultMonth();
     fillMonthDropdown(mesSelect, months, desiredFin);
