@@ -307,7 +307,6 @@
     }
     .miniHint{ font-size: 12px; color: rgba(226,232,240,.60); }
 
-    /* Alerts */
     .alertList{ display:flex; flex-direction:column; gap:10px; }
     .alert{
       border-radius: 16px;
@@ -332,22 +331,16 @@
     .a-info{ border-color: rgba(0,194,255,.22); background: rgba(0,194,255,.07); }
     .a-info .ico{ background: rgba(0,194,255,.16); border: 1px solid rgba(0,194,255,.22); }
 
-    /* OFX table */
     .tableWrap{ overflow:auto; border-radius: 14px; border: 1px solid rgba(148,163,184,.14); background: rgba(2,6,23,.35); }
     table{ width:100%; border-collapse: collapse; min-width: 760px; }
     th, td{ padding: 10px 10px; border-bottom: 1px solid rgba(148,163,184,.10); font-size: 12px; }
     th{ text-align:left; color: rgba(226,232,240,.75); background: rgba(2,6,23,.40); position: sticky; top:0; }
-    td input, td select{
-      padding: 10px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-    }
+    td input, td select{ padding: 10px 10px; border-radius: 10px; font-size: 12px; }
     .tdCheck{ width: 44px; }
     .tdMoney{ width: 140px; }
     .tdDate{ width: 140px; }
     .tdType{ width: 120px; }
     .tdCat{ width: 170px; }
-    .tdBank{ width: 180px; }
     .tdDesc{ width: 360px; }
   </style>
 </head>
@@ -645,7 +638,7 @@
                     <div class="v green" id="dashEntradas">R$ 0,00</div>
                   </div>
                   <div class="kpi">
-                    <div class="k">Saídas</div>
+                    < <div class="k">Saídas</div>
                     <div class="v red" id="dashSaidas">R$ 0,00</div>
                   </div>
                   <div class="kpi">
@@ -882,7 +875,6 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
-  // UI refs
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
@@ -911,25 +903,20 @@
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
 
-  // KPIs finanças
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
   const kpiSaldo = document.getElementById("kpiSaldo");
   const kpiQtd = document.getElementById("kpiQtd");
 
-  // Import CSV
   const dropZone = document.getElementById("dropZone");
   const fileCsv = document.getElementById("fileCsv");
   const btnImportar = document.getElementById("btnImportar");
   const importInfo = document.getElementById("importInfo");
 
-  // Import OFX
   const dropZoneOfx = document.getElementById("dropZoneOfx");
   const fileOfx = document.getElementById("fileOfx");
   const btnImportarOfx = document.getElementById("btnImportarOfx");
-  const ofxInfo = document.getElementById("ofxInfo");
 
-  // Metas
   const metaMesEl = document.getElementById("metaMes");
   const metaValorEl = document.getElementById("metaValor");
   const btnSalvarMeta = document.getElementById("btnSalvarMeta");
@@ -940,20 +927,17 @@
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
 
-  // Toast
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
   const toastMsg = document.getElementById("toastMsg");
   let toastTimer = null;
 
-  // Modal excluir
   const modalOverlay = document.getElementById("modalOverlay");
   const modalBody = document.getElementById("modalBody");
   const btnModalClose = document.getElementById("btnModalClose");
   const btnCancelar = document.getElementById("btnCancelar");
   const btnConfirmar = document.getElementById("btnConfirmar");
 
-  // Modal editar
   const editOverlay = document.getElementById("editOverlay");
   const btnEditClose = document.getElementById("btnEditClose");
   const btnEditCancelar = document.getElementById("btnEditCancelar");
@@ -965,7 +949,6 @@
   const editDescricaoEl = document.getElementById("editDescricao");
   const editBancoSelect = document.getElementById("editBancoSelect");
 
-  // Modal bancos
   const banksOverlay = document.getElementById("banksOverlay");
   const btnBanksClose = document.getElementById("btnBanksClose");
   const btnBanksDone = document.getElementById("btnBanksDone");
@@ -974,7 +957,6 @@
   const banksList = document.getElementById("banksList");
   const banksHint = document.getElementById("banksHint");
 
-  // Modal OFX preview
   const ofxOverlay = document.getElementById("ofxOverlay");
   const btnOfxClose = document.getElementById("btnOfxClose");
   const btnOfxCancel = document.getElementById("btnOfxCancel");
@@ -983,14 +965,13 @@
   const ofxTbody = document.getElementById("ofxTbody");
   const ofxPreviewHint = document.getElementById("ofxPreviewHint");
 
-  // Dashboard
+  // Dashboard refs
   const dashTitleSub = document.getElementById("dashTitleSub");
   const chkComparar = document.getElementById("chkComparar");
   const multiMonthsWrap = document.getElementById("multiMonthsWrap");
   const dashMonthsMulti = document.getElementById("dashMonthsMulti");
   const dashQuickRange = document.getElementById("dashQuickRange");
   const btnAplicarComparacao = document.getElementById("btnAplicarComparacao");
-
   const dashMesSelect = document.getElementById("dashMesSelect");
   const topCatsBox = document.getElementById("topCatsBox");
   const dashEntradas = document.getElementById("dashEntradas");
@@ -1009,11 +990,7 @@
   let chartComparacao = null;
 
   let currentUser = null;
-
-  // Finanças
   let currentMonth = null;
-
-  // Dashboard (independente)
   let dashboardMonth = null;
 
   let pendingDelete = null;
@@ -1022,12 +999,12 @@
   let lastFinCache = null;
   let editingItem = null;
 
-  // Bancos
+  // Bancos cache (SEM RELACIONAMENTO, só mapa local)
   let banksCache = []; // [{id,nome}]
-  let currentBankId = ""; // select atual (pode ser "")
+  let currentBankId = "";
 
   // OFX preview
-  let ofxRows = []; // rows em memória para editar antes de lançar
+  let ofxRows = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1036,7 +1013,6 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove("show"), 6500);
   }
-
   function brl(n){
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n || 0));
   }
@@ -1089,14 +1065,55 @@
     if (!isCurrent) return dim;
     return Math.max(dim - now.getDate() + 1, 1);
   }
-  function getLastNMonthKeys(n){
-    const out = [];
-    const now = new Date();
-    for (let i = n-1; i >= 0; i--){
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      out.push(monthKeyFromDateObj(d));
+  function sortMonthKeys(list){
+    const unique = Array.from(new Set(list.filter(Boolean)));
+    unique.sort((a,b) => {
+      const pa = parseMonthKey(a), pb = parseMonthKey(b);
+      if (!pa || !pb) return 0;
+      if (pa.yyyy !== pb.yyyy) return pb.yyyy - pa.yyyy;
+      return pb.mm - pa.mm;
+    });
+    return unique;
+  }
+  function fillMonthDropdown(selectEl, months, selected){
+    const unique = sortMonthKeys(months);
+    selectEl.innerHTML = "";
+    for (const mk of unique){
+      const opt = document.createElement("option");
+      opt.value = mk;
+      opt.textContent = mk;
+      selectEl.appendChild(opt);
     }
-    return out;
+    selectEl.value = selected;
+    if (selectEl.value !== selected && unique.length) selectEl.value = unique[0];
+  }
+  function fillDashboardMulti(months){
+    const unique = sortMonthKeys(months);
+    dashMonthsMulti.innerHTML = "";
+    for (const mk of unique){
+      const opt = document.createElement("option");
+      opt.value = mk;
+      opt.textContent = mk;
+      dashMonthsMulti.appendChild(opt);
+    }
+  }
+  function fillCategoriaFilter(categorias, selected){
+    const unique = Array.from(new Set(categorias.filter(Boolean)));
+    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
+
+    filtroCategoriaEl.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "Todas";
+    optAll.textContent = "Todas";
+    filtroCategoriaEl.appendChild(optAll);
+
+    for (const c of unique){
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      filtroCategoriaEl.appendChild(opt);
+    }
+    filtroCategoriaEl.value = selected || "Todas";
   }
 
   function showLogin(){
@@ -1145,64 +1162,14 @@
     }
   }
 
-  function sortMonthKeys(list){
-    const unique = Array.from(new Set(list.filter(Boolean)));
-    unique.sort((a,b) => {
-      const pa = parseMonthKey(a), pb = parseMonthKey(b);
-      if (!pa || !pb) return 0;
-      if (pa.yyyy !== pb.yyyy) return pb.yyyy - pa.yyyy;
-      return pb.mm - pa.mm;
-    });
-    return unique;
+  // ===== BANCOS (sem FK) =====
+  function bankNameById(id){
+    if (!id) return "";
+    const b = banksCache.find(x => x.id === id);
+    return b ? b.nome : "";
   }
-
-  function fillMonthDropdown(selectEl, months, selected){
-    const unique = sortMonthKeys(months);
-    selectEl.innerHTML = "";
-    for (const mk of unique){
-      const opt = document.createElement("option");
-      opt.value = mk;
-      opt.textContent = mk;
-      selectEl.appendChild(opt);
-    }
-    selectEl.value = selected;
-    if (selectEl.value !== selected && unique.length) selectEl.value = unique[0];
-  }
-
-  function fillDashboardMulti(months){
-    const unique = sortMonthKeys(months);
-    dashMonthsMulti.innerHTML = "";
-    for (const mk of unique){
-      const opt = document.createElement("option");
-      opt.value = mk;
-      opt.textContent = mk;
-      dashMonthsMulti.appendChild(opt);
-    }
-  }
-
-  function fillCategoriaFilter(categorias, selected){
-    const unique = Array.from(new Set(categorias.filter(Boolean)));
-    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
-
-    filtroCategoriaEl.innerHTML = "";
-    const optAll = document.createElement("option");
-    optAll.value = "Todas";
-    optAll.textContent = "Todas";
-    filtroCategoriaEl.appendChild(optAll);
-
-    for (const c of unique){
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      filtroCategoriaEl.appendChild(opt);
-    }
-    filtroCategoriaEl.value = selected || "Todas";
-  }
-
-  // ===== BANCOS =====
   function fillBanksSelect(selectEl, selectedId){
     selectEl.innerHTML = "";
-
     const optNone = document.createElement("option");
     optNone.value = "";
     optNone.textContent = "— Sem banco (opcional) —";
@@ -1214,10 +1181,8 @@
       opt.textContent = b.nome;
       selectEl.appendChild(opt);
     }
-
     selectEl.value = selectedId || "";
   }
-
   async function fetchBanks(userId){
     try{
       const { data, error } = await supa
@@ -1228,35 +1193,28 @@
       if (error) throw error;
       return (data || []).map(x => ({ id: x.id, nome: x.nome }));
     }catch(e){
-      // se a tabela não existir, não quebra o app
       return [];
     }
   }
-
   async function refreshBanksUI(){
     banksCache = await fetchBanks(currentUser.id);
 
-    // selects
     fillBanksSelect(bancoSelect, currentBankId);
     fillBanksSelect(editBancoSelect, "");
     fillBanksSelect(ofxBancoSelect, currentBankId);
 
-    // lista no modal
     if (!banksCache.length){
       banksList.innerHTML = `<div class="empty">Nenhum banco cadastrado ainda.</div>`;
-      banksHint.textContent = "Dica: cadastre pelo menos 1 banco para organizar.";
+      banksHint.textContent = "Cadastre um banco para organizar.";
       return;
     }
-
     banksList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 12px">
         <div class="leftcol">
           <div class="desc">${escapeHtml(b.nome)}</div>
-          <div class="hint" style="margin:0">ID: ${escapeHtml(b.id)}</div>
         </div>
       </div>
     `).join("");
-
     banksHint.textContent = `${banksCache.length} banco(s) carregado(s).`;
   }
 
@@ -1265,9 +1223,7 @@
     banksOverlay.classList.add("show");
     refreshBanksUI();
   }
-  function closeBanksModal(){
-    banksOverlay.classList.remove("show");
-  }
+  function closeBanksModal(){ banksOverlay.classList.remove("show"); }
 
   btnGerenciarBancos.addEventListener("click", () => {
     if (!currentUser) return showToast("Bancos", "Faça login primeiro.");
@@ -1311,21 +1267,37 @@
     const range = monthStartEndISO(monthKey);
     if (!range) throw new Error("Mês inválido.");
 
-    // tenta puxar nome do banco via relacionamento (se existir)
-    const selectStr = "id, descricao, valor, data, mes, categoria, banco_id, banco:bancos(nome)";
+    // ✅ SEM JOIN — aqui é o conserto do seu erro
+    let data = null;
+    let error = null;
 
-    const { data, error } = await supa
+    // tenta com banco_id (se existir)
+    ({ data, error } = await supa
       .from("registros")
-      .select(selectStr)
+      .select("id, descricao, valor, data, mes, categoria, banco_id")
       .eq("user_id", userId)
       .gte("data", range.start)
       .lte("data", range.end)
-      .order("data", { ascending: false });
+      .order("data", { ascending: false })
+    );
+
+    // fallback caso sua coluna banco_id não exista
+    if (error && String(error.message || "").toLowerCase().includes("banco_id")){
+      ({ data, error } = await supa
+        .from("registros")
+        .select("id, descricao, valor, data, mes, categoria")
+        .eq("user_id", userId)
+        .gte("data", range.start)
+        .lte("data", range.end)
+        .order("data", { ascending: false })
+      );
+    }
+
     if (error) throw error;
 
     const rows = (data || []).map(r => {
       const v = Number(r.valor || 0);
-      const bankName = (r.banco && r.banco.nome) ? r.banco.nome : "";
+      const bankId = r.banco_id || "";
       return ({
         id: r.id,
         descricao: r.descricao ?? "",
@@ -1333,8 +1305,8 @@
         dataISO: r.data,
         mes: r.mes,
         categoria: r.categoria || "Outros",
-        banco_id: r.banco_id || "",
-        banco_nome: bankName
+        banco_id: bankId,
+        banco_nome: bankNameById(bankId)
       });
     });
 
@@ -1433,14 +1405,12 @@
     if (error) throw error;
     return Number(data?.meta || 0);
   }
-
   async function upsertMeta(userId, mes, meta){
     const { error } = await supa
       .from("config")
       .upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
     if (error) throw error;
   }
-
   async function atualizarMetasUI(mes){
     const meta = await getMeta(currentUser.id, mes);
     const fin = (lastFinCache && currentMonth === mes) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mes);
@@ -1462,7 +1432,7 @@
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
   }
 
-  // ===== CSV EXPORT =====
+  // ===== CSV =====
   function makeCSV(rows){
     const header = ["Data","Tipo","Categoria","Descrição","Valor"];
     const lines = [header];
@@ -1481,7 +1451,6 @@
     }
     return lines.map(l => l.join(";")).join("\n");
   }
-
   function downloadCSV(content, filename){
     const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -1494,7 +1463,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // ===== DASHBOARD HELPERS =====
+  // ===== DASHBOARD (mantido) =====
   function makeChartCommonOptions(){
     return {
       responsive: true,
@@ -1509,24 +1478,18 @@
       }
     };
   }
-
   function buildDailySeries(fin){
     const endDay = fin.range?.endDay || 30;
     const daily = Array.from({length: endDay}, (_,i) => ({ day: i+1, total: 0 }));
-
     for (const r of fin.rows){
       const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
       if (!m) continue;
       const d = Number(m[1]);
       if (d >= 1 && d <= endDay) daily[d-1].total += Number(r.valor || 0);
     }
-
     let acc = 0;
-    const labels = daily.map(x => String(x.day));
-    const values = daily.map(x => (acc += x.total));
-    return { labels, values };
+    return { labels: daily.map(x => String(x.day)), values: daily.map(x => (acc += x.total)) };
   }
-
   function renderTopCategorias(fin){
     const map = new Map();
     for (const r of fin.rows){
@@ -1552,13 +1515,11 @@
 
     dashHintCats.textContent = top.length ? "Top categorias carregadas." : "Sem dados.";
   }
-
   function renderAlerts(alerts){
     if (!alerts.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas por enquanto ✅</div>`;
       return;
     }
-
     dashAlerts.innerHTML = alerts.map(a => `
       <div class="alert ${a.kind}">
         <div class="ico">${escapeHtml(a.icon)}</div>
@@ -1569,7 +1530,6 @@
       </div>
     `).join("");
   }
-
   async function fetchAggByMonths(userId, monthKeys){
     const valid = monthKeys.filter(Boolean);
     if (!valid.length) return { keys: [], byMonth: {} };
@@ -1615,13 +1575,10 @@
       else byMonth[mk].saidas += Math.abs(v);
     }
 
-    const keys = valid;
-    return { keys, byMonth };
+    return { keys: valid, byMonth };
   }
-
   async function refreshDashboard(){
     if (!currentUser) return;
-
     const dashMk = dashboardMonth || currentMonth || getDefaultMonth();
 
     try{
@@ -1645,7 +1602,6 @@
 
       renderTopCategorias(fin);
 
-      // Alertas
       const alerts = [];
       const p = parseMonthKey(dashMk);
       const diasRest = p ? remainingDays(p.mm, p.yyyy) : 30;
@@ -1663,7 +1619,7 @@
             kind: falta > meta * 0.6 ? "a-warn" : "a-info",
             icon: "🎯",
             title: "Ritmo da meta",
-            msg: `Faltam ${brl(falta)} para bater a meta de ${brl(meta)}. Isso dá ~${brl(porDia)}/dia (restam ${diasRest} dias).`
+            msg: `Faltam ${brl(falta)} para bater a meta de ${brl(meta)}. ~${brl(porDia)}/dia (restam ${diasRest} dias).`
           });
         }
       } else {
@@ -1676,9 +1632,9 @@
         if (percGasto >= 100){ kind="a-bad"; icon="🚨"; title="Gastos acima das entradas"; }
         else if (percGasto >= 80){ kind="a-warn"; icon="⚠️"; title="Gastos altos"; }
         else if (percGasto <= 50){ kind="a-good"; icon="✅"; title="Gastos controlados"; }
-        alerts.push({ kind, icon, title, msg:`Você gastou ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas de ${brl(fin.entradas)}).` });
+        alerts.push({ kind, icon, title, msg:`Você gastou ${brl(fin.saidas)} (${percGasto.toFixed(1)}% das entradas).` });
       } else if (fin.saidas > 0){
-        alerts.push({ kind:"a-warn", icon:"⚠️", title:"Sem entradas registradas", msg:`Há ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada ainda.` });
+        alerts.push({ kind:"a-warn", icon:"⚠️", title:"Sem entradas", msg:`Há ${brl(fin.saidas)} de saídas no mês, mas nenhuma entrada registrada.` });
       } else {
         alerts.push({ kind:"a-good", icon:"✅", title:"Sem movimentações", msg:`Nenhuma movimentação registrada para ${dashMk}.` });
       }
@@ -1692,10 +1648,8 @@
       renderAlerts(alerts);
       dashHintAlerts.textContent = "Alertas atualizados.";
 
-      // Gráfico diário
       const daily = buildDailySeries(fin);
       const ctxD = document.getElementById("chartDiario");
-
       if (!chartDiario){
         chartDiario = new Chart(ctxD, {
           type: "line",
@@ -1709,7 +1663,6 @@
       }
       dashHintDiario.textContent = "Gráfico diário atualizado.";
 
-      // Comparação
       const ctxC = document.getElementById("chartComparacao");
       if (!chartComparacao){
         chartComparacao = new Chart(ctxC, {
@@ -1734,214 +1687,20 @@
 
       const selected = Array.from(dashMonthsMulti.selectedOptions).map(o => o.value).filter(Boolean);
       const months = selected.length ? selected : [dashMk];
-
       const agg = await fetchAggByMonths(currentUser.id, months);
 
-      const labels = agg.keys;
-      chartComparacao.data.labels = labels;
-      chartComparacao.data.datasets[0].data = labels.map(k => agg.byMonth[k]?.entradas || 0);
-      chartComparacao.data.datasets[1].data = labels.map(k => agg.byMonth[k]?.saidas || 0);
-      chartComparacao.data.datasets[2].data = labels.map(k => agg.byMonth[k]?.saldo || 0);
+      chartComparacao.data.labels = agg.keys;
+      chartComparacao.data.datasets[0].data = agg.keys.map(k => agg.byMonth[k]?.entradas || 0);
+      chartComparacao.data.datasets[1].data = agg.keys.map(k => agg.byMonth[k]?.saidas || 0);
+      chartComparacao.data.datasets[2].data = agg.keys.map(k => agg.byMonth[k]?.saldo || 0);
       chartComparacao.update();
+      dashHintComparacao.textContent = `Comparando ${agg.keys.length} mês(es).`;
 
-      dashHintComparacao.textContent = `Comparando ${labels.length} mês(es).`;
-
-    } catch(e){
+    }catch(e){
       showToast("Dashboard", e.message || String(e));
-      dashHintResumo.textContent = "Falhou.";
-      dashHintDiario.textContent = "Falhou.";
-      dashHintComparacao.textContent = "Falhou.";
-      dashHintAlerts.textContent = "Falhou.";
       dashAlerts.innerHTML = `<div class="empty">Falha ao gerar alertas.</div>`;
     }
   }
-
-  // ===== UI Refresh =====
-  async function refreshUI(){
-    const { data } = await supa.auth.getSession();
-    const session = data.session;
-
-    if (!session){
-      currentUser = null;
-      showLogin();
-      return;
-    }
-
-    currentUser = session.user;
-    showApp(session.user.email);
-
-    if (!dataEl.value) dataEl.value = getTodayBR();
-
-    // bancos
-    await refreshBanksUI();
-
-    let months = [getDefaultMonth()];
-    try{
-      months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
-    }catch(e){
-      showToast("Aviso", "Não consegui carregar meses ainda.");
-    }
-
-    const desiredFin = currentMonth || getDefaultMonth();
-    fillMonthDropdown(mesSelect, months, desiredFin);
-    currentMonth = mesSelect.value || getDefaultMonth();
-
-    const desiredDash = dashboardMonth || currentMonth;
-    fillMonthDropdown(dashMesSelect, months, desiredDash);
-    dashboardMonth = dashMesSelect.value || desiredDash;
-
-    fillDashboardMulti(months);
-    metaMesEl.value = currentMonth;
-
-    try{
-      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
-      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
-      renderFinancas(fin);
-    }catch(e){
-      showToast("Finanças", e.message || String(e));
-    }
-
-    try{ await atualizarMetasUI(currentMonth); }catch(e){}
-
-    if (!dashboardBox.classList.contains("hidden")){
-      await refreshDashboard();
-    }
-  }
-
-  // Tabs
-  tabFin.addEventListener("click", () => forceShowFinancas());
-  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
-  tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
-
-  // Login
-  btnLogin.addEventListener("click", async () => {
-    const { error } = await supa.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin }
-    });
-    if (error) showToast("Login", error.message);
-  });
-
-  // Troca mês Finanças
-  mesSelect.addEventListener("change", async () => {
-    if (!currentUser) return;
-    currentMonth = mesSelect.value;
-    metaMesEl.value = currentMonth;
-    await refreshUI();
-  });
-
-  // Troca mês Dashboard (independente)
-  dashMesSelect.addEventListener("change", async () => {
-    dashboardMonth = dashMesSelect.value;
-    await refreshDashboard();
-  });
-
-  // Comparação
-  chkComparar.addEventListener("change", async () => {
-    multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
-    await refreshDashboard();
-  });
-  dashQuickRange.addEventListener("change", () => {
-    const n = Number(dashQuickRange.value || 0);
-    if (!n) return;
-    const keys = getLastNMonthKeys(n);
-    const set = new Set(keys);
-    for (const opt of dashMonthsMulti.options){
-      opt.selected = set.has(opt.value);
-    }
-  });
-  btnAplicarComparacao.addEventListener("click", async () => {
-    chkComparar.checked = true;
-    multiMonthsWrap.classList.remove("hidden");
-    await refreshDashboard();
-  });
-
-  // Troca filtro categoria
-  filtroCategoriaEl.addEventListener("change", async () => {
-    currentFiltroCategoria = filtroCategoriaEl.value;
-    await refreshUI();
-  });
-
-  // Busca
-  buscaEl.addEventListener("input", () => {
-    currentSearch = buscaEl.value;
-    if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  // Salvar lançamento
-  btnSalvar.addEventListener("click", async () => {
-    if (!currentUser){ showLogin(); return; }
-
-    const tipo = tipoEl.value;
-    const dataBR = dataEl.value.trim();
-    const dataISO = parseBRDateToISO(dataBR);
-    const valorDigitado = Number(valorEl.value);
-    const descricao = descricaoEl.value.trim();
-    const categoria = (categoriaEl.value || "Outros").trim();
-    const bancoId = bancoSelect.value || null;
-
-    if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
-    if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
-    if (Number.isNaN(valorDigitado) || valorDigitado <= 0){
-      showToast("Valor", "Digite um valor positivo (ex: 100).");
-      return;
-    }
-
-    const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
-    const d = new Date(dataISO + "T00:00:00");
-    const mesAuto = monthKeyFromDateObj(d);
-
-    const payload = {
-      user_id: currentUser.id,
-      descricao,
-      valor: valorFinal,
-      data: dataISO,
-      mes: mesAuto,
-      categoria
-    };
-    if (bancoId) payload.banco_id = bancoId;
-
-    const { error } = await supa.from("registros").insert(payload);
-    if (error){ showToast("Não salvou", error.message); return; }
-
-    descricaoEl.value = "";
-    valorEl.value = "";
-    currentMonth = mesAuto;
-
-    await refreshUI();
-    if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-  });
-
-  // Exportar CSV
-  btnExportar.addEventListener("click", () => {
-    if (!lastFinCache || !lastFinCache.rows) {
-      showToast("Exportar", "Sem dados carregados para exportar.");
-      return;
-    }
-
-    let rows = lastFinCache.rows;
-
-    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
-      rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
-    }
-
-    const q = (currentSearch || "").trim().toLowerCase();
-    if (q){
-      rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q));
-    }
-
-    if (!rows.length){
-      showToast("Exportar", "Não há registros para exportar neste filtro/busca.");
-      return;
-    }
-
-    const csv = makeCSV(rows);
-    const safeMonth = (currentMonth || "mes").replace("/", "-");
-    const filename = `controle-premium_${safeMonth}.csv`;
-
-    downloadCSV(csv, filename);
-    showToast("Exportado ✅", `Arquivo gerado: ${filename}`);
-  });
 
   // ===== EDITAR / EXCLUIR =====
   function openDeleteModal(item){
@@ -1957,7 +1716,6 @@
     modalOverlay.classList.remove("show");
     pendingDelete = null;
   }
-
   function openEditModal(item){
     editingItem = item;
     editDataEl.value = formatISOToBR(item.dataISO || "");
@@ -1965,10 +1723,7 @@
     editValorEl.value = Math.abs(Number(item.valor || 0));
     editCategoriaEl.value = item.categoria || "Outros";
     editDescricaoEl.value = item.descricao || "";
-
-    // banco
     fillBanksSelect(editBancoSelect, item.banco_id || "");
-
     editOverlay.classList.add("show");
   }
   function closeEditModal(){
@@ -1976,38 +1731,32 @@
     editingItem = null;
   }
 
-  // clique nos botões da lista (delegação)
   listaEl.addEventListener("click", (e) => {
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
-
     if (delBtn){
-      const item = {
+      openDeleteModal({
         id: delBtn.dataset.id,
         descricao: delBtn.dataset.desc || "",
         valor: Number(delBtn.dataset.valor || 0),
         dataISO: delBtn.dataset.data || "",
         categoria: delBtn.dataset.cat || "Outros",
-      };
-      openDeleteModal(item);
+      });
       return;
     }
-
     if (editBtn){
-      const item = {
+      openEditModal({
         id: editBtn.dataset.id,
         descricao: editBtn.dataset.desc || "",
         valor: Number(editBtn.dataset.valor || 0),
         dataISO: editBtn.dataset.data || "",
         categoria: editBtn.dataset.cat || "Outros",
         banco_id: editBtn.dataset.bankid || ""
-      };
-      openEditModal(item);
+      });
       return;
     }
   });
 
-  // modal excluir
   btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
@@ -2015,14 +1764,8 @@
   btnConfirmar.addEventListener("click", async () => {
     if (!currentUser || !pendingDelete) return;
     try{
-      const { error } = await supa
-        .from("registros")
-        .delete()
-        .eq("id", pendingDelete.id)
-        .eq("user_id", currentUser.id);
-
+      const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
       if (error) throw error;
-
       closeDeleteModal();
       showToast("Excluído ✅", "Lançamento removido.");
       await refreshUI();
@@ -2032,7 +1775,6 @@
     }
   });
 
-  // modal editar
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
   editOverlay.addEventListener("click", (e) => { if (e.target === editOverlay) closeEditModal(); });
@@ -2062,21 +1804,8 @@
     const mesAuto = monthKeyFromDateObj(d);
 
     try{
-      const payload = {
-        data: dataISO,
-        mes: mesAuto,
-        valor: valorFinal,
-        descricao: desc,
-        categoria: cat,
-        banco_id: bankId
-      };
-
-      const { error } = await supa
-        .from("registros")
-        .update(payload)
-        .eq("id", editingItem.id)
-        .eq("user_id", currentUser.id);
-
+      const payload = { data: dataISO, mes: mesAuto, valor: valorFinal, descricao: desc, categoria: cat, banco_id: bankId };
+      const { error } = await supa.from("registros").update(payload).eq("id", editingItem.id).eq("user_id", currentUser.id);
       if (error) throw error;
 
       closeEditModal();
@@ -2089,13 +1818,7 @@
     }
   });
 
-  // Sair
-  btnSair.addEventListener("click", async () => {
-    await supa.auth.signOut();
-    location.href = "/";
-  });
-
-  // ===== IMPORT CSV (100%: importa e já aparece) =====
+  // ===== IMPORT CSV =====
   function cleanMoneyToNumber(str){
     let s = String(str ?? "").trim();
     if (!s) return NaN;
@@ -2108,7 +1831,6 @@
     s = s.replace(/[^0-9.-]/g, "");
     return Number(s);
   }
-
   function parseCSV(text){
     const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim() !== "");
     if (!lines.length) return { header: [], rows: [] };
@@ -2124,29 +1846,18 @@
     }
     return { header, rows, sep };
   }
-
   function mapColumns(header){
     const norm = header.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
     const idx = (name) => norm.indexOf(name);
     const d = idx("descricao") >= 0 ? idx("descricao") : idx("descrição");
-    return {
-      data: idx("data"),
-      tipo: idx("tipo"),
-      categoria: idx("categoria"),
-      descricao: d,
-      valor: idx("valor")
-    };
+    return { data: idx("data"), tipo: idx("tipo"), categoria: idx("categoria"), descricao: d, valor: idx("valor") };
   }
 
   async function importCSVFile(file){
     if (!currentUser){ showToast("Importar", "Faça login primeiro."); return; }
     const text = await file.text();
     const parsed = parseCSV(text);
-
-    if (!parsed.rows.length){
-      showToast("Importar", "Arquivo vazio ou inválido.");
-      return;
-    }
+    if (!parsed.rows.length){ showToast("Importar", "Arquivo vazio ou inválido."); return; }
 
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
@@ -2179,37 +1890,22 @@
       const d = new Date(dataISO + "T00:00:00");
       const mesAuto = monthKeyFromDateObj(d);
 
-      const payload = {
-        user_id: currentUser.id,
-        data: dataISO,
-        mes: mesAuto,
-        categoria,
-        descricao,
-        valor: valorFinal
-      };
+      const payload = { user_id: currentUser.id, data: dataISO, mes: mesAuto, categoria, descricao, valor: valorFinal };
       if (bancoId) payload.banco_id = bancoId;
 
       inserts.push(payload);
-
       if (!latestISO || dataISO > latestISO) latestISO = dataISO;
     }
 
-    if (!inserts.length){
-      showToast("Importar", "Nenhuma linha válida encontrada.");
-      return;
-    }
-
+    if (!inserts.length){ showToast("Importar", "Nenhuma linha válida encontrada."); return; }
     importInfo.textContent = `Importando… (${inserts.length} válidas, ${bad} inválidas)`;
 
-    const chunkSize = 200;
-    let inserted = 0;
-
     try{
+      const chunkSize = 200;
       for (let i=0;i<inserts.length;i+=chunkSize){
         const chunk = inserts.slice(i, i+chunkSize);
         const { error } = await supa.from("registros").insert(chunk);
         if (error) throw error;
-        inserted += chunk.length;
       }
 
       if (latestISO){
@@ -2217,12 +1913,10 @@
         currentMonth = monthKeyFromDateObj(d);
       }
 
-      importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
-      showToast("Importação concluída ✅", `${inserted} lançamentos importados.`);
-
+      importInfo.textContent = `✅ Importado: ${inserts.length} lançamentos • Ignorados: ${bad}`;
+      showToast("Importação concluída ✅", `${inserts.length} lançamentos importados.`);
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-
     }catch(e){
       importInfo.textContent = "Falha ao importar.";
       showToast("Importar", e.message || String(e));
@@ -2235,7 +1929,6 @@
     if (f) await importCSVFile(f);
     fileCsv.value = "";
   });
-
   dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.style.borderColor = "rgba(0,194,255,.65)"; });
   dropZone.addEventListener("dragleave", () => { dropZone.style.borderColor = "rgba(0,194,255,.35)"; });
   dropZone.addEventListener("drop", async (e) => {
@@ -2245,10 +1938,8 @@
     if (f) await importCSVFile(f);
   });
 
-  // ===== OFX =====
-  function openOfxModal(){
-    ofxOverlay.classList.add("show");
-  }
+  // ===== OFX (mantido simples) =====
+  function openOfxModal(){ ofxOverlay.classList.add("show"); }
   function closeOfxModal(){
     ofxOverlay.classList.remove("show");
     ofxRows = [];
@@ -2265,54 +1956,36 @@
     return m ? String(m[1]).trim() : "";
   }
   function ofxParseDate(dt){
-    // geralmente: YYYYMMDDHHMMSS...
     const s = String(dt || "").trim();
     const m = s.match(/^(\d{4})(\d{2})(\d{2})/);
     if (!m) return null;
     return `${m[1]}-${m[2]}-${m[3]}`;
   }
-  function ofxToBR(iso){
-    return formatISOToBR(iso);
-  }
   function ofxParse(text){
     const t = String(text || "");
     const blocks = t.split(/<STMTTRN>/i).slice(1).map(x => x.split(/<\/STMTTRN>/i)[0] || "");
     const rows = [];
-
     for (const b of blocks){
       const dt = ofxExtractTag(b, "DTPOSTED") || ofxExtractTag(b, "DTUSER");
       const iso = ofxParseDate(dt);
       const amtRaw = ofxExtractTag(b, "TRNAMT");
-      const memo = ofxExtractTag(b, "MEMO") || ofxExtractTag(b, "NAME") || ofxExtractTag(b, "PAYEE") || "Movimentação";
-
+      const memo = ofxExtractTag(b, "MEMO") || ofxExtractTag(b, "NAME") || "Movimentação";
       const val = Number(String(amtRaw).replace(",", "."));
       if (!iso || !Number.isFinite(val)) continue;
-
-      const tipo = val >= 0 ? "entrada" : "saida";
-      rows.push({
-        ok: true,
-        dataISO: iso,
-        tipo,
-        valor: Math.abs(val),
-        categoria: "Outros",
-        descricao: memo.replace(/\s+/g, " ").trim()
-      });
+      rows.push({ ok:true, dataISO: iso, tipo: val >= 0 ? "entrada" : "saida", valor: Math.abs(val), categoria:"Outros", descricao: memo.replace(/\s+/g, " ").trim() });
     }
-
     return rows;
   }
-
   function renderOfxTable(){
     if (!ofxRows.length){
-      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada neste OFX.</td></tr>`;
+      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
       ofxPreviewHint.textContent = "Sem itens.";
       return;
     }
-
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-idx="${idx}">
         <td class="tdCheck"><input type="checkbox" ${r.ok ? "checked" : ""} data-k="ok"></td>
-        <td class="tdDate"><input value="${escapeHtml(ofxToBR(r.dataISO))}" placeholder="DD/MM/AAAA" data-k="dataBR"></td>
+        <td class="tdDate"><input value="${escapeHtml(formatISOToBR(r.dataISO))}" placeholder="DD/MM/AAAA" data-k="dataBR"></td>
         <td class="tdType">
           <select data-k="tipo">
             <option value="entrada" ${r.tipo==="entrada" ? "selected":""}>Entrada</option>
@@ -2322,26 +1995,22 @@
         <td class="tdMoney"><input type="number" value="${escapeHtml(String(r.valor))}" data-k="valor"></td>
         <td class="tdCat">
           <select data-k="categoria">
-            <option value="Vendas" ${r.categoria==="Vendas"?"selected":""}>Vendas</option>
-            <option value="Tráfego" ${r.categoria==="Tráfego"?"selected":""}>Tráfego</option>
-            <option value="Fornecedor" ${r.categoria==="Fornecedor"?"selected":""}>Fornecedor</option>
-            <option value="Embalagem" ${r.categoria==="Embalagem"?"selected":""}>Embalagem</option>
-            <option value="Frete/Logística" ${r.categoria==="Frete/Logística"?"selected":""}>Frete/Logística</option>
-            <option value="Impostos/Taxas" ${r.categoria==="Impostos/Taxas"?"selected":""}>Impostos/Taxas</option>
-            <option value="Mercado" ${r.categoria==="Mercado"?"selected":""}>Mercado</option>
-            <option value="Lazer" ${r.categoria==="Lazer"?"selected":""}>Lazer</option>
-            <option value="Outros" ${r.categoria==="Outros"?"selected":""}>Outros</option>
+            <option value="Vendas">Vendas</option>
+            <option value="Tráfego">Tráfego</option>
+            <option value="Fornecedor">Fornecedor</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Frete/Logística">Frete/Logística</option>
+            <option value="Impostos/Taxas">Impostos/Taxas</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Outros" selected>Outros</option>
           </select>
         </td>
         <td class="tdDesc"><input value="${escapeHtml(r.descricao)}" data-k="descricao"></td>
       </tr>
     `).join("");
-
-    const okCount = ofxRows.filter(x => x.ok).length;
-    ofxPreviewHint.textContent = `${okCount} selecionado(s) de ${ofxRows.length}.`;
+    ofxPreviewHint.textContent = `${ofxRows.filter(x => x.ok).length} selecionado(s) de ${ofxRows.length}.`;
   }
-
-  // eventos de edição na tabela OFX
   ofxTbody.addEventListener("input", (e) => {
     const tr = e.target.closest("tr[data-idx]");
     if (!tr) return;
@@ -2364,20 +2033,13 @@
     } else if (k === "ok"){
       ofxRows[idx].ok = e.target.checked;
     }
-
-    const okCount = ofxRows.filter(x => x.ok).length;
-    ofxPreviewHint.textContent = `${okCount} selecionado(s) de ${ofxRows.length}.`;
-  });
-  ofxTbody.addEventListener("change", (e) => {
-    // para selects/checkbox
-    ofxTbody.dispatchEvent(new Event("input", { bubbles: true }));
+    ofxPreviewHint.textContent = `${ofxRows.filter(x => x.ok).length} selecionado(s) de ${ofxRows.length}.`;
   });
 
   async function importOFXFile(file){
     if (!currentUser){ showToast("OFX", "Faça login primeiro."); return; }
     const text = await file.text();
     ofxRows = ofxParse(text);
-
     fillBanksSelect(ofxBancoSelect, bancoSelect.value || "");
     openOfxModal();
     renderOfxTable();
@@ -2389,7 +2051,6 @@
     if (f) await importOFXFile(f);
     fileOfx.value = "";
   });
-
   dropZoneOfx.addEventListener("dragover", (e) => { e.preventDefault(); dropZoneOfx.style.borderColor = "rgba(0,194,255,.65)"; });
   dropZoneOfx.addEventListener("dragleave", () => { dropZoneOfx.style.borderColor = "rgba(0,194,255,.35)"; });
   dropZoneOfx.addEventListener("drop", async (e) => {
@@ -2409,19 +2070,15 @@
       return;
     }
 
-    // valida e monta inserts
     const inserts = [];
     let latestISO = null;
 
     for (const r of selected){
       const dataISO = r.dataISO;
-      if (!dataISO) continue;
-
       const v = Number(r.valor);
-      if (!Number.isFinite(v) || v <= 0) continue;
+      if (!dataISO || !Number.isFinite(v) || v <= 0) continue;
 
       const valorFinal = (r.tipo === "saida") ? -Math.abs(v) : Math.abs(v);
-
       const d = new Date(dataISO + "T00:00:00");
       const mesAuto = monthKeyFromDateObj(d);
 
@@ -2451,44 +2108,193 @@
         const { error } = await supa.from("registros").insert(chunk);
         if (error) throw error;
       }
-
       if (latestISO){
         const d = new Date(latestISO + "T00:00:00");
         currentMonth = monthKeyFromDateObj(d);
       }
-
       closeOfxModal();
       showToast("OFX ✅", `${inserts.length} lançamento(s) adicionados.`);
       await refreshUI();
-      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-
     }catch(e){
       showToast("OFX", e.message || String(e));
     }
   });
 
-  // ===== SALVAR META =====
-  btnSalvarMeta.addEventListener("click", async () => {
+  // ===== LOGIN / UI =====
+  tabFin.addEventListener("click", () => forceShowFinancas());
+  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
+  tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
+
+  btnLogin.addEventListener("click", async () => {
+    const { error } = await supa.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) showToast("Login", error.message);
+  });
+
+  mesSelect.addEventListener("change", async () => {
+    if (!currentUser) return;
+    currentMonth = mesSelect.value;
+    metaMesEl.value = currentMonth;
+    await refreshUI();
+  });
+
+  filtroCategoriaEl.addEventListener("change", async () => {
+    currentFiltroCategoria = filtroCategoriaEl.value;
+    await refreshUI();
+  });
+
+  buscaEl.addEventListener("input", () => {
+    currentSearch = buscaEl.value;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnSalvar.addEventListener("click", async () => {
     if (!currentUser){ showLogin(); return; }
 
+    const tipo = tipoEl.value;
+    const dataBR = dataEl.value.trim();
+    const dataISO = parseBRDateToISO(dataBR);
+    const valorDigitado = Number(valorEl.value);
+    const descricao = descricaoEl.value.trim();
+    const categoria = (categoriaEl.value || "Outros").trim();
+    const bancoId = bancoSelect.value || null;
+
+    if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
+    if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
+    if (Number.isNaN(valorDigitado) || valorDigitado <= 0){
+      showToast("Valor", "Digite um valor positivo (ex: 100).");
+      return;
+    }
+
+    const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
+    const d = new Date(dataISO + "T00:00:00");
+    const mesAuto = monthKeyFromDateObj(d);
+
+    const payload = { user_id: currentUser.id, descricao, valor: valorFinal, data: dataISO, mes: mesAuto, categoria };
+    if (bancoId) payload.banco_id = bancoId;
+
+    const { error } = await supa.from("registros").insert(payload);
+    if (error){ showToast("Não salvou", error.message); return; }
+
+    descricaoEl.value = "";
+    valorEl.value = "";
+    currentMonth = mesAuto;
+
+    await refreshUI();
+  });
+
+  btnExportar.addEventListener("click", () => {
+    if (!lastFinCache || !lastFinCache.rows) { showToast("Exportar", "Sem dados."); return; }
+    let rows = lastFinCache.rows;
+    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
+      rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+    const q = (currentSearch || "").trim().toLowerCase();
+    if (q){ rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q)); }
+    if (!rows.length){ showToast("Exportar", "Nada para exportar."); return; }
+    const csv = makeCSV(rows);
+    const safeMonth = (currentMonth || "mes").replace("/", "-");
+    downloadCSV(csv, `controle-premium_${safeMonth}.csv`);
+    showToast("Exportado ✅", "CSV gerado.");
+  });
+
+  btnSair.addEventListener("click", async () => {
+    await supa.auth.signOut();
+    location.href = "/";
+  });
+
+  async function refreshUI(){
+    const { data } = await supa.auth.getSession();
+    const session = data.session;
+
+    if (!session){
+      currentUser = null;
+      showLogin();
+      return;
+    }
+
+    currentUser = session.user;
+    showApp(session.user.email);
+
+    if (!dataEl.value) dataEl.value = getTodayBR();
+
+    await refreshBanksUI();
+
+    let months = [getDefaultMonth()];
+    try{ months = months.concat(await fetchMonthsFromRegistros(currentUser.id)); }catch(e){}
+
+    const desiredFin = currentMonth || getDefaultMonth();
+    fillMonthDropdown(mesSelect, months, desiredFin);
+    currentMonth = mesSelect.value || getDefaultMonth();
+
+    const desiredDash = dashboardMonth || currentMonth;
+    fillMonthDropdown(dashMesSelect, months, desiredDash);
+    dashboardMonth = dashMesSelect.value || desiredDash;
+
+    fillDashboardMulti(months);
+    metaMesEl.value = currentMonth;
+
+    try{
+      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
+      renderFinancas(fin);
+    }catch(e){
+      showToast("Finanças", e.message || String(e));
+      listaEl.innerHTML = `<div class="empty">Falha ao carregar registros.</div>`;
+    }
+
+    try{ await atualizarMetasUI(currentMonth); }catch(e){}
+
+    if (!dashboardBox.classList.contains("hidden")){
+      await refreshDashboard();
+    }
+  }
+
+  // metas salvar
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser){ showLogin(); return; }
     const mes = (metaMesEl.value || "").trim();
     const meta = Number(metaValorEl.value);
-
-    if (!parseMonthKey(mes)){ showToast("Meta", "Mês inválido. Use MM/AAAA."); return; }
-    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite um valor válido."); return; }
-
+    if (!parseMonthKey(mes)){ showToast("Meta", "Use MM/AAAA."); return; }
+    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Valor inválido."); return; }
     try{
       await upsertMeta(currentUser.id, mes, meta);
       showToast("Meta salva ✅", `Meta definida para ${mes}.`);
       currentMonth = mes;
       await refreshUI();
-      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(e){
       showToast("Meta", e.message || String(e));
     }
   });
 
-  // Init
+  // dashboard compare
+  chkComparar.addEventListener("change", async () => {
+    multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
+    await refreshDashboard();
+  });
+  dashQuickRange.addEventListener("change", () => {
+    const n = Number(dashQuickRange.value || 0);
+    if (!n) return;
+    const out = [];
+    const now = new Date();
+    for (let i=n-1; i>=0; i--){
+      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+      out.push(monthKeyFromDateObj(d));
+    }
+    const set = new Set(out);
+    for (const opt of dashMonthsMulti.options){
+      opt.selected = set.has(opt.value);
+    }
+  });
+  btnAplicarComparacao.addEventListener("click", async () => {
+    chkComparar.checked = true;
+    multiMonthsWrap.classList.remove("hidden");
+    await refreshDashboard();
+  });
+
+  // init
   (async () => {
     await captureTokenIfPresent();
     if (!dataEl.value) dataEl.value = getTodayBR();
@@ -2499,15 +2305,8 @@
     await refreshUI();
   })();
 
-  supa.auth.onAuthStateChange(async () => {
-    await refreshUI();
-  });
-
-  // Logout
-  btnSair.addEventListener("click", async () => {
-    await supa.auth.signOut();
-    location.href = "/";
-  });
+  supa.auth.onAuthStateChange(async () => { await refreshUI(); });
 </script>
 </body>
 </html>
+
