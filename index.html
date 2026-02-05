@@ -4,8 +4,13 @@
   <meta charset="UTF-8" />
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root{
@@ -478,7 +483,8 @@
             <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
-          <div class="headActions">
+          <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
@@ -796,6 +802,7 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
+  const btnPdf = document.getElementById("btnPdf");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -1283,6 +1290,101 @@
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  // ===== PDF EXPORT =====
+  function getFilteredRowsForExport(){
+    if (!lastFinCache || !lastFinCache.rows) return [];
+    let rows = lastFinCache.rows;
+
+    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
+      rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+
+    const q = (currentSearch || "").trim().toLowerCase();
+    if (q){
+      rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q));
+    }
+    return rows;
+  }
+
+  function generatePDF(){
+    if (!lastFinCache){
+      showToast("PDF", "Carregue um mês primeiro.");
+      return;
+    }
+
+    const rows = getFilteredRowsForExport();
+    if (!rows.length){
+      showToast("PDF", "Não há registros neste filtro/busca.");
+      return;
+    }
+
+    const mk = currentMonth || "mes";
+    const safeMonth = mk.replace("/", "-");
+
+    // Recalcula resumo só do que está sendo exportado (filtro+busca)
+    let entradas = 0, saidas = 0, saldo = 0;
+    for (const r of rows){
+      saldo += Number(r.valor || 0);
+      if (Number(r.valor || 0) >= 0) entradas += Number(r.valor || 0);
+      else saidas += Math.abs(Number(r.valor || 0));
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Controle Premium — Relatório", 40, 44);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Mês: ${mk}`, 40, 66);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 40, 82);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Entradas: ${brl(entradas)}`, 40, 110);
+    doc.text(`Saídas: ${brl(saidas)}`, 240, 110);
+    doc.text(`Saldo: ${brl(saldo)}`, 420, 110);
+
+    const body = rows.map(r => {
+      const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
+      const cat = r.categoria || "Outros";
+      const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
+      return [
+        formatISOToBR(r.dataISO || ""),
+        tipo,
+        cat,
+        bankName || "-",
+        (r.descricao || "").toString().slice(0, 60),
+        brl(Number(r.valor || 0)),
+      ];
+    });
+
+    doc.autoTable({
+      startY: 135,
+      head: [["Data", "Tipo", "Categoria", "Banco", "Descrição", "Valor"]],
+      body,
+      styles: { font: "helvetica", fontSize: 9, cellPadding: 6 },
+      headStyles: { fillColor: [15, 23, 42] },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 85 },
+        3: { cellWidth: 70 },
+        4: { cellWidth: 200 },
+        5: { cellWidth: 70, halign: "right" },
+      },
+      didDrawPage: (data) => {
+        doc.setFontSize(9);
+        doc.setTextColor(130);
+        doc.text("Controle Premium", 40, doc.internal.pageSize.height - 20);
+      }
+    });
+
+    doc.save(`controle-premium_${safeMonth}.pdf`);
+    showToast("PDF ✅", `Relatório gerado: controle-premium_${safeMonth}.pdf`);
   }
 
   // ===== DASHBOARD (compacto) =====
@@ -1826,7 +1928,9 @@
     showToast("Exportado ✅", `Arquivo: ${filename}`);
   });
 
-  // Editar / Excluir (mesmo esquema)
+  btnPdf.addEventListener("click", generatePDF);
+
+  // Editar / Excluir
   function openDeleteModal(item){
     pendingDelete = item;
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
@@ -2118,6 +2222,23 @@
 
   supa.auth.onAuthStateChange(async () => {
     await refreshUI();
+  });
+
+  // Meta save
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const mes = (metaMesEl.value || "").trim();
+    const meta = Number(metaValorEl.value || 0);
+    if (!/^\d{2}\/\d{4}$/.test(mes)){ showToast("Meta", "Use MM/AAAA"); return; }
+    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite um valor válido."); return; }
+    try{
+      await upsertMeta(currentUser.id, mes, meta);
+      showToast("Meta ✅", "Meta salva.");
+      await atualizarMetasUI(currentMonth);
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(e){
+      showToast("Meta", e.message || String(e));
+    }
   });
 </script>
 </body>
