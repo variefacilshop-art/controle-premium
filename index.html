@@ -325,6 +325,42 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
+
+    /* ✅ Seleção múltipla */
+    .bulkBar{
+      margin-top: 10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,194,255,.08);
+      border: 1px solid rgba(0,194,255,.18);
+    }
+    .bulkBar .info{
+      font-size: 12px;
+      color: rgba(226,232,240,.78);
+    }
+    .bulkLeft{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .chkWrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .chkWrap input{
+      width: 18px;
+      height: 18px;
+      margin:0;
+      cursor:pointer;
+      accent-color: var(--cyan);
+    }
   </style>
 </head>
 
@@ -417,8 +453,17 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <select id="categoria"></select>
-              <div class="hint">Use ➕ para criar e 🗑️ para excluir.</div>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -475,16 +520,33 @@
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <!-- ✅ NOVO: seleção múltipla -->
+            <button class="btn btn-ghost" id="btnBulkMode" type="button">☑️ Selecionar</button>
+
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
+
         <div class="body" style="padding-top:12px">
           <div class="searchBox">
             <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
           </div>
+
+          <!-- ✅ NOVO: barra de ações da seleção -->
+          <div class="bulkBar hidden" id="bulkBar">
+            <div class="bulkLeft">
+              <div class="info" id="bulkInfo">0 selecionados</div>
+              <button class="btn btn-ghost" id="btnBulkSelectAll" type="button">✅ Selecionar todos (na lista)</button>
+              <button class="btn btn-ghost" id="btnBulkClear" type="button">⬜ Limpar seleção</button>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-danger" id="btnBulkDelete" type="button">🗑️ Excluir selecionados</button>
+            </div>
+          </div>
         </div>
+
         <div class="list" id="lista">
           <div class="empty">Nenhum registro neste mês.</div>
         </div>
@@ -794,6 +856,15 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
+
+  // ✅ NOVO: seleção múltipla
+  const btnBulkMode = document.getElementById("btnBulkMode");
+  const bulkBar = document.getElementById("bulkBar");
+  const bulkInfo = document.getElementById("bulkInfo");
+  const btnBulkSelectAll = document.getElementById("btnBulkSelectAll");
+  const btnBulkClear = document.getElementById("btnBulkClear");
+  const btnBulkDelete = document.getElementById("btnBulkDelete");
+
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -893,6 +964,7 @@
   let dashboardMonth = null;
 
   let pendingDelete = null;
+  let pendingBulkDeleteIds = null; // ✅ NOVO
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
@@ -901,13 +973,10 @@
   let banksCache = [];
   let ofxRows = [];
 
-  // ✅ CATEGORIAS (corrigido: NÃO SOME mais)
-  const DEFAULT_CATEGORIAS = [
-    "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística",
-    "Impostos/Taxas","Mercado","Lazer","Outros"
-  ];
-  let categoriasCache = []; // do banco
-  let categoriasAll = [];   // padrão + banco
+  // ✅ NOVO: seleção múltipla (estado)
+  let selectionMode = false;
+  let selectedIds = new Set();
+  let lastRenderedIds = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1009,151 +1078,21 @@
       dashMonthsMulti.appendChild(opt);
     }
   }
-
-  // ✅ monta lista final (padrão + banco) SEM duplicar
-  function buildCategoriasAll(){
-    const set = new Map();
-    for (const c of DEFAULT_CATEGORIAS) set.set(c.toLowerCase(), c);
-    for (const c of (categoriasCache || [])){
-      const nome = (c.nome || "").trim();
-      if (!nome) continue;
-      const key = nome.toLowerCase();
-      if (!set.has(key)) set.set(key, nome);
-    }
-    const arr = Array.from(set.values());
-    arr.sort((a,b) => a.localeCompare(b, "pt-BR"));
-    categoriasAll = arr.length ? arr : [...DEFAULT_CATEGORIAS];
-  }
-
-  // ✅ preenche select de categoria (com + e lixeira)
-  function renderCategoriaSelect(){
-    const current = categoriaEl.value || "";
-    const options = [];
-
-    options.push(`<option value="" disabled ${current ? "" : "selected"}>— Selecione —</option>`);
-    for (const c of categoriasAll){
-      options.push(`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`);
-    }
-    options.push(`<option value="__add__">➕ Adicionar categoria…</option>`);
-    options.push(`<option value="__del__">🗑️ Excluir categoria…</option>`);
-
-    categoriaEl.innerHTML = options.join("");
-    if (current && categoriasAll.includes(current)) categoriaEl.value = current;
-  }
-
-  // ✅ preenche filtro de categoria (com Todas)
-  function renderFiltroCategoria(selected){
+  function fillCategoriaFilter(categorias, selected){
+    const unique = Array.from(new Set(categorias.filter(Boolean)));
+    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
     filtroCategoriaEl.innerHTML = "";
     const optAll = document.createElement("option");
     optAll.value = "Todas";
     optAll.textContent = "Todas";
     filtroCategoriaEl.appendChild(optAll);
-
-    for (const c of categoriasAll){
+    for (const c of unique){
       const opt = document.createElement("option");
       opt.value = c;
       opt.textContent = c;
       filtroCategoriaEl.appendChild(opt);
     }
     filtroCategoriaEl.value = selected || "Todas";
-  }
-
-  async function loadCategorias(){
-    if (!currentUser) return;
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error) throw error;
-    categoriasCache = data || [];
-    buildCategoriasAll();
-  }
-
-  async function addCategoriaFlow(){
-    const nome = (prompt("Digite o nome da nova categoria:") || "").trim();
-    if (!nome){
-      renderCategoriaSelect();
-      return;
-    }
-    if (!currentUser) return;
-
-    try{
-      const { error } = await supa.from("categorias").insert({
-        user_id: currentUser.id,
-        nome
-      });
-      if (error){
-        // se já existe, só avisa
-        if ((error.message || "").toLowerCase().includes("duplicate") || (error.code || "") === "23505"){
-          showToast("Categoria", "Essa categoria já existe.");
-        } else {
-          throw error;
-        }
-      } else {
-        showToast("Categoria ✅", "Categoria adicionada.");
-      }
-
-      await loadCategorias();
-      renderCategoriaSelect();
-      renderFiltroCategoria(currentFiltroCategoria);
-      categoriaEl.value = categoriasAll.find(c => c.toLowerCase() === nome.toLowerCase()) || nome;
-    }catch(e){
-      showToast("Categoria", e.message || String(e));
-      renderCategoriaSelect();
-    }
-  }
-
-  async function deleteCategoriaFlow(){
-    if (!currentUser) return;
-
-    // lista só as do banco (as padrão não precisam deletar)
-    if (!categoriasCache.length){
-      showToast("Categoria", "Você não tem categorias personalizadas para excluir.");
-      renderCategoriaSelect();
-      return;
-    }
-
-    const lista = categoriasCache.map((c, i) => `${i+1}) ${c.nome}`).join("\n");
-    const resp = (prompt(
-      "Qual categoria você quer excluir?\n\nDigite o NÚMERO:\n\n" + lista
-    ) || "").trim();
-
-    const n = Number(resp);
-    if (!Number.isFinite(n) || n < 1 || n > categoriasCache.length){
-      renderCategoriaSelect();
-      return;
-    }
-
-    const cat = categoriasCache[n-1];
-    const ok = confirm(`Excluir a categoria "${cat.nome}"?`);
-    if (!ok){
-      renderCategoriaSelect();
-      return;
-    }
-
-    try{
-      const { error } = await supa
-        .from("categorias")
-        .delete()
-        .eq("id", cat.id)
-        .eq("user_id", currentUser.id);
-      if (error) throw error;
-
-      showToast("Categoria ✅", "Categoria excluída.");
-      await loadCategorias();
-      renderCategoriaSelect();
-      renderFiltroCategoria(currentFiltroCategoria);
-
-      // se a categoria atual era a excluída, volta pra "Outros"
-      if ((categoriaEl.value || "").toLowerCase() === (cat.nome || "").toLowerCase()){
-        categoriaEl.value = categoriasAll.includes("Outros") ? "Outros" : (categoriasAll[0] || "");
-      }
-    }catch(e){
-      showToast("Categoria", e.message || String(e));
-    } finally {
-      renderCategoriaSelect();
-    }
   }
 
   function showLogin(){
@@ -1199,6 +1138,22 @@
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       await supa.auth.getSessionFromUrl({ storeSession: true });
       history.replaceState({}, document.title, "/");
+    }
+  }
+
+  // ✅ NOVO: atualizar barra da seleção
+  function updateBulkUI(){
+    bulkBar.classList.toggle("hidden", !selectionMode);
+    btnBulkMode.textContent = selectionMode ? "✅ Concluir seleção" : "☑️ Selecionar";
+
+    const count = selectedIds.size;
+    bulkInfo.textContent = `${count} selecionado(s)`;
+    btnBulkDelete.disabled = count === 0;
+
+    if (!selectionMode){
+      // quando sair do modo seleção, limpa seleção (pra não confundir)
+      selectedIds.clear();
+      bulkInfo.textContent = `0 selecionado(s)`;
     }
   }
 
@@ -1311,6 +1266,9 @@
       buscaInfo.textContent = "Mostrando tudo";
     }
 
+    // ✅ guarda ids que estão na lista agora (pra “Selecionar todos”)
+    lastRenderedIds = filtered.map(r => String(r.id));
+
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
       return;
@@ -1322,8 +1280,13 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
+      const checked = selectedIds.has(String(r.id)) ? "checked" : "";
       return `
         <div class="item">
+          <div class="chkWrap ${selectionMode ? "" : "hidden"}">
+            <input type="checkbox" data-bulk-check="1" data-id="${escapeHtml(String(r.id))}" ${checked}>
+          </div>
+
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1358,6 +1321,12 @@
         </div>
       `;
     }).join("");
+
+    // ✅ atualiza info do bulk sem “resetar” a seleção
+    if (selectionMode){
+      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+      btnBulkDelete.disabled = selectedIds.size === 0;
+    }
   }
 
   // ===== METAS =====
@@ -1840,24 +1809,12 @@
     ofxOverlay.classList.remove("show");
     ofxRows = [];
   }
-
-  function buildCategoriaOptionsHTML(selected){
-    const opts = categoriasAll.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    // garante um fallback
-    const base = opts || `<option value="Outros">Outros</option>`;
-    return base.replace(
-      `value="${escapeHtml(selected || "")}"`,
-      `value="${escapeHtml(selected || "")}" selected`
-    );
-  }
-
   function renderOfxTable(){
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
       return;
     }
-
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -1871,14 +1828,26 @@
         <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
         <td>
           <select data-ofx-cat>
-            ${categoriasAll.map(c => `<option value="${escapeHtml(c)}" ${c=== (r.categoria || "Outros") ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+            <option value="Vendas">Vendas</option>
+            <option value="Tráfego">Tráfego</option>
+            <option value="Fornecedor">Fornecedor</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Frete/Logística">Frete/Logística</option>
+            <option value="Impostos/Taxas">Impostos/Taxas</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Outros" selected>Outros</option>
           </select>
         </td>
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
       </tr>
     `).join("");
+    for (const tr of ofxTbody.querySelectorAll("tr")){
+      const i = Number(tr.dataset.i);
+      const sel = tr.querySelector("[data-ofx-cat]");
+      if (sel) sel.value = ofxRows[i].categoria || "Outros";
+    }
   }
-
   function syncOfxFromTable(){
     for (const tr of ofxTbody.querySelectorAll("tr")){
       const i = Number(tr.dataset.i);
@@ -2069,27 +2038,24 @@
     if (!currentUser) return;
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
+
+    // ✅ muda de mês: limpa seleção pra não confundir
+    selectedIds.clear();
+    updateBulkUI();
+
     await refreshUI();
   });
 
   filtroCategoriaEl.addEventListener("change", async () => {
     currentFiltroCategoria = filtroCategoriaEl.value;
+
+    // ✅ ao trocar filtro, mantém seleção (mas só vai aparecer nos itens visíveis)
     await refreshUI();
   });
 
   buscaEl.addEventListener("input", () => {
     currentSearch = buscaEl.value;
     if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  // ✅ clique no + e na lixeira dentro da lista
-  categoriaEl.addEventListener("change", async () => {
-    const v = categoriaEl.value;
-    if (v === "__add__"){
-      await addCategoriaFlow();
-    } else if (v === "__del__"){
-      await deleteCategoriaFlow();
-    }
   });
 
   btnSalvar.addEventListener("click", async () => {
@@ -2102,11 +2068,6 @@
     const descricao = descricaoEl.value.trim();
     const categoria = (categoriaEl.value || "Outros").trim();
     const bankId = (bancoSelect.value || "").trim();
-
-    if (categoria === "__add__" || categoria === "__del__"){
-      showToast("Categoria", "Escolha uma categoria válida.");
-      return;
-    }
 
     if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
     if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
@@ -2130,6 +2091,10 @@
     descricaoEl.value = "";
     valorEl.value = "";
     currentMonth = mesAuto;
+
+    // ✅ após salvar: limpa seleção pra não confundir
+    selectedIds.clear();
+    updateBulkUI();
 
     await refreshUI();
     if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
@@ -2155,13 +2120,55 @@
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
+  // ✅ NOVO: botão “Selecionar”
+  btnBulkMode.addEventListener("click", () => {
+    selectionMode = !selectionMode;
+    if (!selectionMode){
+      selectedIds.clear();
+    }
+    updateBulkUI();
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkSelectAll.addEventListener("click", () => {
+    if (!selectionMode) return;
+    for (const id of lastRenderedIds){
+      selectedIds.add(String(id));
+    }
+    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+    btnBulkDelete.disabled = selectedIds.size === 0;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkClear.addEventListener("click", () => {
+    selectedIds.clear();
+    bulkInfo.textContent = `0 selecionado(s)`;
+    btnBulkDelete.disabled = true;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkDelete.addEventListener("click", () => {
+    if (!selectionMode) return;
+    const ids = Array.from(selectedIds);
+    if (!ids.length){ showToast("Seleção", "Selecione pelo menos 1 lançamento."); return; }
+    pendingBulkDeleteIds = ids;
+
+    modalBody.innerHTML = `Excluir <b>${ids.length}</b> lançamento(s) selecionado(s)?<br><br><span class="hint" style="margin:0">Essa ação não pode ser desfeita.</span>`;
+    modalOverlay.classList.add("show");
+  });
+
   // Editar / Excluir
   function openDeleteModal(item){
     pendingDelete = item;
+    pendingBulkDeleteIds = null; // ✅ garante que não confunda com bulk
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
     modalOverlay.classList.add("show");
   }
-  function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
+  function closeDeleteModal(){
+    modalOverlay.classList.remove("show");
+    pendingDelete = null;
+    pendingBulkDeleteIds = null;
+  }
 
   function openEditModal(item){
     editingItem = item;
@@ -2175,9 +2182,29 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
+  // ✅ NOVO: marcar/desmarcar checkbox (sem atrapalhar editar/excluir)
+  listaEl.addEventListener("change", (e) => {
+    const chk = e.target.closest("[data-bulk-check]");
+    if (!chk) return;
+    if (!selectionMode) return;
+
+    const id = String(chk.dataset.id || "");
+    if (!id) return;
+
+    if (chk.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+
+    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+    btnBulkDelete.disabled = selectedIds.size === 0;
+  });
+
   listaEl.addEventListener("click", (e) => {
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
+
+    // se clicou na checkbox, não abre nada
+    if (e.target && e.target.matches && e.target.matches("[data-bulk-check]")) return;
+
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2205,12 +2232,55 @@
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
   btnConfirmar.addEventListener("click", async () => {
-    if (!currentUser || !pendingDelete) return;
+    if (!currentUser) return;
+
+    // ✅ BULK delete
+    if (pendingBulkDeleteIds && pendingBulkDeleteIds.length){
+      const ids = pendingBulkDeleteIds.slice(0);
+      try{
+        btnConfirmar.disabled = true;
+        btnConfirmar.textContent = "Excluindo…";
+
+        const { error } = await supa
+          .from("registros")
+          .delete()
+          .in("id", ids)
+          .eq("user_id", currentUser.id);
+
+        if (error) throw error;
+
+        closeDeleteModal();
+        showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
+
+        // limpa seleção e sai do modo seleção (fica mais simples)
+        selectedIds.clear();
+        selectionMode = false;
+        updateBulkUI();
+
+        await refreshUI();
+        if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+      }catch(err){
+        showToast("Excluir", err.message || String(err));
+      }finally{
+        btnConfirmar.disabled = false;
+        btnConfirmar.textContent = "Excluir";
+      }
+      return;
+    }
+
+    // delete normal (1 item)
+    if (!pendingDelete) return;
     try{
       const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
       if (error) throw error;
       closeDeleteModal();
       showToast("Excluído ✅", "Lançamento removido.");
+
+      // se estava selecionado, remove também
+      selectedIds.delete(String(pendingDelete.id));
+      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+      btnBulkDelete.disabled = selectedIds.size === 0;
+
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2256,6 +2326,7 @@
       closeEditModal();
       showToast("Salvo ✅", "Alterações aplicadas.");
       currentMonth = mesAuto;
+
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2393,7 +2464,6 @@
 
     if (!dataEl.value) dataEl.value = getTodayBR();
 
-    // bancos
     try{
       await loadBanks();
       fillBankSelects();
@@ -2402,16 +2472,6 @@
       editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
-
-    // ✅ categorias
-    try{
-      await loadCategorias();
-    }catch(e){
-      categoriasCache = [];
-      buildCategoriasAll();
-    }
-    renderCategoriaSelect();
-    renderFiltroCategoria(currentFiltroCategoria);
 
     let months = [getDefaultMonth()];
     try{
@@ -2431,6 +2491,7 @@
 
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
@@ -2442,6 +2503,9 @@
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
+
+    // ✅ garante que botões/visuais do bulk batam com o estado
+    updateBulkUI();
   }
 
   // Init
@@ -2452,6 +2516,11 @@
     currentSearch = "";
     currentMonth = getDefaultMonth();
     dashboardMonth = currentMonth;
+
+    selectionMode = false;
+    selectedIds = new Set();
+    updateBulkUI();
+
     await refreshUI();
   })();
 
