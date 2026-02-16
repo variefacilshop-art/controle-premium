@@ -418,7 +418,7 @@
             <div class="field">
               <label>Categoria</label>
               <select id="categoria"></select>
-              <div class="hint">Dica: use “➕ Adicionar categoria…” no final da lista.</div>
+              <div class="hint">Use ➕ para criar e 🗑️ para excluir.</div>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -677,7 +677,7 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." list="catsDatalist" /></div>
+          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -762,9 +762,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Datalist para sugerir categorias no campo de edição -->
-  <datalist id="catsDatalist"></datalist>
 
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
@@ -888,8 +885,6 @@
   const dashAlerts = document.getElementById("dashAlerts");
   const dashHintAlerts = document.getElementById("dashHintAlerts");
 
-  const catsDatalist = document.getElementById("catsDatalist");
-
   let chartDiario = null;
   let chartComparacao = null;
 
@@ -906,16 +901,13 @@
   let banksCache = [];
   let ofxRows = [];
 
-  // ===== CATEGORIAS (NOVO) =====
-  const DEFAULT_CATS = [
+  // ✅ CATEGORIAS (corrigido: NÃO SOME mais)
+  const DEFAULT_CATEGORIAS = [
     "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística",
     "Impostos/Taxas","Mercado","Lazer","Outros"
   ];
-  const CAT_ADD_VALUE = "__ADD_CAT__";
-  const CAT_DEL_VALUE = "__DEL_CAT__";
-
-  let categoriasCache = [];       // [{id,nome}]
-  let categoriasTableOk = true;   // se tabela/rls/policies estiver ok
+  let categoriasCache = []; // do banco
+  let categoriasAll = [];   // padrão + banco
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1018,172 +1010,149 @@
     }
   }
 
-  // ===== CATEGORIAS (NOVO) =====
-  async function loadCategorias(){
-    categoriasCache = [];
-    categoriasTableOk = true;
-    if (!currentUser) return;
-    try{
-      const { data, error } = await supa
-        .from("categorias")
-        .select("id,nome")
-        .eq("user_id", currentUser.id)
-        .order("nome", { ascending: true });
-      if (error) throw error;
-
-      categoriasCache = (data || [])
-        .map(x => ({ id: x.id, nome: (x.nome || "").trim() }))
-        .filter(x => x.nome);
-    }catch(e){
-      categoriasTableOk = false;
-      categoriasCache = [];
+  // ✅ monta lista final (padrão + banco) SEM duplicar
+  function buildCategoriasAll(){
+    const set = new Map();
+    for (const c of DEFAULT_CATEGORIAS) set.set(c.toLowerCase(), c);
+    for (const c of (categoriasCache || [])){
+      const nome = (c.nome || "").trim();
+      if (!nome) continue;
+      const key = nome.toLowerCase();
+      if (!set.has(key)) set.set(key, nome);
     }
+    const arr = Array.from(set.values());
+    arr.sort((a,b) => a.localeCompare(b, "pt-BR"));
+    categoriasAll = arr.length ? arr : [...DEFAULT_CATEGORIAS];
   }
 
-  function getCategoriaList(){
-    const dbNames = (categoriasCache || []).map(x => x.nome);
-    const base = (dbNames.length ? dbNames : DEFAULT_CATS);
+  // ✅ preenche select de categoria (com + e lixeira)
+  function renderCategoriaSelect(){
+    const current = categoriaEl.value || "";
+    const options = [];
 
-    const unique = Array.from(new Set(base.filter(Boolean).map(x => String(x).trim()).filter(Boolean)));
-    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
-
-    if (!unique.includes("Outros")) unique.push("Outros");
-    return unique;
-  }
-
-  function fillCategoriaSelect(selectEl, selected){
-    const cats = getCategoriaList();
-    selectEl.innerHTML = "";
-
-    for (const c of cats){
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = c;
-      selectEl.appendChild(opt);
+    options.push(`<option value="" disabled ${current ? "" : "selected"}>— Selecione —</option>`);
+    for (const c of categoriasAll){
+      options.push(`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`);
     }
+    options.push(`<option value="__add__">➕ Adicionar categoria…</option>`);
+    options.push(`<option value="__del__">🗑️ Excluir categoria…</option>`);
 
-    const optAdd = document.createElement("option");
-    optAdd.value = CAT_ADD_VALUE;
-    optAdd.textContent = "➕ Adicionar categoria…";
-    selectEl.appendChild(optAdd);
-
-    const optDel = document.createElement("option");
-    optDel.value = CAT_DEL_VALUE;
-    optDel.textContent = "🗑️ Excluir categoria…";
-    selectEl.appendChild(optDel);
-
-    if (selected && cats.includes(selected)) selectEl.value = selected;
-    else if (cats.includes("Outros")) selectEl.value = "Outros";
-    else selectEl.value = cats[0] || "Outros";
+    categoriaEl.innerHTML = options.join("");
+    if (current && categoriasAll.includes(current)) categoriaEl.value = current;
   }
 
-  function fillCategoriaFilter(selected){
-    const cats = getCategoriaList();
+  // ✅ preenche filtro de categoria (com Todas)
+  function renderFiltroCategoria(selected){
     filtroCategoriaEl.innerHTML = "";
-
     const optAll = document.createElement("option");
     optAll.value = "Todas";
     optAll.textContent = "Todas";
     filtroCategoriaEl.appendChild(optAll);
 
-    for (const c of cats){
+    for (const c of categoriasAll){
       const opt = document.createElement("option");
       opt.value = c;
       opt.textContent = c;
       filtroCategoriaEl.appendChild(opt);
     }
-
     filtroCategoriaEl.value = selected || "Todas";
   }
 
-  function fillCatDatalist(){
-    const cats = getCategoriaList();
-    catsDatalist.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}"></option>`).join("");
+  async function loadCategorias(){
+    if (!currentUser) return;
+    const { data, error } = await supa
+      .from("categorias")
+      .select("id,nome")
+      .eq("user_id", currentUser.id)
+      .order("nome", { ascending: true });
+    if (error) throw error;
+    categoriasCache = data || [];
+    buildCategoriasAll();
   }
 
   async function addCategoriaFlow(){
-    if (!currentUser) return null;
-
-    if (!categoriasTableOk){
-      showToast("Categoria", "Para adicionar/excluir categorias, é preciso ter a tabela 'categorias' com segurança (RLS + regras).");
-      return null;
+    const nome = (prompt("Digite o nome da nova categoria:") || "").trim();
+    if (!nome){
+      renderCategoriaSelect();
+      return;
     }
-
-    const nome = prompt("Digite o nome da nova categoria:");
-    if (!nome) return null;
-
-    const clean = String(nome).trim();
-    if (!clean){ showToast("Categoria", "Nome inválido."); return null; }
-
-    const cats = getCategoriaList().map(x => x.toLowerCase());
-    if (cats.includes(clean.toLowerCase())){
-      showToast("Categoria", "Essa categoria já existe.");
-      return null;
-    }
+    if (!currentUser) return;
 
     try{
-      const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: clean });
-      if (error) throw error;
+      const { error } = await supa.from("categorias").insert({
+        user_id: currentUser.id,
+        nome
+      });
+      if (error){
+        // se já existe, só avisa
+        if ((error.message || "").toLowerCase().includes("duplicate") || (error.code || "") === "23505"){
+          showToast("Categoria", "Essa categoria já existe.");
+        } else {
+          throw error;
+        }
+      } else {
+        showToast("Categoria ✅", "Categoria adicionada.");
+      }
 
       await loadCategorias();
-      fillCategoriaSelect(categoriaEl, clean);
-      fillCategoriaFilter(currentFiltroCategoria);
-      fillCatDatalist();
-      showToast("Categoria ✅", "Categoria adicionada.");
-      return clean;
+      renderCategoriaSelect();
+      renderFiltroCategoria(currentFiltroCategoria);
+      categoriaEl.value = categoriasAll.find(c => c.toLowerCase() === nome.toLowerCase()) || nome;
     }catch(e){
       showToast("Categoria", e.message || String(e));
-      return null;
+      renderCategoriaSelect();
     }
   }
 
   async function deleteCategoriaFlow(){
     if (!currentUser) return;
 
-    if (!categoriasTableOk){
-      showToast("Categoria", "Para excluir, é preciso ter a tabela 'categorias' com segurança (RLS + regras).");
+    // lista só as do banco (as padrão não precisam deletar)
+    if (!categoriasCache.length){
+      showToast("Categoria", "Você não tem categorias personalizadas para excluir.");
+      renderCategoriaSelect();
       return;
     }
 
-    const custom = (categoriasCache || [])
-      .filter(x => x.nome && x.nome.toLowerCase() !== "outros")
-      .sort((a,b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    const lista = categoriasCache.map((c, i) => `${i+1}) ${c.nome}`).join("\n");
+    const resp = (prompt(
+      "Qual categoria você quer excluir?\n\nDigite o NÚMERO:\n\n" + lista
+    ) || "").trim();
 
-    if (!custom.length){
-      showToast("Categoria", "Você ainda não tem categorias personalizadas para excluir.");
+    const n = Number(resp);
+    if (!Number.isFinite(n) || n < 1 || n > categoriasCache.length){
+      renderCategoriaSelect();
       return;
     }
 
-    const menu = custom.map((c, i) => `${i+1}) ${c.nome}`).join("\n");
-    const escolha = prompt("Qual categoria você quer excluir?\n\n" + menu + "\n\nDigite o número:");
-    if (!escolha) return;
-
-    const idx = Number(escolha) - 1;
-    if (!Number.isFinite(idx) || idx < 0 || idx >= custom.length){
-      showToast("Categoria", "Número inválido.");
+    const cat = categoriasCache[n-1];
+    const ok = confirm(`Excluir a categoria "${cat.nome}"?`);
+    if (!ok){
+      renderCategoriaSelect();
       return;
     }
-
-    const alvo = custom[idx];
-    const ok = confirm(`Tem certeza que quer excluir a categoria: "${alvo.nome}"?`);
-    if (!ok) return;
 
     try{
       const { error } = await supa
         .from("categorias")
         .delete()
-        .eq("id", alvo.id)
+        .eq("id", cat.id)
         .eq("user_id", currentUser.id);
-
       if (error) throw error;
 
-      await loadCategorias();
-      fillCategoriaSelect(categoriaEl, "Outros");
-      fillCategoriaFilter(currentFiltroCategoria);
-      fillCatDatalist();
       showToast("Categoria ✅", "Categoria excluída.");
+      await loadCategorias();
+      renderCategoriaSelect();
+      renderFiltroCategoria(currentFiltroCategoria);
+
+      // se a categoria atual era a excluída, volta pra "Outros"
+      if ((categoriaEl.value || "").toLowerCase() === (cat.nome || "").toLowerCase()){
+        categoriaEl.value = categoriasAll.includes("Outros") ? "Outros" : (categoriasAll[0] || "");
+      }
     }catch(e){
       showToast("Categoria", e.message || String(e));
+    } finally {
+      renderCategoriaSelect();
     }
   }
 
@@ -1489,22 +1458,19 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;    // ~595
-    const pageH = doc.internal.pageSize.height;   // ~842
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
 
-    // Centralização igual ao modelo (margens simétricas)
     const margin = 54;
     const contentW = pageW - margin*2;
     const x0 = (pageW - contentW) / 2;
 
-    // Fundo branco
     doc.setFillColor(255,255,255);
     doc.rect(0,0,pageW,pageH,"F");
     doc.setTextColor(0,0,0);
 
     let y = 64;
 
-    // Título (igual ao modelo)
     doc.setFont("helvetica","bold");
     doc.setFontSize(24);
     doc.text("Controle Premium", x0, y);
@@ -1518,7 +1484,6 @@
     doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
     y += 30;
 
-    // Caixa KPIs (centralizada)
     const boxX = x0;
     const boxY = y;
     const boxW = contentW;
@@ -1548,7 +1513,6 @@
 
     y = boxY + boxH + 30;
 
-    // Meta do mês
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
     doc.text("Meta do mês", x0, y);
@@ -1562,7 +1526,6 @@
     );
     y += 20;
 
-    // Barra de progresso (azul, grossa, centralizada)
     const barX = x0;
     const barY = y;
     const barW = contentW;
@@ -1579,7 +1542,6 @@
 
     y = barY + barH + 30;
 
-    // Lançamentos do mês
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
     doc.text("Lançamentos do mês", x0, y);
@@ -1610,7 +1572,7 @@
         lineColor: 230
       },
       headStyles: {
-        fillColor: [12, 18, 38],     // igual ao modelo (faixa escura)
+        fillColor: [12, 18, 38],
         textColor: 255,
         fontStyle: "bold"
       },
@@ -1879,9 +1841,14 @@
     ofxRows = [];
   }
 
-  function buildCategoriaOptionsHtml(selected){
-    const cats = getCategoriaList();
-    return cats.map(c => `<option value="${escapeHtml(c)}" ${c===selected?"selected":""}>${escapeHtml(c)}</option>`).join("");
+  function buildCategoriaOptionsHTML(selected){
+    const opts = categoriasAll.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    // garante um fallback
+    const base = opts || `<option value="Outros">Outros</option>`;
+    return base.replace(
+      `value="${escapeHtml(selected || "")}"`,
+      `value="${escapeHtml(selected || "")}" selected`
+    );
   }
 
   function renderOfxTable(){
@@ -1890,6 +1857,7 @@
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
       return;
     }
+
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -1903,7 +1871,7 @@
         <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
         <td>
           <select data-ofx-cat>
-            ${buildCategoriaOptionsHtml(r.categoria || "Outros")}
+            ${categoriasAll.map(c => `<option value="${escapeHtml(c)}" ${c=== (r.categoria || "Outros") ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
           </select>
         </td>
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
@@ -2114,18 +2082,13 @@
     if (lastFinCache) renderFinancas(lastFinCache);
   });
 
-  // Categoria (+ / excluir) no mesmo select
+  // ✅ clique no + e na lixeira dentro da lista
   categoriaEl.addEventListener("change", async () => {
-    if (categoriaEl.value === CAT_ADD_VALUE){
-      fillCategoriaSelect(categoriaEl, "Outros");
-      const created = await addCategoriaFlow();
-      if (created) fillCategoriaSelect(categoriaEl, created);
-      return;
-    }
-    if (categoriaEl.value === CAT_DEL_VALUE){
-      fillCategoriaSelect(categoriaEl, "Outros");
+    const v = categoriaEl.value;
+    if (v === "__add__"){
+      await addCategoriaFlow();
+    } else if (v === "__del__"){
       await deleteCategoriaFlow();
-      return;
     }
   });
 
@@ -2137,10 +2100,13 @@
     const dataISO = parseBRDateToISO(dataBR);
     const valorDigitado = Number(valorEl.value);
     const descricao = descricaoEl.value.trim();
-    let categoria = (categoriaEl.value || "Outros").trim();
+    const categoria = (categoriaEl.value || "Outros").trim();
     const bankId = (bancoSelect.value || "").trim();
 
-    if (categoria === CAT_ADD_VALUE || categoria === CAT_DEL_VALUE) categoria = "Outros";
+    if (categoria === "__add__" || categoria === "__del__"){
+      showToast("Categoria", "Escolha uma categoria válida.");
+      return;
+    }
 
     if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
     if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
@@ -2437,11 +2403,15 @@
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
 
-    // categorias (novo)
-    await loadCategorias();
-    fillCategoriaSelect(categoriaEl, categoriaEl.value && categoriaEl.value !== CAT_ADD_VALUE && categoriaEl.value !== CAT_DEL_VALUE ? categoriaEl.value : "Outros");
-    fillCategoriaFilter(currentFiltroCategoria);
-    fillCatDatalist();
+    // ✅ categorias
+    try{
+      await loadCategorias();
+    }catch(e){
+      categoriasCache = [];
+      buildCategoriasAll();
+    }
+    renderCategoriaSelect();
+    renderFiltroCategoria(currentFiltroCategoria);
 
     let months = [getDefaultMonth()];
     try{
