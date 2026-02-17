@@ -520,9 +520,7 @@
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
-            <!-- ✅ NOVO: seleção múltipla -->
             <button class="btn btn-ghost" id="btnBulkMode" type="button">☑️ Selecionar</button>
-
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
@@ -534,7 +532,6 @@
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
           </div>
 
-          <!-- ✅ NOVO: barra de ações da seleção -->
           <div class="bulkBar hidden" id="bulkBar">
             <div class="bulkLeft">
               <div class="info" id="bulkInfo">0 selecionados</div>
@@ -592,6 +589,16 @@
               <div class="hint" id="progressText">0% da meta</div>
             </div>
           </div>
+
+          <!-- ✅ NOVO: gráfico da meta -->
+          <div class="field" style="margin-top:10px">
+            <label>Gráfico (Entradas acumuladas x Meta)</label>
+            <div class="catBox" style="height:280px">
+              <canvas id="chartMeta" style="width:100%;height:100%"></canvas>
+            </div>
+            <div class="hint" id="metaChartHint">Atualizando…</div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -857,7 +864,7 @@
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
 
-  // ✅ NOVO: seleção múltipla
+  // ✅ Seleção múltipla
   const btnBulkMode = document.getElementById("btnBulkMode");
   const bulkBar = document.getElementById("bulkBar");
   const bulkInfo = document.getElementById("bulkInfo");
@@ -904,6 +911,10 @@
   const mediaDiaKpi = document.getElementById("mediaDiaKpi");
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
+
+  // ✅ NOVO: gráfico das metas
+  const metaChartHint = document.getElementById("metaChartHint");
+  let chartMeta = null;
 
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
@@ -964,7 +975,7 @@
   let dashboardMonth = null;
 
   let pendingDelete = null;
-  let pendingBulkDeleteIds = null; // ✅ NOVO
+  let pendingBulkDeleteIds = null;
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
@@ -973,7 +984,7 @@
   let banksCache = [];
   let ofxRows = [];
 
-  // ✅ NOVO: seleção múltipla (estado)
+  // ✅ seleção múltipla (estado)
   let selectionMode = false;
   let selectedIds = new Set();
   let lastRenderedIds = [];
@@ -1141,7 +1152,6 @@
     }
   }
 
-  // ✅ NOVO: atualizar barra da seleção
   function updateBulkUI(){
     bulkBar.classList.toggle("hidden", !selectionMode);
     btnBulkMode.textContent = selectionMode ? "✅ Concluir seleção" : "☑️ Selecionar";
@@ -1151,7 +1161,6 @@
     btnBulkDelete.disabled = count === 0;
 
     if (!selectionMode){
-      // quando sair do modo seleção, limpa seleção (pra não confundir)
       selectedIds.clear();
       bulkInfo.textContent = `0 selecionado(s)`;
     }
@@ -1266,7 +1275,6 @@
       buscaInfo.textContent = "Mostrando tudo";
     }
 
-    // ✅ guarda ids que estão na lista agora (pra “Selecionar todos”)
     lastRenderedIds = filtered.map(r => String(r.id));
 
     if (!filtered.length){
@@ -1322,7 +1330,6 @@
       `;
     }).join("");
 
-    // ✅ atualiza info do bulk sem “resetar” a seleção
     if (selectionMode){
       bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
       btnBulkDelete.disabled = selectedIds.size === 0;
@@ -1339,6 +1346,53 @@
     const { error } = await supa.from("config").upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
     if (error) throw error;
   }
+
+  // ✅ NOVO: série diária só de ENTRADAS (acumulado)
+  function buildDailyEntradasSeries(fin){
+    const endDay = fin.range?.endDay || 30;
+    const daily = Array.from({length: endDay}, (_,i) => ({ day: i+1, total: 0 }));
+    for (const r of fin.rows){
+      if (Number(r.valor || 0) <= 0) continue; // só entradas
+      const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
+      if (!m) continue;
+      const d = Number(m[1]);
+      if (d >= 1 && d <= endDay) daily[d-1].total += Number(r.valor || 0);
+    }
+    let acc = 0;
+    const labels = daily.map(x => String(x.day));
+    const values = daily.map(x => (acc += x.total));
+    return { labels, values };
+  }
+
+  // ✅ NOVO: gráfico da meta
+  function ensureMetaChart(){
+    const ctx = document.getElementById("chartMeta");
+    if (chartMeta) return chartMeta;
+    chartMeta = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          { label: "Entradas acumuladas", data: [], tension: 0.25 },
+          { label: "Meta (linha)", data: [], tension: 0, borderDash: [6,6] }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: "rgba(226,232,240,.85)" } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${brl(ctx.raw)}` } }
+        },
+        scales: {
+          x: { ticks: { color: "rgba(226,232,240,.70)" }, grid: { color: "rgba(148,163,184,.10)" } },
+          y: { ticks: { color: "rgba(226,232,240,.70)", callback: (v) => brl(v) }, grid: { color: "rgba(148,163,184,.10)" } }
+        }
+      }
+    });
+    return chartMeta;
+  }
+
   async function atualizarMetasUI(mes){
     const meta = await getMeta(currentUser.id, mes);
     const fin = (lastFinCache && currentMonth === mes) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mes);
@@ -1358,6 +1412,23 @@
     const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
+
+    // ✅ atualiza gráfico
+    try{
+      const series = buildDailyEntradasSeries(fin);
+      const c = ensureMetaChart();
+      c.data.labels = series.labels;
+      c.data.datasets[0].data = series.values;
+
+      // linha horizontal da meta: repete o valor da meta em todos os dias
+      const metaLine = series.labels.map(() => Number(meta || 0));
+      c.data.datasets[1].data = metaLine;
+
+      c.update();
+      metaChartHint.textContent = "Gráfico atualizado.";
+    }catch(e){
+      metaChartHint.textContent = "Não consegui atualizar o gráfico.";
+    }
   }
 
   // ===== CSV EXPORT =====
@@ -1390,7 +1461,7 @@
     URL.revokeObjectURL(url);
   }
 
-  // ===== PDF (IDÊNTICO AO MODELO: tamanhos/centralização) =====
+  // ===== PDF =====
   function moneyBRAbs(n){
     const v = Math.abs(Number(n || 0));
     return "R$ " + new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
@@ -1751,7 +1822,7 @@
     }
   }
 
-  // ===== OFX =====
+  // ===== OFX ===== (mantido igual)
   function normalizeOfxText(raw){
     let t = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
     const idx = t.toUpperCase().indexOf("<OFX>");
@@ -1910,7 +1981,7 @@
     }
   }
 
-  // ===== CSV IMPORT =====
+  // ===== CSV IMPORT (mantido) =====
   function cleanMoneyToNumber(str){
     let s = String(str ?? "").trim();
     if (!s) return NaN;
@@ -2038,18 +2109,13 @@
     if (!currentUser) return;
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
-
-    // ✅ muda de mês: limpa seleção pra não confundir
     selectedIds.clear();
     updateBulkUI();
-
     await refreshUI();
   });
 
   filtroCategoriaEl.addEventListener("change", async () => {
     currentFiltroCategoria = filtroCategoriaEl.value;
-
-    // ✅ ao trocar filtro, mantém seleção (mas só vai aparecer nos itens visíveis)
     await refreshUI();
   });
 
@@ -2092,7 +2158,6 @@
     valorEl.value = "";
     currentMonth = mesAuto;
 
-    // ✅ após salvar: limpa seleção pra não confundir
     selectedIds.clear();
     updateBulkUI();
 
@@ -2117,24 +2182,19 @@
     showToast("Exportado ✅", `Arquivo: ${filename}`);
   });
 
-  // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
-  // ✅ NOVO: botão “Selecionar”
+  // ✅ Seleção
   btnBulkMode.addEventListener("click", () => {
     selectionMode = !selectionMode;
-    if (!selectionMode){
-      selectedIds.clear();
-    }
+    if (!selectionMode) selectedIds.clear();
     updateBulkUI();
     if (lastFinCache) renderFinancas(lastFinCache);
   });
 
   btnBulkSelectAll.addEventListener("click", () => {
     if (!selectionMode) return;
-    for (const id of lastRenderedIds){
-      selectedIds.add(String(id));
-    }
+    for (const id of lastRenderedIds) selectedIds.add(String(id));
     bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
     btnBulkDelete.disabled = selectedIds.size === 0;
     if (lastFinCache) renderFinancas(lastFinCache);
@@ -2157,10 +2217,9 @@
     modalOverlay.classList.add("show");
   });
 
-  // Editar / Excluir
   function openDeleteModal(item){
     pendingDelete = item;
-    pendingBulkDeleteIds = null; // ✅ garante que não confunda com bulk
+    pendingBulkDeleteIds = null;
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
     modalOverlay.classList.add("show");
   }
@@ -2182,7 +2241,6 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
-  // ✅ NOVO: marcar/desmarcar checkbox (sem atrapalhar editar/excluir)
   listaEl.addEventListener("change", (e) => {
     const chk = e.target.closest("[data-bulk-check]");
     if (!chk) return;
@@ -2201,8 +2259,6 @@
   listaEl.addEventListener("click", (e) => {
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
-
-    // se clicou na checkbox, não abre nada
     if (e.target && e.target.matches && e.target.matches("[data-bulk-check]")) return;
 
     if (delBtn){
@@ -2234,7 +2290,6 @@
   btnConfirmar.addEventListener("click", async () => {
     if (!currentUser) return;
 
-    // ✅ BULK delete
     if (pendingBulkDeleteIds && pendingBulkDeleteIds.length){
       const ids = pendingBulkDeleteIds.slice(0);
       try{
@@ -2252,7 +2307,6 @@
         closeDeleteModal();
         showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
 
-        // limpa seleção e sai do modo seleção (fica mais simples)
         selectedIds.clear();
         selectionMode = false;
         updateBulkUI();
@@ -2268,7 +2322,6 @@
       return;
     }
 
-    // delete normal (1 item)
     if (!pendingDelete) return;
     try{
       const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
@@ -2276,7 +2329,6 @@
       closeDeleteModal();
       showToast("Excluído ✅", "Lançamento removido.");
 
-      // se estava selecionado, remove também
       selectedIds.delete(String(pendingDelete.id));
       bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
       btnBulkDelete.disabled = selectedIds.size === 0;
@@ -2504,7 +2556,6 @@
       await refreshDashboard();
     }
 
-    // ✅ garante que botões/visuais do bulk batam com o estado
     updateBulkUI();
   }
 
