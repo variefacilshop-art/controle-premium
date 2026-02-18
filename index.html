@@ -826,9 +826,6 @@
     if (p.endsWith("/")) return p;
     return p.replace(/\/[^\/]*$/, "/");
   }
-  function getAppBaseUrl(){
-    return window.location.origin + getAppBasePath();
-  }
 
 
   // UI refs
@@ -2164,7 +2161,7 @@ listaEl.innerHTML = filtered.map(r => {
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: getAppBaseUrl() }
+      options: { redirectTo: window.location.origin }
     });
     if (error) showToast("Login", error.message);
   });
