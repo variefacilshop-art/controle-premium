@@ -165,6 +165,7 @@
       align-items:center;
     }
     .item:last-child{ border-bottom:none; }
+    .selCol{ width:34px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
   .chkRow{ width:18px; height:18px; accent-color: var(--cyan); cursor:pointer; }
   .item.selected{ background: rgba(0,194,255,.06); box-shadow: inset 0 0 0 1px rgba(0,194,255,.20); }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
@@ -328,8 +329,8 @@
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
     /* Categoria: botões dentro do campo (igual antes) */
-    .selectWrap{ position:relative; width:100%; }
-    .selectWrap select{ padding-right: 78px; }
+    .selectWrap{ position:relative; width:100%; flex:1; min-width:0; }
+    .selectWrap select{ width:100%; padding-right: 90px; }
     .inSelectBtn{
       position:absolute; top:50%; transform:translateY(-50%);
       width:34px; height:34px;
@@ -341,8 +342,8 @@
       cursor:pointer;
       user-select:none;
     }
-    .inSelectAdd{ right: 40px; }
-    .inSelectDel{ right: 4px; }
+    .inSelectAdd{ right: 48px; }
+    .inSelectDel{ right: 8px; }
     .inSelectBtn:active{ transform:translateY(calc(-50% + 1px)); }
 
   </style>
@@ -1342,6 +1343,7 @@ function clearSelection(){
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
         <div class="item ${selectedIds.has(String(r.id)) ? "selected" : ""}">
+          <div class="selCol"><input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar"></div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
