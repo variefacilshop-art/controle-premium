@@ -165,6 +165,8 @@
       align-items:center;
     }
     .item:last-child{ border-bottom:none; }
+  .chkRow{ width:18px; height:18px; accent-color: var(--cyan); cursor:pointer; }
+  .item.selected{ background: rgba(0,194,255,.06); box-shadow: inset 0 0 0 1px rgba(0,194,255,.20); }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
@@ -481,12 +483,18 @@
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
+            <button class="btn btn-ghost" id="btnSelAll" type="button">✅ Selecionar tudo</button>
+            <button class="btn btn-ghost" id="btnSelNone" type="button">⬜ Limpar</button>
+            <button class="btn btn-danger" id="btnDelSelected" type="button" disabled>🗑️ Excluir selecionados</button>
           </div>
         </div>
         <div class="body" style="padding-top:12px">
           <div class="searchBox">
             <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
+          </div>
+          <div class="bulkBar">
+            <div class="count" id="bulkCount">Selecionados: 0</div>
           </div>
         </div>
         <div class="list" id="lista">
@@ -783,6 +791,8 @@
   </div>
 
 <script>
+
+
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
@@ -812,13 +822,11 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
-  const btnPdf = document.getElementById("btnPdf");
-
   const btnSelAll = document.getElementById("btnSelAll");
   const btnSelNone = document.getElementById("btnSelNone");
   const btnDelSelected = document.getElementById("btnDelSelected");
   const bulkCount = document.getElementById("bulkCount");
-
+  const btnPdf = document.getElementById("btnPdf");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -926,6 +934,7 @@
   let dashboardMonth = null;
 
   let pendingDelete = null;
+  let selectedIds = new Set();
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
@@ -1054,6 +1063,8 @@
     if (error){
       // se não existir a tabela, seguimos com defaults (não quebra o app)
       categoriesCache = [];
+      return;
+    }
     categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
   }
 
@@ -1106,6 +1117,8 @@
     const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
     if (!custom){
       showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
+      return;
+    }
     const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
     if (!ok) return;
     try{
@@ -1161,11 +1174,13 @@
   }
 
   async function captureTokenIfPresent(){
-    if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
-      history.replaceState({}, document.title, "/");
-    }
+  const hasHashToken = (window.location.hash || "").includes("access_token=");
+  const hasCode = new URLSearchParams(window.location.search || "").has("code");
+  if (hasHashToken || hasCode){
+    try{ await supa.auth.getSessionFromUrl({ storeSession: true }); }catch(e){ console.warn(e); }
+    history.replaceState({}, document.title, getAppBasePath());
   }
+}
 
   // ===== BANCOS =====
   async function loadBanks(){
@@ -1194,7 +1209,6 @@
     bankOverlay.classList.remove("show");
     bankNome.value = "";
   }
-  
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
@@ -1207,12 +1221,12 @@
           <div class="hint" style="margin:0">ID: ${b.id}</div>
         </div>
         <div class="rightcol">
+            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
           <button class="btn btn-icon btn-icon-danger" data-bank-del="1" data-id="${b.id}" title="Excluir">🗑️</button>
         </div>
       </div>
     `).join("");
   }
-
 
   // ===== REGISTROS =====
   async function fetchMonthsFromRegistros(userId){
@@ -1257,6 +1271,25 @@
     return { rows, entradas, saidas, saldo, categorias, range };
   }
 
+function updateBulkUI(){
+  const n = selectedIds.size;
+  if (bulkCount) bulkCount.textContent = `Selecionados: ${n}`;
+  if (btnDelSelected) btnDelSelected.disabled = n === 0;
+}
+
+function applySelectAllCurrent(){
+  if (!lastFinCache){ showToast("Seleção", "Carregue um mês primeiro."); return; }
+  const rows = getFilteredRows(lastFinCache);
+  for (const r of rows) selectedIds.add(String(r.id));
+  renderFinancas(lastFinCache);
+}
+
+function clearSelection(){
+  selectedIds = new Set();
+  if (lastFinCache) renderFinancas(lastFinCache);
+  else updateBulkUI();
+}
+
   function renderFinancas(fin){
     lastFinCache = fin;
     kpiEntradas.textContent = brl(fin.entradas);
@@ -1280,6 +1313,8 @@
 
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
+      return;
+    }
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
@@ -1288,7 +1323,7 @@
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
-        <div class="item">
+        <div class="item ${selectedIds.has(String(r.id)) ? "selected" : ""}">
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1299,7 +1334,6 @@
             </div>
           </div>
           <div class="rightcol">
-            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
             <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
@@ -1324,6 +1358,7 @@
         </div>
       `;
     }).join("");
+    updateBulkUI();
   }
 
   // ===== METAS =====
@@ -1487,6 +1522,8 @@
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
+      return;
+    }
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
@@ -1701,6 +1738,8 @@
   function renderAlertsSimple(list){
     if (!list.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
+      return;
+    }
     dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
@@ -1898,6 +1937,8 @@
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
+      return;
+    }
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -2023,6 +2064,8 @@
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
       showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
+      return;
+    }
 
     let ok = 0, bad = 0;
     const inserts = [];
@@ -2202,15 +2245,32 @@
     showToast("Exportado ✅", `Arquivo: ${filename}`);
   });
 
+
+// Seleção múltipla
+btnSelAll?.addEventListener("click", applySelectAllCurrent);
+btnSelNone?.addEventListener("click", clearSelection);
+btnDelSelected?.addEventListener("click", () => {
+  const ids = Array.from(selectedIds);
+  if (!ids.length){ showToast("Excluir", "Selecione lançamentos primeiro."); return; }
+  openDeleteModal({ mode: "bulk", ids });
+});
+
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
   // Editar / Excluir
-  function openDeleteModal(item){
-    pendingDelete = item;
+function openDeleteModal(item){
+  pendingDelete = item;
+
+  if (item && item.mode === "bulk"){
+    const n = (item.ids || []).length;
+    modalBody.innerHTML = `Excluir <b>${n}</b> lançamento(s) selecionado(s)?<br><br><span class="smallNote">Essa ação não pode ser desfeita.</span>`;
+  } else {
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
-    modalOverlay.classList.add("show");
   }
+
+  modalOverlay.classList.add("show");
+}
   function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
 
   function openEditModal(item){
@@ -2225,67 +2285,83 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
-  
-  // Clique na lista: seleção / editar / excluir
-  
-listaEl.addEventListener("click", (e) => {
-  // checkbox de seleção (se existir)
-  const sel = e.target.closest("[data-sel]");
-  if (sel){
-    const id = String(sel.dataset.id || "");
-    if (!id) return;
-    if (sel.checked) selectedIds.add(id);
-    else selectedIds.delete(id);
+  listaEl.addEventListener("click", (e) => {
+    const sel = e.target.closest("[data-sel]");
+    if (sel){
+      const id = String(sel.dataset.id || "");
+      if (!id) return;
+      if (sel.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+      const itemEl = sel.closest(".item");
+      if (itemEl) itemEl.classList.toggle("selected", sel.checked);
+      updateBulkUI();
+      return;
+    }
+    const delBtn = e.target.closest("[data-del]");
+    const editBtn = e.target.closest("[data-edit]");
+    if (delBtn){
+      openDeleteModal({
+        id: delBtn.dataset.id,
+        descricao: delBtn.dataset.desc || "",
+        valor: Number(delBtn.dataset.valor || 0),
+        dataISO: delBtn.dataset.data || "",
+        categoria: delBtn.dataset.cat || "Outros"
+      });
+      return;
+    }
+    if (editBtn){
+      openEditModal({
+        id: editBtn.dataset.id,
+        descricao: editBtn.dataset.desc || "",
+        valor: Number(editBtn.dataset.valor || 0),
+        dataISO: editBtn.dataset.data || "",
+        categoria: editBtn.dataset.cat || "Outros",
+        banco_id: editBtn.dataset.bankid || ""
+      });
+    }
+  });
 
-    const itemEl = sel.closest(".item");
-    if (itemEl) itemEl.classList.toggle("selected", sel.checked);
-    updateBulkUI();
-    return;
-  }
-
-  const delBtn = e.target.closest("[data-del]");
-  if (delBtn){
-    openDeleteModal({
-      id: delBtn.dataset.id,
-      descricao: delBtn.dataset.desc || "",
-      valor: Number(delBtn.dataset.valor || 0),
-      dataISO: delBtn.dataset.data || "",
-      categoria: delBtn.dataset.cat || "Outros"
-    });
-    return;
-  }
-
-  const editBtn = e.target.closest("[data-edit]");
-  if (editBtn){
-    openEditModal({
-      id: editBtn.dataset.id,
-      descricao: editBtn.dataset.desc || "",
-      valor: Number(editBtn.dataset.valor || 0),
-      dataISO: editBtn.dataset.data || "",
-      categoria: editBtn.dataset.cat || "Outros",
-      banco_id: editBtn.dataset.bankid || ""
-    });
-  }
-});
-
-
-btnModalClose.addEventListener("click", closeDeleteModal);
+  btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
   btnConfirmar.addEventListener("click", async () => {
-    if (!currentUser || !pendingDelete) return;
+  if (!currentUser || !pendingDelete) return;
+
+  if (pendingDelete.mode === "bulk"){
+    const ids = Array.from(new Set(pendingDelete.ids || [])).filter(Boolean);
+    if (!ids.length){ closeDeleteModal(); return; }
+
     try{
-      const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
-      if (error) throw error;
+      const chunkSize = 200;
+      for (let i=0;i<ids.length;i+=chunkSize){
+        const chunk = ids.slice(i, i+chunkSize);
+        const { error } = await supa.from("registros").delete().in("id", chunk).eq("user_id", currentUser.id);
+        if (error) throw error;
+      }
+
       closeDeleteModal();
-      showToast("Excluído ✅", "Lançamento removido.");
+      selectedIds = new Set();
+      showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
       await refreshUI();
-      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
       showToast("Excluir", err.message || String(err));
     }
-  });
+    return;
+  }
+
+  try{
+    const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
+    if (error) throw error;
+
+    selectedIds.delete(String(pendingDelete.id));
+    closeDeleteModal();
+    showToast("Excluído ✅", "Lançamento removido.");
+    await refreshUI();
+  }catch(err){
+    showToast("Excluir", err.message || String(err));
+  }
+});
 
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
@@ -2454,6 +2530,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     if (!session){
       currentUser = null;
       showLogin();
+      return;
+    }
 
     currentUser = session.user;
     showApp(session.user.email);
@@ -2497,6 +2575,7 @@ btnModalClose.addEventListener("click", closeDeleteModal);
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       // filtro sempre usa a lista completa, mas mantém a seleção
       fillCategorySelects();
+      selectedIds = new Set();
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
@@ -2541,6 +2620,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
       showToast("Meta", e.message || String(e));
     }
   });
+
+
 </script>
 </body>
 </html>
