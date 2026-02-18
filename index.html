@@ -813,6 +813,12 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
+
+  const btnSelAll = document.getElementById("btnSelAll");
+  const btnSelNone = document.getElementById("btnSelNone");
+  const btnDelSelected = document.getElementById("btnDelSelected");
+  const bulkCount = document.getElementById("bulkCount");
+
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -1048,8 +1054,6 @@
     if (error){
       // se não existir a tabela, seguimos com defaults (não quebra o app)
       categoriesCache = [];
-      return;
-    }
     categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
   }
 
@@ -1102,8 +1106,6 @@
     const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
     if (!custom){
       showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
-      return;
-    }
     const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
     if (!ok) return;
     try{
@@ -1195,8 +1197,6 @@
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
-      return;
-    }
     bankList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
@@ -1276,8 +1276,6 @@
 
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
-      return;
-    }
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
@@ -1297,6 +1295,7 @@
             </div>
           </div>
           <div class="rightcol">
+            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
             <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
@@ -1484,8 +1483,6 @@
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
-      return;
-    }
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
@@ -1700,8 +1697,6 @@
   function renderAlertsSimple(list){
     if (!list.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
-      return;
-    }
     dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
@@ -1899,8 +1894,6 @@
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
-      return;
-    }
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -2026,8 +2019,6 @@
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
       showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
-      return;
-    }
 
     let ok = 0, bad = 0;
     const inserts = [];
@@ -2102,7 +2093,7 @@
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: window.location.origin + getAppBasePath() }
     });
     if (error) showToast("Login", error.message);
   });
@@ -2230,9 +2221,24 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
+  
+  // Clique na lista: seleção / editar / excluir
   listaEl.addEventListener("click", (e) => {
+    // Seleção (checkbox)
+    const chk = e.target.closest("[data-sel]");
+    if (chk){
+      const id = String(chk.dataset.id || "");
+      if (!id) return;
+      if (chk.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+
+      const itemEl = chk.closest(".item");
+      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
+
+      updateBulkUI();
+
+    // Excluir
     const delBtn = e.target.closest("[data-del]");
-    const editBtn = e.target.closest("[data-edit]");
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2241,8 +2247,9 @@
         dataISO: delBtn.dataset.data || "",
         categoria: delBtn.dataset.cat || "Outros"
       });
-      return;
-    }
+
+    // Editar
+    const editBtn = e.target.closest("[data-edit]");
     if (editBtn){
       openEditModal({
         id: editBtn.dataset.id,
@@ -2255,7 +2262,7 @@
     }
   });
 
-  btnModalClose.addEventListener("click", closeDeleteModal);
+btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
@@ -2440,8 +2447,6 @@
     if (!session){
       currentUser = null;
       showLogin();
-      return;
-    }
 
     currentUser = session.user;
     showApp(session.user.email);
