@@ -1194,9 +1194,12 @@
     bankOverlay.classList.remove("show");
     bankNome.value = "";
   }
+  
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
+      return;
+    }
     bankList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
@@ -1209,6 +1212,7 @@
       </div>
     `).join("");
   }
+
 
   // ===== REGISTROS =====
   async function fetchMonthsFromRegistros(userId){
@@ -2223,44 +2227,47 @@
 
   
   // Clique na lista: seleção / editar / excluir
-  listaEl.addEventListener("click", (e) => {
-    // Seleção (checkbox)
-    const chk = e.target.closest("[data-sel]");
-    if (chk){
-      const id = String(chk.dataset.id || "");
-      if (!id) return;
-      if (chk.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
+  
+listaEl.addEventListener("click", (e) => {
+  // checkbox de seleção (se existir)
+  const sel = e.target.closest("[data-sel]");
+  if (sel){
+    const id = String(sel.dataset.id || "");
+    if (!id) return;
+    if (sel.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
 
-      const itemEl = chk.closest(".item");
-      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
+    const itemEl = sel.closest(".item");
+    if (itemEl) itemEl.classList.toggle("selected", sel.checked);
+    updateBulkUI();
+    return;
+  }
 
-      updateBulkUI();
+  const delBtn = e.target.closest("[data-del]");
+  if (delBtn){
+    openDeleteModal({
+      id: delBtn.dataset.id,
+      descricao: delBtn.dataset.desc || "",
+      valor: Number(delBtn.dataset.valor || 0),
+      dataISO: delBtn.dataset.data || "",
+      categoria: delBtn.dataset.cat || "Outros"
+    });
+    return;
+  }
 
-    // Excluir
-    const delBtn = e.target.closest("[data-del]");
-    if (delBtn){
-      openDeleteModal({
-        id: delBtn.dataset.id,
-        descricao: delBtn.dataset.desc || "",
-        valor: Number(delBtn.dataset.valor || 0),
-        dataISO: delBtn.dataset.data || "",
-        categoria: delBtn.dataset.cat || "Outros"
-      });
+  const editBtn = e.target.closest("[data-edit]");
+  if (editBtn){
+    openEditModal({
+      id: editBtn.dataset.id,
+      descricao: editBtn.dataset.desc || "",
+      valor: Number(editBtn.dataset.valor || 0),
+      dataISO: editBtn.dataset.data || "",
+      categoria: editBtn.dataset.cat || "Outros",
+      banco_id: editBtn.dataset.bankid || ""
+    });
+  }
+});
 
-    // Editar
-    const editBtn = e.target.closest("[data-edit]");
-    if (editBtn){
-      openEditModal({
-        id: editBtn.dataset.id,
-        descricao: editBtn.dataset.desc || "",
-        valor: Number(editBtn.dataset.valor || 0),
-        dataISO: editBtn.dataset.data || "",
-        categoria: editBtn.dataset.cat || "Outros",
-        banco_id: editBtn.dataset.bankid || ""
-      });
-    }
-  });
 
 btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
