@@ -820,6 +820,17 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
+  // ===== Base URL (GitHub Pages / subpasta) =====
+  function getAppBasePath(){
+    const p = window.location.pathname || "/";
+    if (p.endsWith("/")) return p;
+    return p.replace(/\/[^\/]*$/, "/");
+  }
+  function getAppBaseUrl(){
+    return window.location.origin + getAppBasePath();
+  }
+
+
   // UI refs
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
@@ -1194,7 +1205,7 @@
   async function captureTokenIfPresent(){
     if (window.location.hash && window.location.hash.includes("access_token=")) {
       await supa.auth.getSessionFromUrl({ storeSession: true });
-      history.replaceState({}, document.title, "/");
+      history.replaceState({}, document.title, getAppBasePath());
     }
   }
 
@@ -2153,14 +2164,14 @@ listaEl.innerHTML = filtered.map(r => {
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: getAppBaseUrl() }
     });
     if (error) showToast("Login", error.message);
   });
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = "/";
+    location.href = getAppBasePath();
   });
 
   mesSelect.addEventListener("change", async () => {
