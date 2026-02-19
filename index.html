@@ -1104,8 +1104,10 @@
     if (!selected){ showToast("Categorias", "Selecione uma categoria."); return; }
     // só pode deletar categorias criadas (custom)
     const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
-    if (!custom){
-      showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
+   if (!custom){
+  showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
+  return;
+}
     const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
     if (!ok) return;
     try{
