@@ -1211,21 +1211,24 @@
     bankOverlay.classList.remove("show");
     bankNome.value = "";
   }
-  function renderBankList(){
-    if (!banksCache.length){
-      bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
-    bankList.innerHTML = banksCache.map(b => `
-      <div class="item" style="padding:10px 10px">
-        <div class="leftcol">
-          <div class="desc">🏦 ${escapeHtml(b.nome)}</div>
-          <div class="hint" style="margin:0">ID: ${b.id}</div>
-        </div>
-        <div class="rightcol">
-          <button class="btn btn-icon btn-icon-danger" data-bank-del="1" data-id="${b.id}" title="Excluir">🗑️</button>
-        </div>
-      </div>
-    `).join("");
+ function renderBankList(){
+  if (!banksCache.length){
+    bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
+    return;
   }
+
+  bankList.innerHTML = banksCache.map(b => `
+    <div class="item" style="padding:10px 10px">
+      <div class="leftcol">
+        <div class="desc">🏦 ${escapeHtml(b.nome)}</div>
+        <div class="hint" style="margin:0">ID: ${b.id}</div>
+      </div>
+      <div class="rightcol">
+        <button class="btn btn-icon btn-icon-danger" data-bank-del="1" data-id="${b.id}" title="Excluir">🗑️</button>
+      </div>
+    </div>
+  `).join("");
+}
 
   // ===== REGISTROS =====
   async function fetchMonthsFromRegistros(userId){
