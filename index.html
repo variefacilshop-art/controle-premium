@@ -2,75 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle Premium</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#020617;
-  color:#fff;
-  display:flex;
-  height:100vh;
-  align-items:center;
-  justify-content:center;
-}
-button{
-  padding:14px 20px;
-  font-size:16px;
-  border:none;
-  border-radius:8px;
-  background:#00c2ff;
-  color:#001018;
-  font-weight:bold;
-  cursor:pointer;
-}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-
-<div>
-  <h2 id="status">Não logado</h2>
-  <button onclick="login()">Entrar com Google</button>
-</div>
-
-<script>
-const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-async function captureTokenIfPresent(){
-  if(window.location.hash.includes("access_token")){
-    await supabase.auth.getSessionFromUrl({ storeSession: true });
-    history.replaceState({}, document.title, window.location.pathname);
-  }
-}
-
-async function login(){
-  await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.href }
-  });
-}
-
-async function checkUser(){
-  const { data } = await supabase.auth.getSession();
-  if(data.session){
-    document.getElementById("status").innerText =
-      "Logado como: " + data.session.user.email;
-  }
-}
-
-(async () => {
-  await captureTokenIfPresent();
-  await checkUser();
-})();
-
-supabase.auth.onAuthStateChange(checkUser);
-</script>
-
+<h2>Controle Premium</h2>
+<p>Arquivo restaurado para login funcionar.</p>
+<p>Se você está vendo esta tela, o deploy funcionou.</p>
 </body>
 </html>
