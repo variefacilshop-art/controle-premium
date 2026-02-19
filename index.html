@@ -1044,18 +1044,23 @@
   ];
 
   async function loadCategories(){
-    if (!currentUser) return;
-    // tabela esperada: categorias (id, user_id, nome)
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error){
-      // se não existir a tabela, seguimos com defaults (não quebra o app)
-      categoriesCache = [];
-    categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
+  if (!currentUser) return;
+
+  const { data, error } = await supa
+    .from("categorias")
+    .select("id,nome")
+    .eq("user_id", currentUser.id)
+    .order("nome", { ascending: true });
+
+  if (error){
+    categoriesCache = [];
+    return;
   }
+
+  categoriesCache = (data || [])
+    .map(c => ({ id: c.id, nome: (c.nome || "").trim() }))
+    .filter(c => c.nome);
+}
 
   function getAllCategoryNames(){
     const set = new Set(DEFAULT_CATEGORIES);
@@ -1099,28 +1104,38 @@
   }
 
   async function deleteCategoriaFlow(){
-    if (!currentUser) return;
-    const selected = (categoriaEl.value || "").trim();
-    if (!selected){ showToast("Categorias", "Selecione uma categoria."); return; }
-    // só pode deletar categorias criadas (custom)
-    const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
-   if (!custom){
-  showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
-  return;
-}
-    const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
-    if (!ok) return;
-    try{
-      const { error } = await supa.from("categorias").delete().eq("id", custom.id).eq("user_id", currentUser.id);
-      if (error) throw error;
-      await loadCategories();
-      fillCategorySelects();
-      showToast("Categorias ✅", "Categoria excluída.");
-      if (ofxOverlay.classList.contains("show")) renderOfxTable();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
+  if (!currentUser) return;
+
+  const selected = (categoriaEl.value || "").trim();
+  if (!selected){ showToast("Categorias", "Selecione uma categoria."); return; }
+
+  const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
+  if (!custom){
+    showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
+    return;
   }
+
+  const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
+  if (!ok) return;
+
+  try{
+    const { error } = await supa
+      .from("categorias")
+      .delete()
+      .eq("id", custom.id)
+      .eq("user_id", currentUser.id);
+
+    if (error) throw error;
+
+    await loadCategories();
+    fillCategorySelects();
+    showToast("Categorias ✅", "Categoria excluída.");
+
+    if (ofxOverlay.classList.contains("show")) renderOfxTable();
+  }catch(e){
+    showToast("Categorias", e.message || String(e));
+  }
+}
 
   // ===== APP UI SHOW/HIDE =====
   function showLogin(){
@@ -2227,45 +2242,49 @@
 
   
   // Clique na lista: seleção / editar / excluir
-  listaEl.addEventListener("click", (e) => {
-    // Seleção (checkbox)
-    const chk = e.target.closest("[data-sel]");
-    if (chk){
-      const id = String(chk.dataset.id || "");
-      if (!id) return;
-      if (chk.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
+ listaEl.addEventListener("click", (e) => {
+  // Clique no checkbox de seleção (excluir vários)
+  const chk = e.target.closest("[data-sel]");
+  if (chk){
+    const id = String(chk.dataset.id || "");
+    if (!id) return;
 
-      const itemEl = chk.closest(".item");
-      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
+    if (chk.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
 
-      updateBulkUI();
+    const itemEl = chk.closest(".item");
+    if (itemEl) itemEl.classList.toggle("selected", chk.checked);
 
-    // Excluir
-    const delBtn = e.target.closest("[data-del]");
-    if (delBtn){
-      openDeleteModal({
-        id: delBtn.dataset.id,
-        descricao: delBtn.dataset.desc || "",
-        valor: Number(delBtn.dataset.valor || 0),
-        dataISO: delBtn.dataset.data || "",
-        categoria: delBtn.dataset.cat || "Outros"
-      });
+    updateBulkUI();
+    return;
+  }
 
-    // Editar
-    const editBtn = e.target.closest("[data-edit]");
-    if (editBtn){
-      openEditModal({
-        id: editBtn.dataset.id,
-        descricao: editBtn.dataset.desc || "",
-        valor: Number(editBtn.dataset.valor || 0),
-        dataISO: editBtn.dataset.data || "",
-        categoria: editBtn.dataset.cat || "Outros",
-        banco_id: editBtn.dataset.bankid || ""
-      });
-    }
-  });
+  // Excluir 1
+  const delBtn = e.target.closest("[data-del]");
+  if (delBtn){
+    openDeleteModal({
+      id: delBtn.dataset.id,
+      descricao: delBtn.dataset.desc || "",
+      valor: Number(delBtn.dataset.valor || 0),
+      dataISO: delBtn.dataset.data || "",
+      categoria: delBtn.dataset.cat || "Outros"
+    });
+    return;
+  }
 
+  // Editar
+  const editBtn = e.target.closest("[data-edit]");
+  if (editBtn){
+    openEditModal({
+      id: editBtn.dataset.id,
+      descricao: editBtn.dataset.desc || "",
+      valor: Number(editBtn.dataset.valor || 0),
+      dataISO: editBtn.dataset.data || "",
+      categoria: editBtn.dataset.cat || "Outros",
+      banco_id: editBtn.dataset.bankid || ""
+    });
+  }
+});
 btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
