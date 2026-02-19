@@ -1277,7 +1277,9 @@
     }
 
     if (!filtered.length){
-      listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
+  listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
+  return;
+}
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
