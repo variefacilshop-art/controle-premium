@@ -165,9 +165,6 @@
       align-items:center;
     }
     .item:last-child{ border-bottom:none; }
-    .selCol{ width:34px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
-  .chkRow{ width:18px; height:18px; accent-color: var(--cyan); cursor:pointer; }
-  .item.selected{ background: rgba(0,194,255,.06); box-shadow: inset 0 0 0 1px rgba(0,194,255,.20); }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
@@ -328,24 +325,6 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-    /* Categoria: botões dentro do campo (igual antes) */
-    .selectWrap{ position:relative; width:100%; flex:1; min-width:0; }
-    .selectWrap select{ width:100%; padding-right: 90px; }
-    .inSelectBtn{
-      position:absolute; top:50%; transform:translateY(-50%);
-      width:34px; height:34px;
-      border-radius: 12px;
-      display:grid; place-items:center;
-      border: 1px solid rgba(148,163,184,.14);
-      background: rgba(2,6,23,.35);
-      color: rgba(226,232,240,.90);
-      cursor:pointer;
-      user-select:none;
-    }
-    .inSelectAdd{ right: 48px; }
-    .inSelectDel{ right: 8px; }
-    .inSelectBtn:active{ transform:translateY(calc(-50% + 1px)); }
-
   </style>
 </head>
 
@@ -439,11 +418,9 @@
             <div class="field">
               <label>Categoria</label>
               <div style="display:flex;gap:10px;align-items:center">
-                <div class="selectWrap">
                 <select id="categoria"></select>
-                <button class="inSelectBtn inSelectAdd" id="btnAddCategoria" type="button" title="Adicionar categoria">＋</button>
-                <button class="inSelectBtn inSelectDel" id="btnDelCategoria" type="button" title="Excluir categoria selecionada">🗑️</button>
-              </div>
+                <button class="btn btn-ghost btn-icon" id="btnAddCategoria" type="button" title="Adicionar categoria">＋</button>
+                <button class="btn btn-ghost btn-icon" id="btnDelCategoria" type="button" title="Excluir categoria selecionada">🗑️</button>
               </div>
               <div class="hint">Clique no + para criar nova categoria. Para excluir, selecione e clique na lixeira.</div>
             </div>
@@ -504,18 +481,12 @@
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
-            <button class="btn btn-ghost" id="btnSelAll" type="button">✅ Selecionar tudo</button>
-            <button class="btn btn-ghost" id="btnSelNone" type="button">⬜ Limpar</button>
-            <button class="btn btn-danger" id="btnDelSelected" type="button" disabled>🗑️ Excluir selecionados</button>
           </div>
         </div>
         <div class="body" style="padding-top:12px">
           <div class="searchBox">
             <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
-          </div>
-          <div class="bulkBar">
-            <div class="count" id="bulkCount">Selecionados: 0</div>
           </div>
         </div>
         <div class="list" id="lista">
@@ -812,14 +783,28 @@
   </div>
 
 <script>
-
-
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
 
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
+
+  // ===== Base path (funciona no Vercel e no GitHub Pages) =====
+  // Ex.: "/" no Vercel, "/meu-repo/" no GitHub Pages
+  function getAppBasePath(){
+    const path = window.location.pathname || "/";
+    if (path.endsWith("/")) return path;
+    // remove o nome do arquivo (ex: /index.html) e mantém a pasta
+    return path.replace(/\/[^\/]*$/, "/");
+  }
+
+  // URL "limpa" para redirecionar e para remover o "#access_token=..."
+  function getCleanRedirectUrl(){
+    const base = window.location.origin + getAppBasePath();
+    return base; // sempre termina com "/"
+  }
+
 
   // UI refs
   const loginBox = document.getElementById("loginBox");
@@ -843,11 +828,13 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
+  const btnPdf = document.getElementById("btnPdf");
+
   const btnSelAll = document.getElementById("btnSelAll");
   const btnSelNone = document.getElementById("btnSelNone");
   const btnDelSelected = document.getElementById("btnDelSelected");
   const bulkCount = document.getElementById("bulkCount");
-  const btnPdf = document.getElementById("btnPdf");
+
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -955,7 +942,6 @@
   let dashboardMonth = null;
 
   let pendingDelete = null;
-  let selectedIds = new Set();
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
@@ -1084,8 +1070,6 @@
     if (error){
       // se não existir a tabela, seguimos com defaults (não quebra o app)
       categoriesCache = [];
-      return;
-    }
     categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
   }
 
@@ -1138,8 +1122,6 @@
     const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
     if (!custom){
       showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
-      return;
-    }
     const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
     if (!ok) return;
     try{
@@ -1195,13 +1177,11 @@
   }
 
   async function captureTokenIfPresent(){
-  const hasHashToken = (window.location.hash || "").includes("access_token=");
-  const hasCode = new URLSearchParams(window.location.search || "").has("code");
-  if (hasHashToken || hasCode){
-    try{ await supa.auth.getSessionFromUrl({ storeSession: true }); }catch(e){ console.warn(e); }
-    history.replaceState({}, document.title, window.location.pathname + window.location.search);
-}
-}
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      await supa.auth.getSessionFromUrl({ storeSession: true });
+      history.replaceState({}, document.title, "/");
+    }
+  }
 
   // ===== BANCOS =====
   async function loadBanks(){
@@ -1233,15 +1213,14 @@
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
-      return;
-    }
     bankList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
           <div class="desc">🏦 ${escapeHtml(b.nome)}</div>
           <div class="hint" style="margin:0">ID: ${b.id}</div>
         </div>
-        <div class="rightcol"><button class="btn btn-icon btn-icon-danger" data-bank-del="1" data-id="${b.id}" title="Excluir">🗑️</button>
+        <div class="rightcol">
+          <button class="btn btn-icon btn-icon-danger" data-bank-del="1" data-id="${b.id}" title="Excluir">🗑️</button>
         </div>
       </div>
     `).join("");
@@ -1290,25 +1269,6 @@
     return { rows, entradas, saidas, saldo, categorias, range };
   }
 
-function updateBulkUI(){
-  const n = selectedIds.size;
-  if (bulkCount) bulkCount.textContent = `Selecionados: ${n}`;
-  if (btnDelSelected) btnDelSelected.disabled = n === 0;
-}
-
-function applySelectAllCurrent(){
-  if (!lastFinCache){ showToast("Seleção", "Carregue um mês primeiro."); return; }
-  const rows = getFilteredRows(lastFinCache);
-  for (const r of rows) selectedIds.add(String(r.id));
-  renderFinancas(lastFinCache);
-}
-
-function clearSelection(){
-  selectedIds = new Set();
-  if (lastFinCache) renderFinancas(lastFinCache);
-  else updateBulkUI();
-}
-
   function renderFinancas(fin){
     lastFinCache = fin;
     kpiEntradas.textContent = brl(fin.entradas);
@@ -1332,8 +1292,6 @@ function clearSelection(){
 
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
-      return;
-    }
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
@@ -1342,8 +1300,7 @@ function clearSelection(){
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
-        <div class="item ${selectedIds.has(String(r.id)) ? "selected" : ""}">
-          <div class="selCol"><input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar"></div>
+        <div class="item">
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1353,7 +1310,9 @@ function clearSelection(){
               ${bankName ? `<span class="badge">🏦 ${escapeHtml(bankName)}</span>` : ``}
             </div>
           </div>
-          <div class="rightcol"><div class="amount ${cls}">${brl(r.valor)}</div>
+          <div class="rightcol">
+            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
+            <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
               data-edit="1"
@@ -1377,7 +1336,6 @@ function clearSelection(){
         </div>
       `;
     }).join("");
-    updateBulkUI();
   }
 
   // ===== METAS =====
@@ -1541,8 +1499,6 @@ function clearSelection(){
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
-      return;
-    }
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
@@ -1757,8 +1713,6 @@ function clearSelection(){
   function renderAlertsSimple(list){
     if (!list.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
-      return;
-    }
     dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
@@ -1956,8 +1910,6 @@ function clearSelection(){
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
-      return;
-    }
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -2083,8 +2035,6 @@ function clearSelection(){
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
       showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
-      return;
-    }
 
     let ok = 0, bad = 0;
     const inserts = [];
@@ -2159,13 +2109,14 @@ function clearSelection(){
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + getAppBasePath() }});
+      options: { redirectTo: getCleanRedirectUrl() }
+    });
     if (error) showToast("Login", error.message);
   });
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = "/";
+    location.href = getCleanRedirectUrl();
   });
 
   mesSelect.addEventListener("change", async () => {
@@ -2263,32 +2214,15 @@ function clearSelection(){
     showToast("Exportado ✅", `Arquivo: ${filename}`);
   });
 
-
-// Seleção múltipla
-btnSelAll?.addEventListener("click", applySelectAllCurrent);
-btnSelNone?.addEventListener("click", clearSelection);
-btnDelSelected?.addEventListener("click", () => {
-  const ids = Array.from(selectedIds);
-  if (!ids.length){ showToast("Excluir", "Selecione lançamentos primeiro."); return; }
-  openDeleteModal({ mode: "bulk", ids });
-});
-
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
   // Editar / Excluir
-function openDeleteModal(item){
-  pendingDelete = item;
-
-  if (item && item.mode === "bulk"){
-    const n = (item.ids || []).length;
-    modalBody.innerHTML = `Excluir <b>${n}</b> lançamento(s) selecionado(s)?<br><br><span class="smallNote">Essa ação não pode ser desfeita.</span>`;
-  } else {
+  function openDeleteModal(item){
+    pendingDelete = item;
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
+    modalOverlay.classList.add("show");
   }
-
-  modalOverlay.classList.add("show");
-}
   function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
 
   function openEditModal(item){
@@ -2303,20 +2237,24 @@ function openDeleteModal(item){
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
+  
+  // Clique na lista: seleção / editar / excluir
   listaEl.addEventListener("click", (e) => {
-    const sel = e.target.closest("[data-sel]");
-    if (sel){
-      const id = String(sel.dataset.id || "");
+    // Seleção (checkbox)
+    const chk = e.target.closest("[data-sel]");
+    if (chk){
+      const id = String(chk.dataset.id || "");
       if (!id) return;
-      if (sel.checked) selectedIds.add(id);
+      if (chk.checked) selectedIds.add(id);
       else selectedIds.delete(id);
-      const itemEl = sel.closest(".item");
-      if (itemEl) itemEl.classList.toggle("selected", sel.checked);
+
+      const itemEl = chk.closest(".item");
+      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
+
       updateBulkUI();
-      return;
-    }
+
+    // Excluir
     const delBtn = e.target.closest("[data-del]");
-    const editBtn = e.target.closest("[data-edit]");
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2325,8 +2263,9 @@ function openDeleteModal(item){
         dataISO: delBtn.dataset.data || "",
         categoria: delBtn.dataset.cat || "Outros"
       });
-      return;
-    }
+
+    // Editar
+    const editBtn = e.target.closest("[data-edit]");
     if (editBtn){
       openEditModal({
         id: editBtn.dataset.id,
@@ -2339,47 +2278,23 @@ function openDeleteModal(item){
     }
   });
 
-  btnModalClose.addEventListener("click", closeDeleteModal);
+btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
   btnConfirmar.addEventListener("click", async () => {
-  if (!currentUser || !pendingDelete) return;
-
-  if (pendingDelete.mode === "bulk"){
-    const ids = Array.from(new Set(pendingDelete.ids || [])).filter(Boolean);
-    if (!ids.length){ closeDeleteModal(); return; }
-
+    if (!currentUser || !pendingDelete) return;
     try{
-      const chunkSize = 200;
-      for (let i=0;i<ids.length;i+=chunkSize){
-        const chunk = ids.slice(i, i+chunkSize);
-        const { error } = await supa.from("registros").delete().in("id", chunk).eq("user_id", currentUser.id);
-        if (error) throw error;
-      }
-
+      const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
+      if (error) throw error;
       closeDeleteModal();
-      selectedIds = new Set();
-      showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
+      showToast("Excluído ✅", "Lançamento removido.");
       await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
       showToast("Excluir", err.message || String(err));
     }
-    return;
-  }
-
-  try{
-    const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
-    if (error) throw error;
-
-    selectedIds.delete(String(pendingDelete.id));
-    closeDeleteModal();
-    showToast("Excluído ✅", "Lançamento removido.");
-    await refreshUI();
-  }catch(err){
-    showToast("Excluir", err.message || String(err));
-  }
-});
+  });
 
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
@@ -2548,8 +2463,6 @@ function openDeleteModal(item){
     if (!session){
       currentUser = null;
       showLogin();
-      return;
-    }
 
     currentUser = session.user;
     showApp(session.user.email);
@@ -2593,7 +2506,6 @@ function openDeleteModal(item){
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
       // filtro sempre usa a lista completa, mas mantém a seleção
       fillCategorySelects();
-      selectedIds = new Set();
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
@@ -2638,8 +2550,6 @@ function openDeleteModal(item){
       showToast("Meta", e.message || String(e));
     }
   });
-
-
 </script>
 </body>
 </html>
