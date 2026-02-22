@@ -417,12 +417,8 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <div style="display:flex;gap:10px;align-items:center">
-                <select id="categoria"></select>
-                <button class="btn btn-ghost btn-icon" id="btnAddCategoria" type="button" title="Adicionar categoria">＋</button>
-                <button class="btn btn-ghost btn-icon" id="btnDelCategoria" type="button" title="Excluir categoria selecionada">🗑️</button>
-              </div>
-              <div class="hint">Clique no + para criar nova categoria. Para excluir, selecione e clique na lixeira.</div>
+              <select id="categoria"></select>
+              <div class="hint">Use “➕ Adicionar categoria” para criar novas.</div>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -507,7 +503,6 @@
             <div class="field">
               <label>Mês da meta (MM/AAAA)</label>
               <input id="metaMes" placeholder="Ex: 02/2026" />
-              <div class="hint">Troque o mês aqui para ver/salvar metas diferentes (agora é por mês ✅).</div>
             </div>
             <div class="field">
               <label>Meta do mês (R$)</label>
@@ -533,20 +528,6 @@
                 <div style="height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),rgba(34,197,94,.85));border-radius:999px;transition:width .25s ease" id="bar"></div>
               </div>
               <div class="hint" id="progressText">0% da meta</div>
-            </div>
-          </div>
-
-          <!-- GRÁFICO DE FATURAMENTO (COLUNAS) -->
-          <div class="catBox" style="margin-top:14px">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                <button class="btn btn-ghost" id="btnMetaModeDia" type="button">📅 Dia a dia</button>
-                <button class="btn btn-ghost" id="btnMetaModeMes" type="button">🗓️ Meses</button>
-              </div>
-              <div class="hint" id="metaChartHint">—</div>
-            </div>
-            <div style="height:260px;margin-top:10px">
-              <canvas id="metaChart" style="width:100%;height:100%"></canvas>
             </div>
           </div>
         </div>
@@ -696,7 +677,7 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
+          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." list="catDatalist" /></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -782,6 +763,8 @@
     </div>
   </div>
 
+  <datalist id="catDatalist"></datalist>
+
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
@@ -789,22 +772,6 @@
   const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
-
-  // ===== Base path (funciona no Vercel e no GitHub Pages) =====
-  // Ex.: "/" no Vercel, "/meu-repo/" no GitHub Pages
-  function getAppBasePath(){
-    const path = window.location.pathname || "/";
-    if (path.endsWith("/")) return path;
-    // remove o nome do arquivo (ex: /index.html) e mantém a pasta
-    return path.replace(/\/[^\/]*$/, "/");
-  }
-
-  // URL "limpa" para redirecionar e para remover o "#access_token=..."
-  function getCleanRedirectUrl(){
-    const base = window.location.origin + getAppBasePath();
-    return base; // sempre termina com "/"
-  }
-
 
   // UI refs
   const loginBox = document.getElementById("loginBox");
@@ -829,19 +796,10 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
-
-  const btnSelAll = document.getElementById("btnSelAll");
-  const btnSelNone = document.getElementById("btnSelNone");
-  const btnDelSelected = document.getElementById("btnDelSelected");
-  const bulkCount = document.getElementById("bulkCount");
-
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
   const bancoSelect = document.getElementById("bancoSelect");
-
-  const btnAddCategoria = document.getElementById("btnAddCategoria");
-  const btnDelCategoria = document.getElementById("btnDelCategoria");
 
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
@@ -877,10 +835,6 @@
   const mediaDiaKpi = document.getElementById("mediaDiaKpi");
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
-
-  const btnMetaModeDia = document.getElementById("btnMetaModeDia");
-  const btnMetaModeMes = document.getElementById("btnMetaModeMes");
-  const metaChartHint = document.getElementById("metaChartHint");
 
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
@@ -933,9 +887,10 @@
   const dashAlerts = document.getElementById("dashAlerts");
   const dashHintAlerts = document.getElementById("dashHintAlerts");
 
+  const catDatalist = document.getElementById("catDatalist");
+
   let chartDiario = null;
   let chartComparacao = null;
-  let metaChart = null;
 
   let currentUser = null;
   let currentMonth = null;
@@ -948,10 +903,16 @@
   let editingItem = null;
 
   let banksCache = [];
-  let categoriesCache = []; // NOVO ✅
   let ofxRows = [];
 
-  let metaChartMode = "dia"; // "dia" | "mes"
+  // ===== CATEGORIAS (novo) =====
+  const DEFAULT_CATS = [
+    "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística",
+    "Impostos/Taxas","Mercado","Lazer","Outros"
+  ];
+  const CAT_ADD_VALUE = "__ADD_CAT__";
+  let categoriasCache = [];
+  let categoriasTableOk = true;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1054,89 +1015,121 @@
     }
   }
 
-  // ===== CATEGORIAS (NOVO ✅) =====
-  const DEFAULT_CATEGORIES = [
-    "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"
-  ];
+  function getCategoriaList(){
+    const base = (categoriasCache && categoriasCache.length) ? categoriasCache : DEFAULT_CATS;
+    const unique = Array.from(new Set(base.filter(Boolean).map(x => String(x).trim()).filter(Boolean)));
+    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
+    if (!unique.includes("Outros")) unique.push("Outros");
+    return unique;
+  }
 
-  async function loadCategories(){
+  function fillCategoriaSelect(selectEl, selected){
+    const cats = getCategoriaList();
+    selectEl.innerHTML = "";
+    for (const c of cats){
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      selectEl.appendChild(opt);
+    }
+    const optAdd = document.createElement("option");
+    optAdd.value = CAT_ADD_VALUE;
+    optAdd.textContent = "➕ Adicionar categoria…";
+    selectEl.appendChild(optAdd);
+
+    if (selected && cats.includes(selected)) selectEl.value = selected;
+    else if (cats.includes("Outros")) selectEl.value = "Outros";
+    else selectEl.value = cats[0] || "Outros";
+  }
+
+  function fillCategoriaFilter(selected){
+    const cats = getCategoriaList();
+    filtroCategoriaEl.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "Todas";
+    optAll.textContent = "Todas";
+    filtroCategoriaEl.appendChild(optAll);
+    for (const c of cats){
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      filtroCategoriaEl.appendChild(opt);
+    }
+    filtroCategoriaEl.value = selected || "Todas";
+  }
+
+  function fillCatDatalist(){
+    const cats = getCategoriaList();
+    catDatalist.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}"></option>`).join("");
+  }
+
+  async function loadCategorias(){
+    categoriasCache = [];
+    categoriasTableOk = true;
     if (!currentUser) return;
-    // tabela esperada: categorias (id, user_id, nome)
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error){
-      // se não existir a tabela, seguimos com defaults (não quebra o app)
-      categoriesCache = [];
-    categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
-  }
-
-  function getAllCategoryNames(){
-    const set = new Set(DEFAULT_CATEGORIES);
-    for (const c of categoriesCache) set.add(c.nome);
-    return Array.from(set).sort((a,b) => a.localeCompare(b, "pt-BR"));
-  }
-
-  function fillCategorySelects(){
-    const cats = getAllCategoryNames();
-    // select principal
-    categoriaEl.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    // filtro
-    filtroCategoriaEl.innerHTML = `<option value="Todas">Todas</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    // mantém seleção atual do filtro
-    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
-      filtroCategoriaEl.value = currentFiltroCategoria;
-      if (filtroCategoriaEl.value !== currentFiltroCategoria) filtroCategoriaEl.value = "Todas";
-    } else filtroCategoriaEl.value = "Todas";
+    try{
+      const { data, error } = await supa
+        .from("categorias")
+        .select("nome")
+        .eq("user_id", currentUser.id)
+        .order("nome", { ascending: true });
+      if (error) throw error;
+      categoriasCache = (data || []).map(x => (x.nome || "").trim()).filter(Boolean);
+    }catch(e){
+      // Se a tabela ainda não existir, não quebra nada: usa categorias padrão.
+      categoriasTableOk = false;
+      categoriasCache = [];
+    }
   }
 
   async function addCategoriaFlow(){
-    if (!currentUser) return;
-    const nome = prompt("Nova categoria (ex: Shopee, Ads, Salário...):");
-    const n = (nome || "").trim();
-    if (!n) return;
-    // evita duplicar
-    const exists = getAllCategoryNames().some(x => x.toLowerCase() === n.toLowerCase());
-    if (exists){ showToast("Categorias", "Essa categoria já existe."); return; }
+    if (!currentUser) return null;
+
+    const nome = prompt("Digite o nome da categoria:");
+    if (!nome) return null;
+    const clean = nome.trim();
+    if (!clean){
+      showToast("Categoria", "Nome inválido.");
+      return null;
+    }
+
+    if (!categoriasTableOk){
+      showToast("Categoria", "Para salvar categorias, crie a tabela 'categorias' no Supabase (user_id, nome).");
+      return null;
+    }
+
     try{
-      const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
+      // Evita duplicado
+      const exists = getCategoriaList().some(c => c.toLowerCase() === clean.toLowerCase());
+      if (exists){
+        showToast("Categoria", "Essa categoria já existe.");
+        return clean;
+      }
+
+      const { error } = await supa.from("categorias").insert({
+        user_id: currentUser.id,
+        nome: clean
+      });
       if (error) throw error;
-      await loadCategories();
-      fillCategorySelects();
-      categoriaEl.value = n;
-      showToast("Categorias ✅", "Categoria adicionada.");
-      // Atualiza OFX aberto (se estiver)
-      if (ofxOverlay.classList.contains("show")) renderOfxTable();
+
+      await loadCategorias();
+      fillCategoriaSelect(categoriaEl, clean);
+      fillCategoriaFilter(currentFiltroCategoria);
+      fillCatDatalist();
+
+      showToast("Categoria ✅", "Categoria adicionada.");
+      return clean;
     }catch(e){
-      showToast("Categorias", e.message || String(e));
+      showToast("Categoria", e.message || String(e));
+      return null;
     }
   }
 
-  async function deleteCategoriaFlow(){
-    if (!currentUser) return;
-    const selected = (categoriaEl.value || "").trim();
-    if (!selected){ showToast("Categorias", "Selecione uma categoria."); return; }
-    // só pode deletar categorias criadas (custom)
-    const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
-    if (!custom){
-      showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
-    const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
-    if (!ok) return;
-    try{
-      const { error } = await supa.from("categorias").delete().eq("id", custom.id).eq("user_id", currentUser.id);
-      if (error) throw error;
-      await loadCategories();
-      fillCategorySelects();
-      showToast("Categorias ✅", "Categoria excluída.");
-      if (ofxOverlay.classList.contains("show")) renderOfxTable();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
+  function categoriasOptionsHTML(selected){
+    const cats = getCategoriaList();
+    return cats.map(c => `<option value="${escapeHtml(c)}" ${String(selected||"")===String(c)?"selected":""}>${escapeHtml(c)}</option>`).join("");
   }
 
-  // ===== APP UI SHOW/HIDE =====
   function showLogin(){
     loginBox.classList.remove("hidden");
     tabs.classList.add("hidden");
@@ -1213,6 +1206,8 @@
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
+      return;
+    }
     bankList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
@@ -1292,6 +1287,8 @@
 
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
+      return;
+    }
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
@@ -1311,7 +1308,6 @@
             </div>
           </div>
           <div class="rightcol">
-            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
             <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
@@ -1348,93 +1344,9 @@
     const { error } = await supa.from("config").upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
     if (error) throw error;
   }
-
-  function makeMetaChartOptions(){
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false, labels: { color: "rgba(226,232,240,.85)" } },
-        tooltip: { callbacks: { label: (ctx) => brl(ctx.raw) } }
-      },
-      scales: {
-        x: { ticks: { color: "rgba(226,232,240,.70)" }, grid: { color: "rgba(148,163,184,.10)" } },
-        y: { ticks: { color: "rgba(226,232,240,.70)", callback: (v) => brl(v) }, grid: { color: "rgba(148,163,184,.10)" } }
-      }
-    };
-  }
-
-  function buildDailyEntradasSeries(fin){
-    const endDay = fin.range?.endDay || 30;
-    const daily = Array.from({length: endDay}, (_,i) => 0);
-    for (const r of fin.rows){
-      if (Number(r.valor || 0) < 0) continue; // só entradas
-      const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
-      if (!m) continue;
-      const d = Number(m[1]);
-      if (d >= 1 && d <= endDay) daily[d-1] += Number(r.valor || 0);
-    }
-    const labels = Array.from({length: endDay}, (_,i) => String(i+1));
-    return { labels, values: daily };
-  }
-
-  async function refreshMetaChart(mes){
-    if (!currentUser) return;
-    const mk = (mes || "").trim() || currentMonth || getDefaultMonth();
-    try{
-      if (metaChartMode === "dia"){
-        const fin = (lastFinCache && currentMonth === mk) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mk);
-        const series = buildDailyEntradasSeries(fin);
-        metaChartHint.textContent = `Faturamento (entradas) • ${mk} • Dia a dia`;
-        const ctx = document.getElementById("metaChart");
-        if (!metaChart){
-          metaChart = new Chart(ctx, {
-            type: "bar",
-            data: { labels: series.labels, datasets: [{ label: "Faturamento", data: series.values }] },
-            options: makeMetaChartOptions()
-          });
-        } else {
-          metaChart.config.type = "bar";
-          metaChart.data.labels = series.labels;
-          metaChart.data.datasets = [{ label: "Faturamento", data: series.values }];
-          metaChart.options = makeMetaChartOptions();
-          metaChart.update();
-        }
-      } else {
-        const keys = getLastNMonthKeys(12);
-        const agg = await fetchAggByMonths(currentUser.id, keys);
-        const labels = agg.keys;
-        const values = agg.keys.map(k => agg.byMonth[k]?.entradas || 0);
-        metaChartHint.textContent = `Faturamento (entradas) • Últimos ${labels.length} meses`;
-        const ctx = document.getElementById("metaChart");
-        if (!metaChart){
-          metaChart = new Chart(ctx, {
-            type: "bar",
-            data: { labels, datasets: [{ label: "Faturamento", data: values }] },
-            options: makeMetaChartOptions()
-          });
-        } else {
-          metaChart.config.type = "bar";
-          metaChart.data.labels = labels;
-          metaChart.data.datasets = [{ label: "Faturamento", data: values }];
-          metaChart.options = makeMetaChartOptions();
-          metaChart.update();
-        }
-      }
-    }catch(e){
-      metaChartHint.textContent = "Falha ao carregar gráfico.";
-    }
-  }
-
   async function atualizarMetasUI(mes){
-    const mk = (mes || "").trim() || currentMonth || getDefaultMonth();
-    const meta = await getMeta(currentUser.id, mk);
-
-    // garante que o input sempre mostre o mês que está sendo usado
-    metaMesEl.value = mk;
-
-    // pega entradas do mês (finanças)
-    const fin = (lastFinCache && currentMonth === mk) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mk);
+    const meta = await getMeta(currentUser.id, mes);
+    const fin = (lastFinCache && currentMonth === mes) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mes);
     const entradasMes = fin.entradas;
 
     metaKpi.textContent = brl(meta);
@@ -1443,7 +1355,7 @@
     const falta = Math.max(meta - entradasMes, 0);
     faltaKpi.textContent = brl(falta);
 
-    const p = parseMonthKey(mk);
+    const p = parseMonthKey(mes);
     const dias = p ? remainingDays(p.mm, p.yyyy) : 30;
     const mediaDia = dias > 0 ? (falta / dias) : falta;
     mediaDiaKpi.textContent = brl(mediaDia);
@@ -1451,8 +1363,6 @@
     const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
-
-    await refreshMetaChart(mk);
   }
 
   // ===== CSV EXPORT =====
@@ -1499,6 +1409,8 @@
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
+      return;
+    }
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
@@ -1713,6 +1625,8 @@
   function renderAlertsSimple(list){
     if (!list.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
+      return;
+    }
     dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
@@ -1900,16 +1814,15 @@
     ofxOverlay.classList.remove("show");
     ofxRows = [];
   }
-
-  function ofxCategoryOptionsHTML(selected){
-    const cats = getAllCategoryNames();
-    return cats.map(c => `<option value="${escapeHtml(c)}" ${String(selected||"").toLowerCase()===c.toLowerCase()?"selected":""}>${escapeHtml(c)}</option>`).join("");
-  }
-
   function renderOfxTable(){
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
+      return;
+    }
+
+    const catsHTML = categoriasOptionsHTML("Outros");
+
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -1923,7 +1836,7 @@
         <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
         <td>
           <select data-ofx-cat>
-            ${ofxCategoryOptionsHTML(r.categoria || "Outros")}
+            ${categoriasOptionsHTML(r.categoria || "Outros")}
           </select>
         </td>
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
@@ -2035,6 +1948,8 @@
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
       showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
+      return;
+    }
 
     let ok = 0, bad = 0;
     const inserts = [];
@@ -2098,31 +2013,25 @@
 
   // ===== LISTENERS =====
   tabFin.addEventListener("click", () => forceShowFinancas());
-  tabMeta.addEventListener("click", async () => {
-    showMetas();
-    // sempre usa o mês do input (se vazio, usa currentMonth)
-    const mk = (metaMesEl.value || "").trim() || currentMonth || getDefaultMonth();
-    await atualizarMetasUI(mk);
-  });
+  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
 
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: getCleanRedirectUrl() }
+      options: { redirectTo: window.location.origin }
     });
     if (error) showToast("Login", error.message);
   });
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = getCleanRedirectUrl();
+    location.href = "/";
   });
 
   mesSelect.addEventListener("change", async () => {
     if (!currentUser) return;
     currentMonth = mesSelect.value;
-    // sincroniza o mês da meta com o mês selecionado (mas não impede trocar manualmente)
     metaMesEl.value = currentMonth;
     await refreshUI();
   });
@@ -2137,26 +2046,13 @@
     if (lastFinCache) renderFinancas(lastFinCache);
   });
 
-  // Categorias (+ / excluir)
-  btnAddCategoria.addEventListener("click", addCategoriaFlow);
-  btnDelCategoria.addEventListener("click", deleteCategoriaFlow);
-
-  // Meta chart mode
-  btnMetaModeDia.addEventListener("click", async () => {
-    metaChartMode = "dia";
-    await refreshMetaChart((metaMesEl.value || "").trim() || currentMonth);
-  });
-  btnMetaModeMes.addEventListener("click", async () => {
-    metaChartMode = "mes";
-    await refreshMetaChart((metaMesEl.value || "").trim() || currentMonth);
-  });
-
-  // ao digitar mês manualmente, atualiza meta e gráfico
-  metaMesEl.addEventListener("change", async () => {
-    if (!currentUser) return;
-    const mk = (metaMesEl.value || "").trim();
-    if (!/^\d{2}\/\d{4}$/.test(mk)) return; // não incomoda enquanto digitando errado
-    await atualizarMetasUI(mk);
+  // ⭐️ Novo: ao selecionar "➕ Adicionar categoria…"
+  categoriaEl.addEventListener("change", async () => {
+    if (categoriaEl.value !== CAT_ADD_VALUE) return;
+    // volta pra "Outros" enquanto salva
+    fillCategoriaSelect(categoriaEl, "Outros");
+    const created = await addCategoriaFlow();
+    if (created) fillCategoriaSelect(categoriaEl, created);
   });
 
   btnSalvar.addEventListener("click", async () => {
@@ -2167,7 +2063,7 @@
     const dataISO = parseBRDateToISO(dataBR);
     const valorDigitado = Number(valorEl.value);
     const descricao = descricaoEl.value.trim();
-    const categoria = (categoriaEl.value || "Outros").trim();
+    const categoria = (categoriaEl.value === CAT_ADD_VALUE ? "Outros" : (categoriaEl.value || "Outros")).trim();
     const bankId = (bancoSelect.value || "").trim();
 
     if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
@@ -2237,24 +2133,9 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
-  
-  // Clique na lista: seleção / editar / excluir
   listaEl.addEventListener("click", (e) => {
-    // Seleção (checkbox)
-    const chk = e.target.closest("[data-sel]");
-    if (chk){
-      const id = String(chk.dataset.id || "");
-      if (!id) return;
-      if (chk.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
-
-      const itemEl = chk.closest(".item");
-      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
-
-      updateBulkUI();
-
-    // Excluir
     const delBtn = e.target.closest("[data-del]");
+    const editBtn = e.target.closest("[data-edit]");
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2263,9 +2144,8 @@
         dataISO: delBtn.dataset.data || "",
         categoria: delBtn.dataset.cat || "Outros"
       });
-
-    // Editar
-    const editBtn = e.target.closest("[data-edit]");
+      return;
+    }
     if (editBtn){
       openEditModal({
         id: editBtn.dataset.id,
@@ -2278,7 +2158,7 @@
     }
   });
 
-btnModalClose.addEventListener("click", closeDeleteModal);
+  btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
@@ -2463,6 +2343,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     if (!session){
       currentUser = null;
       showLogin();
+      return;
+    }
 
     currentUser = session.user;
     showApp(session.user.email);
@@ -2478,11 +2360,16 @@ btnModalClose.addEventListener("click", closeDeleteModal);
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
 
-    // categorias (não pode sumir) ✅
-    try{
-      await loadCategories();
-    }catch(e){}
-    fillCategorySelects();
+    // ⭐️ categorias (novo)
+    await loadCategorias();
+    fillCategoriaSelect(categoriaEl, categoriaEl.value && categoriaEl.value !== CAT_ADD_VALUE ? categoriaEl.value : "Outros");
+    fillCategoriaFilter(currentFiltroCategoria);
+    fillCatDatalist();
+    if (!categoriasTableOk){
+      // aviso suave (não atrapalha o uso)
+      // só aparece se ele tentar adicionar ou se você quiser, deixei 1 aviso aqui:
+      // showToast("Categorias", "Se quiser salvar categorias, crie a tabela 'categorias' no Supabase.");
+    }
 
     let months = [getDefaultMonth()];
     try{
@@ -2498,21 +2385,17 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     dashboardMonth = dashMesSelect.value || desiredDash;
 
     fillDashboardMulti(months);
-
-    // sincroniza metaMes com o mês atual se estiver vazio
-    if (!metaMesEl.value) metaMesEl.value = currentMonth;
+    metaMesEl.value = currentMonth;
 
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
-      // filtro sempre usa a lista completa, mas mantém a seleção
-      fillCategorySelects();
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
       listaEl.innerHTML = `<div class="empty">Falha ao carregar registros.</div>`;
     }
 
-    try{ await atualizarMetasUI((metaMesEl.value || "").trim() || currentMonth); }catch(e){}
+    try{ await atualizarMetasUI(currentMonth); }catch(e){}
 
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
@@ -2534,7 +2417,7 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     await refreshUI();
   });
 
-  // Meta save (CORRIGIDO: salva e atualiza pelo mês digitado ✅)
+  // Meta save
   btnSalvarMeta.addEventListener("click", async () => {
     if (!currentUser) return;
     const mes = (metaMesEl.value || "").trim();
@@ -2543,8 +2426,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite um valor válido."); return; }
     try{
       await upsertMeta(currentUser.id, mes, meta);
-      showToast("Meta ✅", `Meta salva para ${mes}.`);
-      await atualizarMetasUI(mes);
+      showToast("Meta ✅", "Meta salva.");
+      await atualizarMetasUI(currentMonth);
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(e){
       showToast("Meta", e.message || String(e));
