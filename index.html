@@ -2,87 +2,57 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Controle Premium</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#0b1225;
-  color:#fff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-button{
-  padding:14px 22px;
-  border-radius:8px;
-  border:none;
-  background:#00c2ff;
-  font-weight:bold;
-  cursor:pointer;
-}
-</style>
 </head>
+<body style="font-family:Arial;display:flex;align-items:center;justify-content:center;height:100vh;background:#0b1225;color:white">
 
-<body>
-
-<div>
+<div id="login">
   <h2>Controle Premium</h2>
-  <button id="login">Entrar com Google</button>
-  <p id="status">Não logado</p>
+  <button onclick="login()" style="padding:12px 20px;font-size:16px">Entrar com Google</button>
+</div>
+
+<div id="app" style="display:none">
+  <h2>Logado com sucesso ✅</h2>
+  <button onclick="logout()">Sair</button>
 </div>
 
 <script>
 const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
 
-const statusEl = document.getElementById("status");
-const btnLogin = document.getElementById("login");
-
-// LOGIN GOOGLE
-btnLogin.onclick = async () => {
-  await supabase.auth.signInWithOAuth({
+async function login(){
+  await supa.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: window.location.href }
   });
-};
-
-// CAPTURA TOKEN DO GOOGLE
-async function captureToken() {
-  if (window.location.hash.includes("access_token")) {
-
-    await supabase.auth.getSessionFromUrl({ storeSession: true });
-
-    // limpa URL
-    history.replaceState({}, document.title, window.location.pathname);
-
-    location.reload();
-  }
 }
 
-// VERIFICA LOGIN
-async function checkUser(){
-  const { data } = await supabase.auth.getSession();
+async function logout(){
+  await supa.auth.signOut();
+  location.reload();
+}
+
+async function check(){
+  if(location.hash.includes("access_token")){
+    await supa.auth.exchangeCodeForSession(window.location.href);
+    history.replaceState({}, document.title, location.pathname);
+  }
+
+  const { data } = await supa.auth.getSession();
 
   if(data.session){
-    statusEl.innerText = "Logado: " + data.session.user.email;
-  } else {
-    statusEl.innerText = "Não logado";
+    document.getElementById("login").style.display="none";
+    document.getElementById("app").style.display="block";
   }
 }
 
-captureToken();
-checkUser();
-
-supabase.auth.onAuthStateChange(() => {
-  checkUser();
-});
+check();
 </script>
 
 </body>
