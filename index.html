@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>PDF Premium Refinado</title>
+<title>PDF Estilo Banco</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
@@ -15,49 +15,44 @@ function gerarPDF(){
  const doc = new jsPDF();
 
  doc.setFont("helvetica","bold");
- doc.setFontSize(20);
- doc.text("Controle Premium",20,22);
+ doc.setFontSize(18);
+ doc.text("Extrato Financeiro",105,20,{align:"center"});
 
  doc.setFont("helvetica","normal");
  doc.setFontSize(10);
- doc.text("Relatório (Finanças) • Mês: 02/2026",20,30);
- doc.text("Usuário: varie facilshop@gmail.com",20,36);
+ doc.text("Cliente: varie facilshop@gmail.com",20,35);
+ doc.text("Período: 02/2026",20,42);
 
- doc.setDrawColor(200);
- doc.line(20,42,190,42);
-
- // KPIs mais elegantes
- doc.setFontSize(9);
- doc.setFont("helvetica","bold");
- doc.text("ENTRADAS",25,60);
- doc.text("SAÍDAS",85,60);
- doc.text("SALDO",140,60);
-
- doc.setFont("helvetica","normal");
- doc.setFontSize(12);
- doc.text("R$ 2.050,00",25,68);
- doc.text("R$ 100,00",85,68);
- doc.text("R$ 1.950,00",140,68);
-
- // gráfico pequeno fake
  doc.setDrawColor(180);
- doc.rect(20,80,170,30);
- doc.setFontSize(9);
- doc.text("Gráfico resumido",90,97,{align:"center"});
+ doc.line(20,48,190,48);
+
+ doc.setFontSize(10);
+ doc.text("Saldo anterior:",20,60);
+ doc.text("R$ 0,00",170,60,{align:"right"});
+
+ doc.text("Entradas:",20,68);
+ doc.text("R$ 2.050,00",170,68,{align:"right"});
+
+ doc.text("Saídas:",20,76);
+ doc.text("- R$ 100,00",170,76,{align:"right"});
+
+ doc.text("Saldo final:",20,84);
+ doc.setFont("helvetica","bold");
+ doc.text("R$ 1.950,00",170,84,{align:"right"});
 
  doc.autoTable({
-   startY:120,
-   head:[["Data","Tipo","Categoria","Descrição","Valor"]],
+   startY:100,
+   head:[["Data","Histórico","Valor"]],
    body:[
-     ["18/02/2026","Entrada","Embalagem","teste","R$ 50,00"],
-     ["18/02/2026","Saída","Embalagem","teste","-R$ 100,00"],
-     ["16/02/2026","Entrada","Vendas","Amazon","R$ 2.000,00"]
+     ["18/02","PIX RECEBIDO","R$ 50,00"],
+     ["18/02","COMPRA CARTÃO","-R$ 100,00"],
+     ["16/02","VENDA AMAZON","R$ 2.000,00"]
    ],
-   headStyles:{fillColor:[20,40,70],textColor:255},
+   theme:"plain",
    styles:{fontSize:10}
  });
 
- doc.save("relatorio.pdf");
+ doc.save("extrato.pdf");
 }
 </script>
 </body>
