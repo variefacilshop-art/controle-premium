@@ -1067,10 +1067,20 @@
   }
 
   async function captureTokenIfPresent(){
-    if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
-      history.replaceState({}, document.title, "/");
+    try{
+      const hasHashToken = window.location.hash && window.location.hash.includes("access_token=");
+      const hasCode = window.location.search && window.location.search.includes("code=");
+      if (hasHashToken || hasCode) {
+        // Supabase v2: esta função lida tanto com hash (implicit) quanto com ?code= (PKCE)
+        await supa.auth.getSessionFromUrl({ storeSession: true });
+        // Limpa a URL sem quebrar o path do projeto (ex: /app)
+        const clean = window.location.origin + window.location.pathname;
+        history.replaceState({}, document.title, clean);
+      }
+    }catch(e){
+      // se falhar, não trava a página — o refreshUI vai mostrar o erro em toast
     }
+  }
   }
 
   // ===== BANCOS =====
@@ -2056,7 +2066,7 @@
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = "/";
+    location.href = window.location.origin + window.location.pathname;
   });
 
   mesSelect.addEventListener("change", async () => {
