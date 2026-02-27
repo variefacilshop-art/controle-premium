@@ -1067,19 +1067,12 @@
   }
 
   async function captureTokenIfPresent(){
-    try{
-      const hasHashToken = window.location.hash && window.location.hash.includes("access_token=");
-      const hasCode = window.location.search && window.location.search.includes("code=");
-      if (hasHashToken || hasCode) {
-        // Supabase v2: esta função lida tanto com hash (implicit) quanto com ?code= (PKCE)
-        await supa.auth.getSessionFromUrl({ storeSession: true });
-        // Limpa a URL sem quebrar o path do projeto (ex: /app)
-        const clean = window.location.origin + window.location.pathname;
-        history.replaceState({}, document.title, clean);
-      }
-    }catch(e){
-      // se falhar, não trava a página — o refreshUI vai mostrar o erro em toast
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      await supa.auth.getSessionFromUrl({ storeSession: true });
+      history.replaceState({}, document.title, "/");
     }
+  }
+
   // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
@@ -1310,16 +1303,7 @@
     return v < 0 ? "-" + abs : abs;
   }
 
-  async 
-  // ===== PDF (LAYOUT PREMIUM - igual ao modelo "Relatório Financeiro") =====
-  function formatNowBR(){
-    const d = new Date();
-    const pad = (n) => String(n).padStart(2,"0");
-    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  }
-
   async function generatePDFClassic(){
-    // Mantive o nome para não quebrar o botão, mas o layout é o Premium aprovado (Relatório Financeiro)
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
       return;
@@ -1327,6 +1311,7 @@
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
+
     const fin = lastFinCache;
     const rows = fin.rows || [];
 
@@ -1347,205 +1332,98 @@
     const pageW = doc.internal.pageSize.width;    // ~595
     const pageH = doc.internal.pageSize.height;   // ~842
 
-    const margin = 44;
+    // Centralização igual ao modelo (margens simétricas)
+    const margin = 54;
     const contentW = pageW - margin*2;
-    const x0 = margin;
+    const x0 = (pageW - contentW) / 2;
 
-    // Palette (bem próxima do modelo)
-    const bg = [246, 248, 251];
-    const ink = [18, 28, 45];
-    const muted = [108, 122, 140];
-    const border = [214, 224, 234];
-    const cyan = [0, 194, 255];
-    const green = [34, 197, 94];
-    const red = [239, 68, 68];
-
-    function setFill(rgb){ doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
-    function setStroke(rgb){ doc.setDrawColor(rgb[0],rgb[1],rgb[2]); }
-    function setText(rgb){ doc.setTextColor(rgb[0],rgb[1],rgb[2]); }
-
-    // Background
-    setFill(bg);
+    // Fundo branco
+    doc.setFillColor(255,255,255);
     doc.rect(0,0,pageW,pageH,"F");
+    doc.setTextColor(0,0,0);
 
-    // Header
     let y = 64;
 
-    // Accent line
-    setFill(cyan);
-    doc.roundedRect(x0, y-18, 88, 5, 3, 3, "F");
-
+    // Título (igual ao modelo)
     doc.setFont("helvetica","bold");
-    doc.setFontSize(28);
-    setText(ink);
-    doc.text("Relatório Financeiro", x0, y);
+    doc.setFontSize(24);
+    doc.text("Controle Premium", x0, y);
+    y += 22;
 
     doc.setFont("helvetica","normal");
     doc.setFontSize(11.5);
-    setText(muted);
-    doc.text(`Mês: ${mk} • Controle Premium`, x0, y + 18);
+    doc.text(`Relatório (Finanças) • Mês: ${mk}`, x0, y);
+    y += 16;
 
-    // Right: generated time + chip
-    const genTxt = `Gerado em: ${formatNowBR()}`;
-    doc.setFontSize(10.5);
-    doc.text(genTxt, x0 + contentW, y + 4, { align: "right" });
+    doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
+    y += 30;
 
-    // Chip "Finanças"
-    const chipW = 84, chipH = 22;
-    const chipX = x0 + contentW - chipW;
-    const chipY = y + 14;
-    setFill([231, 247, 252]);
-    setStroke([190, 230, 245]);
+    // Caixa KPIs (centralizada)
+    const boxX = x0;
+    const boxY = y;
+    const boxW = contentW;
+    const boxH = 92;
+
+    doc.setDrawColor(200,200,200);
     doc.setLineWidth(1);
-    doc.roundedRect(chipX, chipY, chipW, chipH, 11, 11, "FD");
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(10.5);
-    setText([0, 141, 184]);
-    doc.text("Finanças", chipX + chipW/2, chipY + 15, { align: "center" });
+    doc.roundedRect(boxX, boxY, boxW, boxH, 12, 12);
 
-    y += 44;
+    const colW = boxW / 4;
 
-    // Card helpers
-    function card(x, y, w, h){
-      // "sombra" leve (fake)
-      setFill([235, 240, 246]);
-      doc.roundedRect(x+2, y+3, w, h, 14, 14, "F");
-      // Card
-      setFill([255,255,255]);
-      setStroke(border);
-      doc.setLineWidth(1);
-      doc.roundedRect(x, y, w, h, 14, 14, "FD");
-    }
-    function dot(x,y,color){
-      setFill(color);
-      doc.circle(x, y, 4, "F");
-    }
-
-    // KPI cards row
-    const gap = 14;
-    const kpiH = 78;
-    const kpiW = (contentW - gap*3) / 4;
-
-    const kpiY = y;
-    const xs = [0,1,2,3].map(i => x0 + i*(kpiW + gap));
-
-    function kpiBox(i, label, value, dotColor){
-      const x = xs[i];
-      card(x, kpiY, kpiW, kpiH);
-      // label
-      doc.setFont("helvetica","normal");
-      doc.setFontSize(10.5);
-      setText(muted);
-      doc.text(label, x + 14, kpiY + 28);
-      // value
+    function kpi(i, label, value){
+      const cx = boxX + colW*i + colW/2;
       doc.setFont("helvetica","bold");
-      doc.setFontSize(15);
-      setText(ink);
-      doc.text(value, x + 14, kpiY + 52);
-      dot(x + kpiW - 18, kpiY + 22, dotColor);
-    }
-
-    kpiBox(0, "Entradas", moneyBRAbs(entradas), green);
-    kpiBox(1, "Saídas", moneyBRAbs(saidas), red);
-    kpiBox(2, "Saldo", moneyBR(saldo), (saldo >= 0 ? green : red));
-    kpiBox(3, "Registros", String(qtd), cyan);
-
-    y = kpiY + kpiH + 16;
-
-    // Two big cards row (Meta + Visão rápida)
-    const bigH = 170;
-    const bigW = (contentW - gap) / 2;
-    const leftX = x0;
-    const rightX = x0 + bigW + gap;
-
-    // Left: Meta do mês
-    card(leftX, y, bigW, bigH);
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(12);
-    setText(ink);
-    doc.text("Meta do mês", leftX + 16, y + 32);
-
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(10.3);
-    setText(muted);
-    doc.text(`Meta: ${moneyBRAbs(meta)}  •  Entradas: ${moneyBRAbs(entradas)}`, leftX + 16, y + 54);
-    doc.text(`Falta: ${moneyBRAbs(falta)}  •  Progresso: ${progresso.toFixed(1)}%`, leftX + 16, y + 72);
-
-    // Progress bar
-    const pbX = leftX + 16;
-    const pbY = y + 96;
-    const pbW = bigW - 32;
-    const pbH = 14;
-
-    setFill([234, 241, 247]);
-    setStroke([224, 234, 242]);
-    doc.roundedRect(pbX, pbY, pbW, pbH, 8, 8, "FD");
-
-    const fillW = Math.max(0, Math.min(pbW * (progresso/100), pbW));
-    setFill(cyan);
-    doc.roundedRect(pbX, pbY, fillW, pbH, 8, 8, "F");
-
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(10.5);
-    setText([0, 141, 184]);
-    doc.text(`${progresso.toFixed(1)}% da meta`, leftX + bigW/2, pbY + 34, { align: "center" });
-
-    // Right: Visão rápida (Entradas vs Saídas)
-    card(rightX, y, bigW, bigH);
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(12);
-    setText(ink);
-    doc.text("Visão rápida", rightX + 16, y + 32);
-
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(10.3);
-    setText(muted);
-    doc.text("Entradas vs Saídas (mês)", rightX + 16, y + 52);
-
-    const maxV = Math.max(entradas, saidas, 1);
-    const barX = rightX + 16;
-    const barW = bigW - 32;
-    const bar1Y = y + 84;
-    const bar2Y = y + 124;
-    const barH2 = 12;
-
-    function hBar(label, value, color, y0){
-      doc.setFont("helvetica","bold");
-      doc.setFontSize(11);
-      setText(ink);
-      doc.text(label, barX, y0 - 6);
-
-      // bg
-      setFill([234, 241, 247]);
-      setStroke([224, 234, 242]);
-      doc.roundedRect(barX, y0, barW, barH2, 8, 8, "FD");
-
-      // fill
-      const w = Math.max(0, Math.min(barW * (value / maxV), barW));
-      setFill(color);
-      doc.roundedRect(barX, y0, w, barH2, 8, 8, "F");
-
-      // value at right
-      doc.setFont("helvetica","normal");
       doc.setFontSize(10.5);
-      setText(muted);
-      doc.text(moneyBRAbs(value), barX + barW, y0 + 10, { align:"right" });
+      doc.text(label.toUpperCase(), cx, boxY + 30, { align: "center" });
 
-      // dot marker
-      setFill(color);
-      doc.circle(barX, y0 + 26, 4, "F");
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(12.5);
+      doc.text(value, cx, boxY + 60, { align: "center" });
     }
 
-    hBar("Entradas", entradas, green, bar1Y);
-    hBar("Saídas", saidas, red, bar2Y);
+    kpi(0, "Entradas", moneyBRAbs(entradas));
+    kpi(1, "Saídas", moneyBRAbs(saidas));
+    kpi(2, "Saldo", moneyBR(saldo));
+    kpi(3, "Registros", String(qtd));
 
-    y = y + bigH + 16;
+    y = boxY + boxH + 30;
 
-    // Table title
+    // Meta do mês
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
-    setText(ink);
-    doc.text("Lançamentos do mês", x0, y + 18);
+    doc.text("Meta do mês", x0, y);
+    y += 16;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    doc.text(
+      `Meta: ${moneyBRAbs(meta)} • Entradas: ${moneyBRAbs(entradas)} • Falta: ${moneyBRAbs(falta)} • Progresso: ${progresso.toFixed(1)}%`,
+      x0, y
+    );
+    y += 20;
+
+    // Barra de progresso (azul, grossa, centralizada)
+    const barX = x0;
+    const barY = y;
+    const barW = contentW;
+    const barH = 12;
+
+    doc.setDrawColor(220,220,220);
+    doc.setLineWidth(1);
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(barX, barY, barW, barH, 8, 8);
+
+    const fillW = Math.max(0, Math.min(barW * (progresso/100), barW));
+    doc.setFillColor(0, 194, 255);
+    doc.roundedRect(barX, barY, fillW, barH, 8, 8, "F");
+
+    y = barY + barH + 30;
+
+    // Lançamentos do mês
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Lançamentos do mês", x0, y);
+    y += 10;
 
     const body = rows.map(r => {
       const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
@@ -1560,7 +1438,7 @@
     });
 
     doc.autoTable({
-      startY: y + 30,
+      startY: y + 10,
       head: [["Data", "Tipo", "Categoria", "Descrição", "Valor"]],
       body,
       margin: { left: x0, right: x0 },
@@ -1572,7 +1450,7 @@
         lineColor: 230
       },
       headStyles: {
-        fillColor: [12, 18, 38],
+        fillColor: [12, 18, 38],     // igual ao modelo (faixa escura)
         textColor: 255,
         fontStyle: "bold"
       },
@@ -1592,8 +1470,9 @@
       }
     });
 
-    doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
-    showToast("PDF ✅", `Gerado: relatorio_financeiro_${safeMonth}.pdf`);
+    doc.save(`controle-premium_${safeMonth}.pdf`);
+    showToast("PDF ✅", `Gerado: controle-premium_${safeMonth}.pdf`);
+  }
 
   // ===== DASHBOARD =====
   function makeChartCommonOptions(){
@@ -1877,6 +1756,7 @@
       const sel = tr.querySelector("[data-ofx-cat]");
       if (sel) sel.value = ofxRows[i].categoria || "Outros";
     }
+  }
   function syncOfxFromTable(){
     for (const tr of ofxTbody.querySelectorAll("tr")){
       const i = Number(tr.dataset.i);
@@ -2060,7 +1940,7 @@
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = window.location.origin + window.location.pathname;
+    location.href = "/";
   });
 
   mesSelect.addEventListener("change", async () => {
