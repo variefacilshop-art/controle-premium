@@ -11,8 +11,6 @@
   <!-- PDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 
   <style>
     :root{
@@ -774,8 +772,6 @@
     </div>
   </div>
 
-<div id="pdfSandbox" style="position:fixed;left:-99999px;top:-99999px;width:980px;pointer-events:none;opacity:0"></div>
-
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzbmFiZnp3ZnZjbXdrZ2lidmVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNTE1MjcsImV4cCI6MjA4NTYyNzUyN30.s02EFB4FRopxB7Ak7zWUSkINcGY5ESRn7SLbDXn0Wbo";
@@ -1307,18 +1303,26 @@
     return v < 0 ? "-" + abs : abs;
   }
 
-  async function generatePDFClassic(){
-    // PDF Executivo (idêntico ao modelo aprovado) usando html2pdf (HTML -> PDF)
-    if (!lastFinCache || !currentUser){
-      showToast("PDF", "Carregue um mês primeiro.");
+  
+  async function generatePDFExecutivo(){
+    if (!currentUser){
+      showToast("PDF", "Faça login primeiro.");
       return;
     }
 
+    // garante que temos dados do mês
     const mk = currentMonth || getDefaultMonth();
-    const safeMonth = mk.replace("/", "-");
-    const fin = lastFinCache;
-    const rows = fin.rows || [];
+    let fin = lastFinCache;
+    try{
+      if (!fin || !fin.rows || fin.mes !== mk){
+        fin = await fetchRegistrosByMonth(currentUser.id, mk);
+      }
+    }catch(e){
+      showToast("PDF", "Falha ao carregar dados do mês.");
+      return;
+    }
 
+    const rows = fin.rows || [];
     let meta = 0;
     try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
 
@@ -1330,279 +1334,309 @@
     const falta = Math.max(meta - entradas, 0);
     const progresso = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
 
+    const safeMonth = mk.replace("/", "-");
     const now = new Date();
-    const dd = String(now.getDate()).padStart(2,"0");
-    const mm = String(now.getMonth()+1).padStart(2,"0");
-    const yyyy = now.getFullYear();
-    const hh = String(now.getHours()).padStart(2,"0");
-    const mi = String(now.getMinutes()).padStart(2,"0");
-    const stamp = `${dd}/${mm}/${yyyy} • ${hh}:${mi}`;
+    const dtBR = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} • ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
-    const mkParts = mk.split("/");
-    const docId = `CP-${mkParts[1] || yyyy}-${mkParts[0] || mm}-${String(Math.max(qtd,1)).padStart(4,"0")}`;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const money = (n) => new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Number(n||0));
-    const moneyAbs = (n) => new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(Math.abs(Number(n||0)));
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
 
-    const rowsHtml = rows.map(r => {
-      const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
-      const valor = Number(r.valor || 0);
-      const cls = valor < 0 ? "valor-neg" : "valor-pos";
-      const valorTxt = (valor < 0 ? "-" : "") + moneyAbs(valor);
-      return `
-        <tr>
-          <td>${escapeHtml(formatISOToBR(r.dataISO || ""))}</td>
-          <td>${escapeHtml(tipo)}</td>
-          <td>${escapeHtml(r.categoria || "Outros")}</td>
-          <td>${escapeHtml((r.descricao || "").toString())}</td>
-          <td class="${cls}">${escapeHtml(valorTxt)}</td>
-        </tr>
-      `;
-    }).join("");
+    // Medidas no padrão do modelo aprovado (mais "executivo")
+    const margin = 40;
+    const x0 = margin;
+    const contentW = pageW - margin*2;
 
-    const pdfSandbox = document.getElementById("pdfSandbox");
+    const gap = 12;
+    const radius = 10;
 
-    pdfSandbox.innerHTML = `
-      <style>
-      
-  :root{
-    --ink:#111827;
-    --muted:#6b7280;
-    --line:#e5e7eb;
-    --card:#ffffff;
-    --shadow: 0 10px 28px rgba(17,24,39,.08);
-    --shadow2: 0 6px 16px rgba(17,24,39,.06);
-    --radius:14px;
-    --brand:#14b8a6;
-    --brand2:#0ea5e9;
-    --navy:#0f2f5c;
-  }
-  *{ box-sizing:border-box; }
-  body{
-    font-family: Arial, Helvetica, sans-serif;
-    background:#ffffff;
-    margin:40px;
-    color:var(--ink);
-  }
-  .sheet{ max-width: 980px; margin:0 auto; }
-  .header{
-    padding: 0 0 14px 0;
-    margin-bottom: 18px;
-    border-bottom:1px solid var(--line);
-  }
-  .brandline{
-    height:4px; width: 140px; border-radius:999px;
-    background: linear-gradient(90deg, var(--brand2), var(--brand));
-    margin-bottom: 12px;
-  }
-  .titleRow{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
-  .title{ font-size:26px; font-weight:800; letter-spacing:.2px; margin:0; }
-  .metaRight{ text-align:right; margin-top: 2px; }
-  .metaRight .label{ font-size:11px; color:var(--muted); letter-spacing:.5px; text-transform:uppercase; }
-  .metaRight .value{ margin-top:4px; font-size:12px; font-weight:700; }
-  .subtitle{ font-size:13px; color:var(--muted); margin-top:6px; line-height:1.35; }
-  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top: 14px; }
-  .kpi{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:14px 14px;
-    text-align:left;
-    box-shadow: var(--shadow2);
-  }
-  .kpi label{
-    display:block;
-    font-size:10px;
-    color:var(--muted);
-    letter-spacing:.7px;
-    text-transform:uppercase;
-  }
-  .kpi strong{ display:block; margin-top:8px; font-size:16px; font-weight:800; }
-  .kpi .hint{ margin-top:6px; font-size:11px; color:var(--muted); }
-  .row2{ display:grid; grid-template-columns: 1.15fr .85fr; gap:12px; margin-top: 14px; align-items:start; }
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow: var(--shadow);
-    padding:14px;
-  }
-  .sectionTitle{ font-size:13px; font-weight:800; margin: 0 0 6px 0; }
-  .metaText{ font-size:12px; color:var(--muted); line-height:1.45; }
-  .progressWrap{
-    height:10px;
-    background:#f3f4f6;
-    border-radius:999px;
-    overflow:hidden;
-    margin-top:10px;
-    border: 1px solid #eef2f7;
-  }
-  .progressFill{
-    height:100%;
-    width:68%;
-    background: linear-gradient(90deg, var(--brand2), var(--brand));
-    border-radius:999px;
-  }
-  .chartBox{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height: 98px;
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    background: linear-gradient(180deg, rgba(20,184,166,.06), rgba(14,165,233,.04));
-    box-shadow: var(--shadow);
-    position:relative;
-    overflow:hidden;
-  }
-  .chartBox:before{
-    content:"";
-    position:absolute;
-    inset:-60px -80px auto auto;
-    width:220px; height:220px; border-radius:999px;
-    background: rgba(14,165,233,.10);
-    filter: blur(1px);
-  }
-  .chartMini{
-    width: 78%;
-    height: 74px;
-    border-radius:10px;
-    background: linear-gradient(to top, rgba(20,184,166,.92), rgba(153,246,228,.92));
-    box-shadow: 0 8px 20px rgba(20,184,166,.14);
-    position:relative;
-    z-index:1;
-  }
-  .chartCap{
-    position:absolute;
-    left:14px;
-    bottom:12px;
-    font-size:11px;
-    color: rgba(17,24,39,.62);
-    z-index:1;
-  }
-  .tableWrap{
-    margin-top: 14px;
-    border:1px solid var(--line);
-    border-radius: var(--radius);
-    overflow:hidden;
-    box-shadow: var(--shadow);
-  }
-  table{ width:100%; border-collapse:collapse; }
-  thead th{
-    background: var(--navy);
-    color:#fff;
-    padding:10px 10px;
-    font-size:11px;
-    text-align:left;
-    letter-spacing:.3px;
-  }
-  tbody td{
-    padding:10px 10px;
-    border-bottom:1px solid #eef2f7;
-    font-size:12px;
-    color:#374151;
-  }
-  tbody tr:last-child td{ border-bottom:none; }
-  .valor-neg{ color:#dc2626; font-weight:700; }
-  .valor-pos{ color:#16a34a; font-weight:700; }
-  .footer{
-    margin-top: 12px;
-    font-size:10px;
-    color: rgba(107,114,128,.85);
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
-  }
-  .chip{
-    display:inline-block;
-    padding:4px 8px;
-    border-radius:999px;
-    border:1px solid #eef2f7;
-    background:#fbfdff;
-  }
-
-      </style>
-
-      <div class="sheet">
-        <div class="header">
-          <div class="brandline"></div>
-          <div class="titleRow">
-            <div>
-              <h1 class="title">Controle Premium</h1>
-              <div class="subtitle">Relatório (Finanças) • Mês: <b>${escapeHtml(mk)}</b><br/>Usuário: <b>${escapeHtml(currentUser.email || "")}</b></div>
-            </div>
-            <div class="metaRight">
-              <div class="label">Gerado em</div>
-              <div class="value">${escapeHtml(stamp)}</div>
-              <div style="height:6px"></div>
-              <span class="chip">💎 Premium</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="kpis">
-          <div class="kpi"><label>Entradas</label><strong>${escapeHtml(moneyAbs(entradas))}</strong><div class="hint">Total de recebimentos</div></div>
-          <div class="kpi"><label>Saídas</label><strong>${escapeHtml(moneyAbs(saidas))}</strong><div class="hint">Total de despesas</div></div>
-          <div class="kpi"><label>Saldo</label><strong>${escapeHtml(money(saldo))}</strong><div class="hint">Resultado do mês</div></div>
-          <div class="kpi"><label>Registros</label><strong>${escapeHtml(String(qtd))}</strong><div class="hint">Movimentações</div></div>
-        </div>
-
-        <div class="row2">
-          <div class="card">
-            <div class="sectionTitle">Meta do mês</div>
-            <div class="metaText">Meta: <b>${escapeHtml(moneyAbs(meta))}</b> • Entradas: <b>${escapeHtml(moneyAbs(entradas))}</b> • Falta: <b>${escapeHtml(moneyAbs(falta))}</b> • Progresso: <b>${escapeHtml(progresso.toFixed(1).replace(".", ","))}%</b></div>
-            <div class="progressWrap"><div class="progressFill" style="width:${Math.max(0, Math.min(100, progresso))}%"></div></div>
-          </div>
-          <div class="chartBox">
-            <div class="chartMini"></div>
-            <div class="chartCap">Visão rápida</div>
-          </div>
-        </div>
-
-        <div style="height:12px"></div>
-        <div class="sectionTitle" style="margin-bottom:8px">Lançamentos do mês</div>
-
-        <div class="tableWrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml || `<tr><td colspan="5" style="padding:12px;color:#6b7280">Sem lançamentos neste mês.</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-
-        <div class="footer">
-          <div>Documento gerado pelo Controle Premium</div>
-          <div>ID: ${escapeHtml(docId)}</div>
-        </div>
-      </div>
-    `;
-
-    const opt = {
-      margin: 0,
-      filename: `controle-premium_${safeMonth}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-      jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
+    // cores
+    const C = {
+      text: [15, 23, 42],     // #0f172a
+      muted: [100, 116, 139], // #64748b
+      line: [226, 232, 240],  // #e2e8f0
+      soft: [248, 250, 252],  // #f8fafc
+      head: [15, 48, 92],     // azul da tabela
+      blue: [0, 194, 255],
+      blue2: [51, 210, 255],
+      teal: [16, 185, 129],
+      red: [239, 68, 68],
+      green: [34, 197, 94],
     };
 
+    function setText(rgb){ doc.setTextColor(rgb[0], rgb[1], rgb[2]); }
+    function setFill(rgb){ doc.setFillColor(rgb[0], rgb[1], rgb[2]); }
+    function setDraw(rgb){ doc.setDrawColor(rgb[0], rgb[1], rgb[2]); }
+
+    function roundCard(x,y,w,h, fillRgb, drawRgb){
+      if (fillRgb){ setFill(fillRgb); doc.roundedRect(x,y,w,h, radius, radius, "F"); }
+      if (drawRgb){ setDraw(drawRgb); doc.setLineWidth(1); doc.roundedRect(x,y,w,h, radius, radius); }
+    }
+
+    // Fundo
+    setFill([255,255,255]);
+    doc.rect(0,0,pageW,pageH,"F");
+
+    // Brand line (simula gradiente com 2 blocos)
+    const brandY = margin;
+    const brandH = 6;
+    const brandW = 140;
+    const brandX = x0;
+
+    setFill([0, 194, 255]);
+    doc.roundedRect(brandX, brandY, brandW*0.55, brandH, 6, 6, "F");
+    setFill([120, 255, 220]);
+    doc.roundedRect(brandX + brandW*0.45, brandY, brandW*0.55, brandH, 6, 6, "F");
+
+    // Header
+    let y = brandY + 22;
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(22);
+    setText(C.text);
+    doc.text("Controle Premium", x0, y);
+
+    // Meta bloco à direita
+    const metaX = x0 + contentW - 168;
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(8.5);
+    setText(C.muted);
+    doc.text("GERADO EM", metaX, y-10);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9.5);
+    setText(C.text);
+    doc.text(dtBR, metaX, y+2);
+
+    // Chip Premium
+    const chipY = y + 10;
+    const chipH = 18;
+    const chipW = 86;
+    const chipX = x0 + contentW - chipW;
+    // chip fundo
+    setFill([255,255,255]);
+    setDraw(C.line);
+    doc.roundedRect(chipX, chipY, chipW, chipH, 9, 9, "FD");
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(9.5);
+    setText(C.text);
+    doc.text("Premium", chipX + 34, chipY + 12.5);
+    // diamante (simples)
+    doc.setFont("helvetica","normal");
+    doc.text("♦", chipX + 14, chipY + 12.5);
+
+    // Subheader
+    y += 18;
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    setText(C.muted);
+    doc.text(`Relatório (Finanças) • Mês: ${mk}`, x0, y);
+    y += 14;
+    doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
+
+    // Linha inferior do header
+    y += 16;
+    setDraw(C.line);
+    doc.setLineWidth(1);
+    doc.line(x0, y, x0 + contentW, y);
+
+    // KPIs (4 cards)
+    y += 16;
+
+    const kpiH = 58;
+    const kpiW = (contentW - 3*gap) / 4;
+
+    function kpiCard(i, title, value){
+      const x = x0 + i*(kpiW + gap);
+      const shadow = 3;
+      // sombra
+      setFill([245,247,250]);
+      doc.roundedRect(x, y+shadow, kpiW, kpiH, radius, radius, "F");
+      // card
+      roundCard(x, y, kpiW, kpiH, [255,255,255], C.line);
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(8.5);
+      setText(C.muted);
+      doc.text(title.toUpperCase(), x + 12, y + 18);
+
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(12.5);
+      setText(C.text);
+      doc.text(value, x + 12, y + 40);
+    }
+
+    kpiCard(0, "Entradas", moneyBRAbs(entradas));
+    kpiCard(1, "Saídas", moneyBRAbs(saidas));
+    kpiCard(2, "Saldo", moneyBR(saldo));
+    kpiCard(3, "Registros", String(qtd));
+
+    y += kpiH + 14;
+
+    // Linha 2: Meta card + Gráfico card
+    const leftW = Math.round(contentW*0.64);
+    const rightW = contentW - leftW - gap;
+    const rowH = 88;
+
+    // Meta card
+    const leftX = x0;
+    const rightX = x0 + leftW + gap;
+
+    // sombra
+    setFill([245,247,250]);
+    doc.roundedRect(leftX, y+3, leftW, rowH, radius, radius, "F");
+    roundCard(leftX, y, leftW, rowH, [255,255,255], C.line);
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11);
+    setText(C.text);
+    doc.text("Meta do mês", leftX + 14, y + 22);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9.5);
+    setText(C.muted);
+    doc.text(
+      `Meta: ${moneyBRAbs(meta)} • Entradas: ${moneyBRAbs(entradas)} • Falta: ${moneyBRAbs(falta)} • Progresso: ${progresso.toFixed(1)}%`,
+      leftX + 14, y + 38
+    );
+
+    // barra progresso (duas cores)
+    const pX = leftX + 14;
+    const pY = y + 56;
+    const pW = leftW - 28;
+    const pH = 10;
+
+    setFill([240,244,248]);
+    setDraw([236,242,247]);
+    doc.roundedRect(pX, pY, pW, pH, 6, 6, "FD");
+
+    const fW = Math.max(0, Math.min(pW * (progresso/100), pW));
+    // "gradiente" por 2 blocos
+    setFill([0, 194, 255]);
+    doc.roundedRect(pX, pY, Math.max(0, fW*0.65), pH, 6, 6, "F");
+    setFill([16, 185, 129]);
+    if (fW > 8){
+      const x2 = pX + Math.max(0, fW*0.55);
+      const w2 = Math.max(0, fW*0.45);
+      doc.roundedRect(x2, pY, w2, pH, 6, 6, "F");
+    }
+
+    // Gráfico (visão rápida)
+    setFill([245,247,250]);
+    doc.roundedRect(rightX, y+3, rightW, rowH, radius, radius, "F");
+    roundCard(rightX, y, rightW, rowH, [255,255,255], C.line);
+
+    // "área" verde/teal
+    const gX = rightX + 14;
+    const gY = y + 20;
+    const gW = rightW - 28;
+    const gH = 46;
+
+    // fundo suave
+    setFill([240, 253, 250]);
+    setDraw([204, 251, 241]);
+    doc.roundedRect(gX, gY, gW, gH, 10, 10, "FD");
+    // barra "degradê" teal
+    setFill([155, 246, 220]);
+    doc.roundedRect(gX + 8, gY + 10, gW - 16, gH - 20, 10, 10, "F");
+    setFill([16, 185, 129]);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(9);
+    setText(C.muted);
+    doc.text("Visão rápida", gX, y + rowH - 14);
+
+    y += rowH + 16;
+
+    // Título tabela
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(11.5);
+    setText(C.text);
+    doc.text("Lançamentos do mês", x0, y);
+
+    const body = rows.map(r => {
+      const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
+      const valorStr = moneyBR(Number(r.valor || 0));
+      return [
+        formatISOToBR(r.dataISO || ""),
+        tipo,
+        (r.categoria || "Outros"),
+        (r.descricao || "").toString(),
+        valorStr
+      ];
+    });
+
+    doc.autoTable({
+      startY: y + 12,
+      head: [["Data", "Tipo", "Categoria", "Descrição", "Valor"]],
+      body,
+      margin: { left: x0, right: x0 },
+      styles: {
+        font: "helvetica",
+        fontSize: 9.6,
+        cellPadding: 6,
+        textColor: C.text,
+        lineColor: [236, 242, 247],
+        lineWidth: 1
+      },
+      headStyles: {
+        fillColor: C.head,
+        textColor: 255,
+        fontStyle: "bold"
+      },
+      alternateRowStyles: { fillColor: [250, 252, 255] },
+      columnStyles: {
+        0: { cellWidth: 72 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 95 },
+        3: { cellWidth: contentW - (72+60+95+90) },
+        4: { cellWidth: 90, halign: "right", fontStyle: "bold" }
+      },
+      didParseCell: function (data) {
+        if (data.section === "body" && data.column.index === 4){
+          const txt = String(data.cell.raw || "");
+          if (txt.startsWith("-R$")){
+            data.cell.styles.textColor = C.red;
+          } else {
+            data.cell.styles.textColor = C.green;
+          }
+        }
+      }
+    });
+
+    // Rodapé igual ao modelo
+    const afterY = doc.lastAutoTable?.finalY || (y + 80);
+    const footY = Math.min(pageH - 40, afterY + 18);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(8.5);
+    setText([148, 163, 184]);
+    doc.text("Documento gerado pelo Controle Premium", x0, footY);
+
+    const docId = `CP-${safeMonth}-0001`;
+    doc.text(`ID: ${docId}`, x0 + contentW, footY, { align: "right" });
+
+    // download sem trocar a tela
     try{
-      btnPdf.disabled = true;
-      btnPdf.textContent = "Gerando…";
-      await html2pdf().set(opt).from(pdfSandbox).save();
-      showToast("PDF ✅", `Gerado: controle-premium_${safeMonth}.pdf`);
+      doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
+      showToast("PDF ✅", "Relatório gerado.");
     }catch(e){
-      showToast("PDF", e.message || String(e));
-    }finally{
-      btnPdf.disabled = false;
-      btnPdf.textContent = "📄 Gerar PDF (Premium)";
+      // fallback
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `relatorio_financeiro_${safeMonth}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast("PDF ✅", "Relatório gerado.");
     }
   }
+
 
   // ===== DASHBOARD =====
   function makeChartCommonOptions(){
@@ -2146,7 +2180,7 @@
   });
 
   // PDF
-  btnPdf.addEventListener("click", generatePDFClassic);
+  btnPdf.addEventListener("click", (e) => { e.preventDefault(); generatePDFExecutivo(); });
 
   // Editar / Excluir
   function openDeleteModal(item){
