@@ -1304,129 +1304,111 @@
   }
 
   
-async function generatePDFClassic(){
+  // ===== PDF PREMIUM EXECUTIVO =====
+  async function generatePDFClassic(){
+    if (!lastFinCache || !currentUser){
+      showToast("PDF", "Carregue um mês primeiro.");
+      return;
+    }
 
-  if (!lastFinCache || !currentUser){
-    showToast("PDF", "Carregue um mês primeiro.");
-    return;
-  }
+    const mk = currentMonth || getDefaultMonth();
+    const safeMonth = mk.replace("/", "-");
+    const fin = lastFinCache;
 
-  const mk = currentMonth;
-  const fin = lastFinCache;
-  const rows = fin.rows;
+    let meta = 0;
+    try{ meta = await getMeta(currentUser.id, mk); }catch(e){}
 
-  const entradas = fin.entradas;
-  const saidas = fin.saidas;
-  const saldo = fin.saldo;
+    const entradas = fin.entradas;
+    const saidas = fin.saidas;
+    const saldo = fin.saldo;
+    const qtd = fin.rows.length;
+    const progresso = meta > 0 ? Math.min((entradas/meta)*100,100) : 0;
 
-  let meta = 0;
-  try { meta = await getMeta(currentUser.id, mk); } catch {}
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:"pt", format:"a4" });
 
-  const falta = Math.max(meta - entradas, 0);
-  const progresso = meta > 0 ? (entradas/meta)*100 : 0;
+    const pageW = doc.internal.pageSize.width;
+    const margin = 48;
+    const contentW = pageW - margin*2;
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit:"pt", format:"a4" });
+    let y = 70;
 
-  const pageW = doc.internal.pageSize.width;
-  const margin = 50;
-  const width = pageW - margin*2;
-
-  let y = 70;
-
-  // TÍTULO
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(22);
-  doc.text("Controle Premium", margin, y);
-
-  doc.setDrawColor(0,194,255);
-  doc.setLineWidth(4);
-  doc.line(margin, y+6, margin+80, y+6);
-
-  y += 26;
-
-  doc.setFontSize(11);
-  doc.setFont("helvetica","normal");
-  doc.text(`Relatório (Finanças) • Mês: ${mk}`, margin, y);
-  y += 16;
-  doc.text(`Usuário: ${currentUser.email}`, margin, y);
-
-  doc.setFontSize(10);
-  doc.text(
-    `Gerado em ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}`,
-    pageW - margin,
-    70,
-    { align:"right" }
-  );
-
-  y += 34;
-
-  doc.setDrawColor(220);
-  doc.line(margin, y, pageW-margin, y);
-
-  y += 26;
-
-  const boxW = width/4 - 10;
-
-  function kpi(x,label,value){
-    doc.roundedRect(x, y, boxW, 55, 8, 8);
-    doc.setFontSize(9);
-    doc.text(label, x+12, y+18);
-    doc.setFontSize(14);
     doc.setFont("helvetica","bold");
-    doc.text(value, x+12, y+38);
+    doc.setFontSize(20);
+    doc.text("Controle Premium", margin, y);
+
     doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
+    y += 16;
+    doc.text(`Relatório Financeiro • ${mk}`, margin, y);
+
+    y += 24;
+
+    // cartões KPI compactos
+    const cardW = (contentW - 15) / 4;
+    const cardH = 48;
+
+    const kpis = [
+      ["Entradas", entradas],
+      ["Saídas", saidas],
+      ["Saldo", saldo],
+      ["Registros", qtd]
+    ];
+
+    kpis.forEach((k,i)=>{
+      const x = margin + i*(cardW+5);
+      doc.setDrawColor(230);
+      doc.roundedRect(x, y, cardW, cardH, 8,8);
+
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(k[0].toUpperCase(), x+cardW/2, y+16,{align:"center"});
+
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+      doc.text(
+        k[0]==="Registros" ? String(k[1]) :
+        new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(k[1]),
+        x+cardW/2, y+34,{align:"center"}
+      );
+    });
+
+    y += cardH + 18;
+
+    if(meta>0){
+      doc.setFontSize(10);
+      doc.text("Progresso da meta", margin, y);
+      y+=8;
+
+      doc.setDrawColor(220);
+      doc.roundedRect(margin, y, contentW, 8,6,6);
+
+      doc.setFillColor(0,194,255);
+      doc.roundedRect(margin, y, contentW*(progresso/100), 8,6,6,"F");
+
+      y+=20;
+    }
+
+    const body = fin.rows.map(r=>([
+      formatISOToBR(r.dataISO),
+      r.valor>=0?"Entrada":"Saída",
+      r.categoria||"Outros",
+      r.descricao,
+      new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(r.valor)
+    ]));
+
+    doc.autoTable({
+      startY:y,
+      head:[["Data","Tipo","Categoria","Descrição","Valor"]],
+      body,
+      margin:{left:margin,right:margin},
+      headStyles:{fillColor:[15,23,42],textColor:255},
+      alternateRowStyles:{fillColor:[245,245,245]},
+      styles:{fontSize:9}
+    });
+
+    doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
   }
-
-  kpi(margin, "ENTRADAS", entradas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
-  kpi(margin+boxW+10, "SAÍDAS", saidas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
-  kpi(margin+(boxW+10)*2, "SALDO", saldo.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
-  kpi(margin+(boxW+10)*3, "REGISTROS", rows.length.toString());
-
-  y += 80;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica","bold");
-  doc.text("Meta do mês", margin, y);
-
-  y += 14;
-
-  doc.setFontSize(10);
-  doc.setFont("helvetica","normal");
-  doc.text(`Meta: ${meta.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})} • Entradas: ${entradas.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})} • Falta: ${falta.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})} • Progresso: ${progresso.toFixed(1)}%`, margin, y);
-
-  y += 18;
-
-  doc.roundedRect(margin, y, width, 10, 5,5);
-  doc.setFillColor(0,194,255);
-  doc.roundedRect(margin, y, width*(progresso/100), 10,5,5,"F");
-
-  y += 30;
-
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(12);
-  doc.text("Lançamentos do mês", margin, y);
-
-  const body = rows.map(r => [
-    formatISOToBR(r.dataISO),
-    r.valor >=0 ? "Entrada":"Saída",
-    r.categoria,
-    r.descricao,
-    (r.valor).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
-  ]);
-
-  doc.autoTable({
-    startY: y+10,
-    head: [["Data","Tipo","Categoria","Descrição","Valor"]],
-    body,
-    margin:{left:margin,right:margin},
-    styles:{fontSize:9},
-    headStyles:{fillColor:[15,23,42],textColor:255},
-    columnStyles:{4:{halign:"right"}}
-  });
-
-  doc.save(`relatorio_financeiro_${mk.replace("/","_")}.pdf`);
-}
 // ===== DASHBOARD =====
   function makeChartCommonOptions(){
     return {
