@@ -1304,8 +1304,7 @@
   }
 
   
-  // ===== PDF PREMIUM EXECUTIVO (REFINADO) =====
-  async function generatePDFClassic(){
+  async function generatePDFPremium(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
       return;
@@ -1313,107 +1312,287 @@
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
+
     const fin = lastFinCache;
+    const rows = fin.rows || [];
 
     let meta = 0;
-    try{ meta = await getMeta(currentUser.id, mk); }catch(e){}
+    try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
 
-    const entradas = fin.entradas;
-    const saidas = fin.saidas;
-    const saldo = fin.saldo;
-    const qtd = fin.rows.length;
-    const progresso = meta > 0 ? Math.min((entradas/meta)*100,100) : 0;
+    const entradas = Number(fin.entradas || 0);
+    const saidas = Number(fin.saidas || 0);
+    const saldo = Number(fin.saldo || 0);
+    const qtd = rows.length;
+
+    const falta = Math.max(meta - entradas, 0);
+    const progresso = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
+
+    // data/hora de geração (pt-BR)
+    const now = new Date();
+    const gen = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:"pt", format:"a4" });
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
 
     const pageW = doc.internal.pageSize.width;
-    const margin = 48;
+    const pageH = doc.internal.pageSize.height;
+
+    const margin = 44;
+    const x0 = margin;
     const contentW = pageW - margin*2;
 
-    let y = 70;
+    // fundo
+    doc.setFillColor(255,255,255);
+    doc.rect(0,0,pageW,pageH,"F");
 
-    // Título
+    // Paleta
+    const cCyan = [0,194,255];
+    const cNavy = [12,18,38];
+    const cText = [20,20,20];
+    const cMuted = [110,120,130];
+    const cStroke = [225,230,235];
+    const cCardBg = [247,249,252];
+    const cGreen = [34,197,94];
+    const cRed = [239,68,68];
+
+    // Header (igual ao estilo da 1ª foto)
+    let y = 62;
+
+    doc.setTextColor(...cText);
     doc.setFont("helvetica","bold");
-    doc.setFontSize(20);
-    doc.text("Controle Premium", margin, y);
+    doc.setFontSize(26);
+    doc.text("Relatório Financeiro", x0, y);
 
+    // underline cyan
+    doc.setDrawColor(...cCyan);
+    doc.setLineWidth(3);
+    doc.line(x0, y+8, x0 + 165, y+8);
+
+    // right info
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...cMuted);
+    doc.text(`Gerado em: ${gen}`, x0 + contentW, y, { align:"right" });
+
+    // pill "Finanças"
+    const pillW = 90, pillH = 18;
+    const pillX = x0 + contentW - pillW;
+    const pillY = y + 10;
+    doc.setDrawColor(210,235,245);
+    doc.setFillColor(236,250,255);
+    doc.roundedRect(pillX, pillY, pillW, pillH, 9, 9, "FD");
+    doc.setTextColor(0,140,180);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10);
+    doc.text("Finanças", pillX + pillW/2, pillY + 12.5, { align:"center" });
+
+    y += 22;
+    doc.setTextColor(...cMuted);
     doc.setFont("helvetica","normal");
     doc.setFontSize(11);
-    y += 18;
-    doc.text(`Relatório Financeiro • ${mk}`, margin, y);
+    doc.text(`Mês: ${mk} • Controle Premium`, x0, y);
 
-    y += 24;
+    y += 26;
 
-    // cartões KPI menores e elegantes
-    const cardW = (contentW - 15) / 4;
-    const cardH = 52;
+    // Cards
+    const gap = 12;
+    const cardW = (contentW - gap*3)/4;
+    const cardH = 68;
 
-    const kpis = [
-      ["Entradas", entradas],
-      ["Saídas", saidas],
-      ["Saldo", saldo],
-      ["Registros", qtd]
-    ];
+    function card(ix, title, value, dotColor){
+      const x = x0 + ix*(cardW+gap);
+      const yy = y;
 
-    kpis.forEach((k,i)=>{
-      const x = margin + i*(cardW+5);
-      doc.setDrawColor(230);
-      doc.setFillColor(255,255,255);
-      doc.roundedRect(x, y, cardW, cardH, 8,8,"FD");
+      // sombra sutil (simulada)
+      doc.setFillColor(235,238,242);
+      doc.roundedRect(x+1.5, yy+2.5, cardW, cardH, 10, 10, "F");
 
-      doc.setFontSize(8);
-      doc.setTextColor(120);
-      doc.text(k[0].toUpperCase(), x+cardW/2, y+18,{align:"center"});
+      // card
+      doc.setDrawColor(...cStroke);
+      doc.setFillColor(...cCardBg);
+      doc.roundedRect(x, yy, cardW, cardH, 10, 10, "FD");
 
-      doc.setFontSize(12);
-      doc.setTextColor(0);
-      doc.text(
-        k[0]==="Registros" ? String(k[1]) :
-        new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(k[1]),
-        x+cardW/2, y+36,{align:"center"}
-      );
-    });
+      // dot
+      doc.setFillColor(...dotColor);
+      doc.circle(x + cardW - 14, yy + 14, 4, "F");
 
-    y += cardH + 22;
-
-    // barra meta refinada
-    if(meta>0){
+      // texts
+      doc.setTextColor(...cMuted);
+      doc.setFont("helvetica","normal");
       doc.setFontSize(10);
-      doc.text("Progresso da meta", margin, y);
-      y+=8;
+      doc.text(title, x + 14, yy + 26);
 
-      doc.setDrawColor(220);
-      doc.roundedRect(margin, y, contentW, 8,6,6);
-
-      doc.setFillColor(0,194,255);
-      doc.roundedRect(margin, y, contentW*(progresso/100), 8,6,6,"F");
-
-      y+=20;
+      doc.setTextColor(...cText);
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(14);
+      doc.text(value, x + 14, yy + 50);
     }
 
-    const body = fin.rows.map(r=>([
-      formatISOToBR(r.dataISO),
-      r.valor>=0?"Entrada":"Saída",
-      r.categoria||"Outros",
-      r.descricao,
-      new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(r.valor)
-    ]));
+    card(0, "Entradas", moneyBRAbs(entradas), cGreen);
+    card(1, "Saídas", moneyBRAbs(saidas), cRed);
+    card(2, "Saldo", moneyBR(saldo), saldo >= 0 ? cGreen : cRed);
+    card(3, "Registros", String(qtd), cCyan);
+
+    y += cardH + 18;
+
+    // Blocos: Meta do mês (esq) e Visão rápida (dir)
+    const boxW = (contentW - 18) / 2;
+    const boxH = 150;
+
+    function box(x, yy){
+      doc.setFillColor(235,238,242);
+      doc.roundedRect(x+1.5, yy+2.5, boxW, boxH, 12, 12, "F");
+      doc.setDrawColor(...cStroke);
+      doc.setFillColor(255,255,255);
+      doc.roundedRect(x, yy, boxW, boxH, 12, 12, "FD");
+    }
+
+    const leftX = x0;
+    const rightX = x0 + boxW + 18;
+    const boxY = y;
+
+    box(leftX, boxY);
+    box(rightX, boxY);
+
+    // --- Meta do mês
+    doc.setTextColor(...cText);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Meta do mês", leftX + 16, boxY + 28);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.2);
+    doc.setTextColor(...cMuted);
+
+    const line1 = `Meta: ${moneyBRAbs(meta)}  •  Entradas: ${moneyBRAbs(entradas)}`;
+    const line2 = `Falta: ${moneyBRAbs(falta)}  •  Progresso: ${progresso.toFixed(1)}%`;
+    doc.text(line1, leftX + 16, boxY + 50);
+    doc.text(line2, leftX + 16, boxY + 66);
+
+    // barra progresso
+    const pbX = leftX + 16;
+    const pbY = boxY + 92;
+    const pbW = boxW - 32;
+    const pbH = 14;
+
+    doc.setDrawColor(225,230,235);
+    doc.setFillColor(245,247,250);
+    doc.roundedRect(pbX, pbY, pbW, pbH, 8, 8, "FD");
+
+    const fillW = Math.max(0, Math.min(pbW * (progresso/100), pbW));
+    doc.setFillColor(...cCyan);
+    doc.roundedRect(pbX, pbY, fillW, pbH, 8, 8, "F");
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10);
+    doc.setTextColor(0,140,180);
+    doc.text(`${progresso.toFixed(1)}% da meta`, leftX + boxW/2, pbY + 30, { align:"center" });
+
+    // --- Visão rápida
+    doc.setTextColor(...cText);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Visão rápida", rightX + 16, boxY + 28);
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.2);
+    doc.setTextColor(...cMuted);
+    doc.text("Entradas vs Saídas (mês)", rightX + 16, boxY + 46);
+
+    const maxVal = Math.max(entradas, saidas, 1);
+    const barX = rightX + 16;
+    const barW2 = boxW - 32;
+    const row1Y = boxY + 74;
+    const row2Y = boxY + 106;
+
+    function miniBar(label, value, color, yy){
+      doc.setTextColor(...cText);
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10);
+      doc.text(label, barX, yy);
+
+      // track
+      doc.setDrawColor(225,230,235);
+      doc.setFillColor(245,247,250);
+      doc.roundedRect(barX, yy + 8, barW2, 10, 6, 6, "FD");
+
+      const w = Math.max(4, Math.round(barW2 * (value/maxVal)));
+      doc.setFillColor(...color);
+      doc.roundedRect(barX, yy + 8, w, 10, 6, 6, "F");
+
+      // dot + value right
+      doc.setFillColor(...color);
+      doc.circle(barX, yy + 28, 3, "F");
+
+      doc.setTextColor(...cMuted);
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(10);
+      doc.text(moneyBRAbs(value), barX + barW2, yy + 28, { align:"right" });
+    }
+
+    miniBar("Entradas", entradas, cGreen, row1Y);
+    miniBar("Saídas", saidas, cRed, row2Y);
+
+    y = boxY + boxH + 18;
+
+    // Título tabela
+    doc.setTextColor(...cText);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Lançamentos do mês", x0, y);
+    y += 10;
+
+    const body = rows.map(r => {
+      const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
+      const valorStr = moneyBR(Number(r.valor || 0));
+      return [
+        formatISOToBR(r.dataISO || ""),
+        tipo,
+        (r.categoria || "Outros"),
+        (r.descricao || "").toString(),
+        valorStr
+      ];
+    });
 
     doc.autoTable({
-      startY:y,
-      head:[["Data","Tipo","Categoria","Descrição","Valor"]],
+      startY: y + 10,
+      head: [["Data", "Tipo", "Categoria", "Descrição", "Valor"]],
       body,
-      margin:{left:margin,right:margin},
-      headStyles:{fillColor:[15,23,42],textColor:255},
-      alternateRowStyles:{fillColor:[245,245,245]},
-      styles:{fontSize:9}
+      margin: { left: x0, right: x0 },
+      styles: {
+        font: "helvetica",
+        fontSize: 9.2,
+        cellPadding: 6,
+        textColor: 30,
+        lineColor: 230
+      },
+      headStyles: {
+        fillColor: cNavy,
+        textColor: 255,
+        fontStyle: "bold"
+      },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { cellWidth: 60 },
+        2: { cellWidth: 100 },
+        3: { cellWidth: contentW - (70+60+100+90) },
+        4: { cellWidth: 90, halign: "right" }
+      },
+      didParseCell: function (data) {
+        if (data.section === "body" && data.column.index === 4){
+          const txt = String(data.cell.raw || "");
+          if (txt.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
+        }
+      }
     });
 
     doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
-    showToast("PDF","Relatório gerado");
+    showToast("PDF ✅", `Gerado: relatorio_financeiro_${safeMonth}.pdf`);
   }
-// ===== DASHBOARD =====
+
+
+  // ===== DASHBOARD =====
   function makeChartCommonOptions(){
     return {
       responsive: true,
@@ -1955,7 +2134,7 @@
   });
 
   // PDF
-  btnPdf.addEventListener("click", generatePDFClassic);
+  btnPdf.addEventListener("click", generatePDFPremium);
 
   // Editar / Excluir
   function openDeleteModal(item){
