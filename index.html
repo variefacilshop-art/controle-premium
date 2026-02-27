@@ -1303,8 +1303,16 @@
     return v < 0 ? "-" + abs : abs;
   }
 
-  
-    async function generatePDFPremium(){
+  async 
+  // ===== PDF (LAYOUT PREMIUM - igual ao modelo "Relatório Financeiro") =====
+  function formatNowBR(){
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2,"0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  async function generatePDFClassic(){
+    // Mantive o nome para não quebrar o botão, mas o layout é o Premium aprovado (Relatório Financeiro)
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
       return;
@@ -1329,203 +1337,208 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;     // ~595
-    const pageH = doc.internal.pageSize.height;    // ~842
-    const margin = 44;                              // mais “premium”: aproveita mais a folha
-    const x0 = margin;
+    const pageW = doc.internal.pageSize.width;    // ~595
+    const pageH = doc.internal.pageSize.height;   // ~842
+
+    const margin = 44;
     const contentW = pageW - margin*2;
+    const x0 = margin;
 
-    // Helpers
-    const now = new Date();
-    const stamp = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    // Palette (bem próxima do modelo)
+    const bg = [246, 248, 251];
+    const ink = [18, 28, 45];
+    const muted = [108, 122, 140];
+    const border = [214, 224, 234];
+    const cyan = [0, 194, 255];
+    const green = [34, 197, 94];
+    const red = [239, 68, 68];
 
-    function setText(col){ doc.setTextColor(col[0],col[1],col[2]); }
-    function rounded(x,y,w,h,r, fill=null, stroke=[220,224,230]){
-      // sombra suave (fake)
-      doc.setFillColor(0,0,0);
-      doc.setGState && doc.setGState(new (doc.GState || window.jspdf.GState)({opacity:0.06}));
-      doc.roundedRect(x+2, y+3, w, h, r, r, "F");
-      doc.setGState && doc.setGState(new (doc.GState || window.jspdf.GState)({opacity:1}));
+    function setFill(rgb){ doc.setFillColor(rgb[0],rgb[1],rgb[2]); }
+    function setStroke(rgb){ doc.setDrawColor(rgb[0],rgb[1],rgb[2]); }
+    function setText(rgb){ doc.setTextColor(rgb[0],rgb[1],rgb[2]); }
 
-      if (fill){
-        doc.setFillColor(fill[0],fill[1],fill[2]);
-        doc.setDrawColor(stroke[0],stroke[1],stroke[2]);
-        doc.setLineWidth(0.9);
-        doc.roundedRect(x, y, w, h, r, r, "FD");
-      } else {
-        doc.setDrawColor(stroke[0],stroke[1],stroke[2]);
-        doc.setLineWidth(0.9);
-        doc.roundedRect(x, y, w, h, r, r, "S");
-      }
-    }
-    function dot(x,y, col){
-      doc.setFillColor(col[0],col[1],col[2]);
-      doc.circle(x, y, 4, "F");
-    }
-    function moneyBRAbs(n){
-      const v = Math.abs(Number(n || 0));
-      return "R$ " + new Intl.NumberFormat("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2}).format(v);
-    }
-    function moneyBR(n){
-      const v = Number(n || 0);
-      const s = moneyBRAbs(v);
-      return v < 0 ? "-" + s : s;
-    }
-
-    // Fundo
-    doc.setFillColor(255,255,255);
+    // Background
+    setFill(bg);
     doc.rect(0,0,pageW,pageH,"F");
 
-    // Cabeçalho (modelo “Relatório Financeiro”)
-    let y = 70;
+    // Header
+    let y = 64;
+
+    // Accent line
+    setFill(cyan);
+    doc.roundedRect(x0, y-18, 88, 5, 3, 3, "F");
+
     doc.setFont("helvetica","bold");
-    doc.setFontSize(24);
-    setText([18,24,38]);
+    doc.setFontSize(28);
+    setText(ink);
     doc.text("Relatório Financeiro", x0, y);
 
-    // detalhe em cima (linha ciano)
-    doc.setDrawColor(0,194,255);
-    doc.setLineWidth(3);
-    doc.line(x0, y+10, x0 + 140, y+10);
-
-    y += 22;
     doc.setFont("helvetica","normal");
-    doc.setFontSize(11);
-    setText([110,118,129]);
-    doc.text(`Mês: ${mk} • Controle Premium`, x0, y);
+    doc.setFontSize(11.5);
+    setText(muted);
+    doc.text(`Mês: ${mk} • Controle Premium`, x0, y + 18);
 
-    // canto direito
-    doc.setFontSize(10);
-    setText([130,138,150]);
-    doc.text(`Gerado em: ${stamp}`, x0 + contentW, y, { align:"right" });
+    // Right: generated time + chip
+    const genTxt = `Gerado em: ${formatNowBR()}`;
+    doc.setFontSize(10.5);
+    doc.text(genTxt, x0 + contentW, y + 4, { align: "right" });
 
-    // pill “Finanças”
-    const pillW = 86, pillH = 22;
-    const pillX = x0 + contentW - pillW;
-    const pillY = y + 10;
-    doc.setFillColor(231, 250, 255);
-    doc.setDrawColor(190, 232, 245);
-    doc.setLineWidth(0.8);
-    doc.roundedRect(pillX, pillY, pillW, pillH, 11, 11, "FD");
+    // Chip "Finanças"
+    const chipW = 84, chipH = 22;
+    const chipX = x0 + contentW - chipW;
+    const chipY = y + 14;
+    setFill([231, 247, 252]);
+    setStroke([190, 230, 245]);
+    doc.setLineWidth(1);
+    doc.roundedRect(chipX, chipY, chipW, chipH, 11, 11, "FD");
     doc.setFont("helvetica","bold");
-    doc.setFontSize(9.6);
-    setText([0, 150, 200]);
-    doc.text("Finanças", pillX + pillW/2, pillY + 14.5, { align:"center" });
+    doc.setFontSize(10.5);
+    setText([0, 141, 184]);
+    doc.text("Finanças", chipX + chipW/2, chipY + 15, { align: "center" });
 
-    y = pillY + pillH + 24;
+    y += 44;
 
-    // Cards KPI (mais compactos)
-    const gap = 12;
-    const cardW = (contentW - gap*3) / 4;
-    const cardH = 66;
-    const cardR = 12;
-
-    function kpiCard(i, title, value, dotColor){
-      const cx = x0 + i*(cardW+gap);
-      const cy = y;
-      rounded(cx, cy, cardW, cardH, cardR, [247,249,252], [220,224,230]);
-
-      // bolinha
-      dot(cx + cardW - 16, cy + 16, dotColor);
-
-      doc.setFont("helvetica","normal");
-      doc.setFontSize(10);
-      setText([120,128,140]);
-      doc.text(title, cx + 14, cy + 26);
-
-      doc.setFont("helvetica","bold");
-      doc.setFontSize(14);
-      setText([18,24,38]);
-      doc.text(value, cx + 14, cy + 48);
+    // Card helpers
+    function card(x, y, w, h){
+      // "sombra" leve (fake)
+      setFill([235, 240, 246]);
+      doc.roundedRect(x+2, y+3, w, h, 14, 14, "F");
+      // Card
+      setFill([255,255,255]);
+      setStroke(border);
+      doc.setLineWidth(1);
+      doc.roundedRect(x, y, w, h, 14, 14, "FD");
+    }
+    function dot(x,y,color){
+      setFill(color);
+      doc.circle(x, y, 4, "F");
     }
 
-    kpiCard(0, "Entradas", moneyBRAbs(entradas), [34,197,94]);
-    kpiCard(1, "Saídas",  moneyBRAbs(saidas),   [239,68,68]);
-    kpiCard(2, "Saldo",   moneyBR(saldo),       [34,197,94]);
-    kpiCard(3, "Registros", String(qtd),        [0,194,255]);
+    // KPI cards row
+    const gap = 14;
+    const kpiH = 78;
+    const kpiW = (contentW - gap*3) / 4;
 
-    y += cardH + 14;
+    const kpiY = y;
+    const xs = [0,1,2,3].map(i => x0 + i*(kpiW + gap));
 
-    // Blocos: Meta + Visão rápida
-    const boxW = (contentW - gap) / 2;
-    const boxH = 120;
-    const boxR = 14;
+    function kpiBox(i, label, value, dotColor){
+      const x = xs[i];
+      card(x, kpiY, kpiW, kpiH);
+      // label
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(10.5);
+      setText(muted);
+      doc.text(label, x + 14, kpiY + 28);
+      // value
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(15);
+      setText(ink);
+      doc.text(value, x + 14, kpiY + 52);
+      dot(x + kpiW - 18, kpiY + 22, dotColor);
+    }
 
-    // Meta do mês
-    const b1x = x0;
-    const b1y = y;
-    rounded(b1x, b1y, boxW, boxH, boxR, [247,249,252], [220,224,230]);
+    kpiBox(0, "Entradas", moneyBRAbs(entradas), green);
+    kpiBox(1, "Saídas", moneyBRAbs(saidas), red);
+    kpiBox(2, "Saldo", moneyBR(saldo), (saldo >= 0 ? green : red));
+    kpiBox(3, "Registros", String(qtd), cyan);
+
+    y = kpiY + kpiH + 16;
+
+    // Two big cards row (Meta + Visão rápida)
+    const bigH = 170;
+    const bigW = (contentW - gap) / 2;
+    const leftX = x0;
+    const rightX = x0 + bigW + gap;
+
+    // Left: Meta do mês
+    card(leftX, y, bigW, bigH);
     doc.setFont("helvetica","bold");
     doc.setFontSize(12);
-    setText([18,24,38]);
-    doc.text("Meta do mês", b1x + 14, b1y + 28);
+    setText(ink);
+    doc.text("Meta do mês", leftX + 16, y + 32);
 
     doc.setFont("helvetica","normal");
-    doc.setFontSize(10);
-    setText([120,128,140]);
-    doc.text(`Meta: ${moneyBRAbs(meta)}  •  Entradas: ${moneyBRAbs(entradas)}`, b1x + 14, b1y + 48);
-    doc.text(`Falta: ${moneyBRAbs(falta)}  •  Progresso: ${progresso.toFixed(1)}%`, b1x + 14, b1y + 64);
+    doc.setFontSize(10.3);
+    setText(muted);
+    doc.text(`Meta: ${moneyBRAbs(meta)}  •  Entradas: ${moneyBRAbs(entradas)}`, leftX + 16, y + 54);
+    doc.text(`Falta: ${moneyBRAbs(falta)}  •  Progresso: ${progresso.toFixed(1)}%`, leftX + 16, y + 72);
 
-    // Barra progresso (com borda + sombra suave)
-    const pbX = b1x + 14, pbY = b1y + 84, pbW = boxW - 28, pbH = 12;
-    doc.setFillColor(255,255,255);
-    doc.setDrawColor(210,214,220);
-    doc.setLineWidth(0.9);
+    // Progress bar
+    const pbX = leftX + 16;
+    const pbY = y + 96;
+    const pbW = bigW - 32;
+    const pbH = 14;
+
+    setFill([234, 241, 247]);
+    setStroke([224, 234, 242]);
     doc.roundedRect(pbX, pbY, pbW, pbH, 8, 8, "FD");
-    const fillW = Math.max(0, Math.min(pbW * (progresso/100), pbW));
-    doc.setFillColor(0,194,255);
-    doc.roundedRect(pbX, pbY, fillW, pbH, 8, 8, "F");
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(9.5);
-    setText([0,150,200]);
-    doc.text(`${progresso.toFixed(1)}% da meta`, b1x + boxW/2, b1y + 112, { align:"center" });
 
-    // Visão rápida (Entradas vs Saídas)
-    const b2x = x0 + boxW + gap;
-    const b2y = y;
-    rounded(b2x, b2y, boxW, boxH, boxR, [247,249,252], [220,224,230]);
+    const fillW = Math.max(0, Math.min(pbW * (progresso/100), pbW));
+    setFill(cyan);
+    doc.roundedRect(pbX, pbY, fillW, pbH, 8, 8, "F");
+
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(10.5);
+    setText([0, 141, 184]);
+    doc.text(`${progresso.toFixed(1)}% da meta`, leftX + bigW/2, pbY + 34, { align: "center" });
+
+    // Right: Visão rápida (Entradas vs Saídas)
+    card(rightX, y, bigW, bigH);
     doc.setFont("helvetica","bold");
     doc.setFontSize(12);
-    setText([18,24,38]);
-    doc.text("Visão rápida", b2x + 14, b2y + 28);
+    setText(ink);
+    doc.text("Visão rápida", rightX + 16, y + 32);
+
     doc.setFont("helvetica","normal");
-    doc.setFontSize(10);
-    setText([120,128,140]);
-    doc.text("Entradas vs Saídas (mês)", b2x + 14, b2y + 46);
+    doc.setFontSize(10.3);
+    setText(muted);
+    doc.text("Entradas vs Saídas (mês)", rightX + 16, y + 52);
 
     const maxV = Math.max(entradas, saidas, 1);
-    const barStartX = b2x + 14;
-    const barEndW = boxW - 28;
-    const barLineH = 10;
+    const barX = rightX + 16;
+    const barW = bigW - 32;
+    const bar1Y = y + 84;
+    const bar2Y = y + 124;
+    const barH2 = 12;
 
-    // Entradas
-    doc.setFont("helvetica","bold"); doc.setFontSize(10); setText([18,24,38]);
-    doc.text("Entradas", b2x + 14, b2y + 70);
-    dot(b2x + 18, b2y + 86, [34,197,94]);
-    const eW = barEndW * (entradas / maxV);
-    doc.setFillColor(34,197,94);
-    doc.roundedRect(barStartX, b2y + 78, eW, barLineH, 6, 6, "F");
-    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setText([120,128,140]);
-    doc.text(moneyBRAbs(entradas), b2x + boxW - 14, b2y + 86, { align:"right" });
+    function hBar(label, value, color, y0){
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(11);
+      setText(ink);
+      doc.text(label, barX, y0 - 6);
 
-    // Saídas
-    doc.setFont("helvetica","bold"); doc.setFontSize(10); setText([18,24,38]);
-    doc.text("Saídas", b2x + 14, b2y + 96);
-    dot(b2x + 18, b2y + 112, [239,68,68]);
-    const sW = barEndW * (saidas / maxV);
-    doc.setFillColor(239,68,68);
-    doc.roundedRect(barStartX, b2y + 104, sW, barLineH, 6, 6, "F");
-    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setText([120,128,140]);
-    doc.text(moneyBRAbs(saidas), b2x + boxW - 14, b2y + 112, { align:"right" });
+      // bg
+      setFill([234, 241, 247]);
+      setStroke([224, 234, 242]);
+      doc.roundedRect(barX, y0, barW, barH2, 8, 8, "FD");
 
-    y += boxH + 20;
+      // fill
+      const w = Math.max(0, Math.min(barW * (value / maxV), barW));
+      setFill(color);
+      doc.roundedRect(barX, y0, w, barH2, 8, 8, "F");
 
-    // Tabela
+      // value at right
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(10.5);
+      setText(muted);
+      doc.text(moneyBRAbs(value), barX + barW, y0 + 10, { align:"right" });
+
+      // dot marker
+      setFill(color);
+      doc.circle(barX, y0 + 26, 4, "F");
+    }
+
+    hBar("Entradas", entradas, green, bar1Y);
+    hBar("Saídas", saidas, red, bar2Y);
+
+    y = y + bigH + 16;
+
+    // Table title
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
-    setText([18,24,38]);
-    doc.text("Lançamentos do mês", x0, y);
-    y += 10;
+    setText(ink);
+    doc.text("Lançamentos do mês", x0, y + 18);
 
     const body = rows.map(r => {
       const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
@@ -1540,7 +1553,7 @@
     });
 
     doc.autoTable({
-      startY: y + 10,
+      startY: y + 30,
       head: [["Data", "Tipo", "Categoria", "Descrição", "Valor"]],
       body,
       margin: { left: x0, right: x0 },
@@ -1548,15 +1561,15 @@
         font: "helvetica",
         fontSize: 9.2,
         cellPadding: 6,
-        textColor: 40,
-        lineColor: 232
+        textColor: 30,
+        lineColor: 230
       },
       headStyles: {
         fillColor: [12, 18, 38],
         textColor: 255,
         fontStyle: "bold"
       },
-      alternateRowStyles: { fillColor: [246, 246, 246] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
         0: { cellWidth: 70 },
         1: { cellWidth: 60 },
@@ -2119,7 +2132,7 @@
   });
 
   // PDF
-  btnPdf.addEventListener("click", generatePDFPremium);
+  btnPdf.addEventListener("click", generatePDFClassic);
 
   // Editar / Excluir
   function openDeleteModal(item){
