@@ -7,7 +7,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
@@ -26,11 +25,6 @@ button{
   color:#001018;
   cursor:pointer;
 }
-canvas{
-  background:white;
-  border-radius:8px;
-  margin-top:20px;
-}
 </style>
 </head>
 <body>
@@ -38,59 +32,67 @@ canvas{
 <h2>Controle Premium</h2>
 <button onclick="gerarPDF()">Gerar PDF</button>
 
-<canvas id="grafico" width="400" height="200"></canvas>
-
 <script>
-const ctx = document.getElementById('grafico');
-new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: ['Entradas','Saídas','Saldo'],
-    datasets: [{ data: [10292,4500,5792] }]
-  },
-  options:{ plugins:{ legend:{ display:false } } }
-});
-
 function gerarPDF(){
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
+  // ===== HEADER LIMPO E ELEGANTE =====
   doc.setFont("helvetica","bold");
-  doc.setFontSize(18);
-  doc.text("💎 Controle Premium", 105, 20, { align: "center" });
+  doc.setFontSize(22);
+  doc.text("Controle Premium", 20, 22);
 
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setFont("helvetica","normal");
-  doc.text("Relatório Financeiro • Fevereiro 2026", 105, 27, { align: "center" });
+  doc.text("Relatório (Finanças) • Mês: 02/2026", 20, 30);
+  doc.text("Usuário: varie facilshop@gmail.com", 20, 36);
 
-  doc.setDrawColor(220);
-  doc.line(20, 32, 190, 32);
+  // linha divisória suave
+  doc.setDrawColor(200);
+  doc.line(20, 42, 190, 42);
 
-  doc.setFontSize(12);
+  // ===== KPIs =====
+  doc.setFontSize(11);
   doc.setFont("helvetica","bold");
-  doc.text("Entradas:", 20, 50);
-  doc.text("Saídas:", 20, 58);
-  doc.text("Saldo:", 20, 66);
+
+  doc.text("ENTRADAS", 25, 60);
+  doc.text("SAÍDAS", 85, 60);
+  doc.text("SALDO", 140, 60);
 
   doc.setFont("helvetica","normal");
-  doc.text("R$ 10.292,00", 60, 50);
-  doc.text("R$ 4.500,00", 60, 58);
-  doc.text("R$ 5.792,00", 60, 66);
+  doc.setFontSize(14);
 
-  const canvas = document.getElementById("grafico");
-  const imgData = canvas.toDataURL("image/png");
-  doc.addImage(imgData, "PNG", 20, 75, 170, 60);
+  doc.text("R$ 2.050,00", 25, 70);
+  doc.text("R$ 100,00", 85, 70);
+  doc.text("R$ 1.950,00", 140, 70);
 
+  // ===== META =====
+  doc.setFontSize(11);
+  doc.setFont("helvetica","bold");
+  doc.text("Meta do mês", 20, 95);
+
+  doc.setFont("helvetica","normal");
+  doc.text("Meta: R$ 3.000,00 • Entradas: R$ 2.050,00 • Falta: R$ 950,00 • Progresso: 68.3%", 20, 102);
+
+  // barra de progresso
+  doc.setFillColor(230,230,230);
+  doc.roundedRect(20, 108, 170, 6, 3, 3, "F");
+
+  doc.setFillColor(0,194,255);
+  doc.roundedRect(20, 108, 115, 6, 3, 3, "F"); // progresso
+
+  // ===== TABELA =====
   doc.autoTable({
-    startY: 145,
+    startY: 125,
     head: [["Data","Tipo","Categoria","Descrição","Valor"]],
     body: [
-      ["05/02/2026","Entrada","Vendas","teste","R$ 150,00"],
-      ["04/02/2026","Saída","Outros","reembolso","-R$ 2.000,00"],
-      ["04/02/2026","Entrada","Frete","frete receita","R$ 19,00"]
+      ["18/02/2026","Entrada","Embalagem","teste","R$ 50,00"],
+      ["18/02/2026","Saída","Embalagem","teste","-R$ 100,00"],
+      ["16/02/2026","Entrada","Vendas","Recebimento Amazon","R$ 2.000,00"]
     ],
     theme: 'grid',
-    headStyles:{ fillColor:[20,20,20], textColor:255 },
+    headStyles:{ fillColor:[20,40,70], textColor:255 },
     styles:{ fontSize:10 }
   });
 
