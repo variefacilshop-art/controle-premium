@@ -2,103 +2,63 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
-<title>Controle Premium</title>
+<title>PDF Premium Refinado</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#020617;
-  color:white;
-  text-align:center;
-  padding-top:40px;
-}
-button{
-  padding:12px 20px;
-  font-weight:bold;
-  border:none;
-  border-radius:8px;
-  background:#00c2ff;
-  color:#001018;
-  cursor:pointer;
-}
-</style>
 </head>
 <body>
-
-<h2>Controle Premium</h2>
 <button onclick="gerarPDF()">Gerar PDF</button>
-
 <script>
 function gerarPDF(){
+ const { jsPDF } = window.jspdf;
+ const doc = new jsPDF();
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
+ doc.setFont("helvetica","bold");
+ doc.setFontSize(20);
+ doc.text("Controle Premium",20,22);
 
-  // ===== HEADER LIMPO E ELEGANTE =====
-  doc.setFont("helvetica","bold");
-  doc.setFontSize(22);
-  doc.text("Controle Premium", 20, 22);
+ doc.setFont("helvetica","normal");
+ doc.setFontSize(10);
+ doc.text("Relatório (Finanças) • Mês: 02/2026",20,30);
+ doc.text("Usuário: varie facilshop@gmail.com",20,36);
 
-  doc.setFontSize(11);
-  doc.setFont("helvetica","normal");
-  doc.text("Relatório (Finanças) • Mês: 02/2026", 20, 30);
-  doc.text("Usuário: varie facilshop@gmail.com", 20, 36);
+ doc.setDrawColor(200);
+ doc.line(20,42,190,42);
 
-  // linha divisória suave
-  doc.setDrawColor(200);
-  doc.line(20, 42, 190, 42);
+ // KPIs mais elegantes
+ doc.setFontSize(9);
+ doc.setFont("helvetica","bold");
+ doc.text("ENTRADAS",25,60);
+ doc.text("SAÍDAS",85,60);
+ doc.text("SALDO",140,60);
 
-  // ===== KPIs =====
-  doc.setFontSize(11);
-  doc.setFont("helvetica","bold");
+ doc.setFont("helvetica","normal");
+ doc.setFontSize(12);
+ doc.text("R$ 2.050,00",25,68);
+ doc.text("R$ 100,00",85,68);
+ doc.text("R$ 1.950,00",140,68);
 
-  doc.text("ENTRADAS", 25, 60);
-  doc.text("SAÍDAS", 85, 60);
-  doc.text("SALDO", 140, 60);
+ // gráfico pequeno fake
+ doc.setDrawColor(180);
+ doc.rect(20,80,170,30);
+ doc.setFontSize(9);
+ doc.text("Gráfico resumido",90,97,{align:"center"});
 
-  doc.setFont("helvetica","normal");
-  doc.setFontSize(14);
+ doc.autoTable({
+   startY:120,
+   head:[["Data","Tipo","Categoria","Descrição","Valor"]],
+   body:[
+     ["18/02/2026","Entrada","Embalagem","teste","R$ 50,00"],
+     ["18/02/2026","Saída","Embalagem","teste","-R$ 100,00"],
+     ["16/02/2026","Entrada","Vendas","Amazon","R$ 2.000,00"]
+   ],
+   headStyles:{fillColor:[20,40,70],textColor:255},
+   styles:{fontSize:10}
+ });
 
-  doc.text("R$ 2.050,00", 25, 70);
-  doc.text("R$ 100,00", 85, 70);
-  doc.text("R$ 1.950,00", 140, 70);
-
-  // ===== META =====
-  doc.setFontSize(11);
-  doc.setFont("helvetica","bold");
-  doc.text("Meta do mês", 20, 95);
-
-  doc.setFont("helvetica","normal");
-  doc.text("Meta: R$ 3.000,00 • Entradas: R$ 2.050,00 • Falta: R$ 950,00 • Progresso: 68.3%", 20, 102);
-
-  // barra de progresso
-  doc.setFillColor(230,230,230);
-  doc.roundedRect(20, 108, 170, 6, 3, 3, "F");
-
-  doc.setFillColor(0,194,255);
-  doc.roundedRect(20, 108, 115, 6, 3, 3, "F"); // progresso
-
-  // ===== TABELA =====
-  doc.autoTable({
-    startY: 125,
-    head: [["Data","Tipo","Categoria","Descrição","Valor"]],
-    body: [
-      ["18/02/2026","Entrada","Embalagem","teste","R$ 50,00"],
-      ["18/02/2026","Saída","Embalagem","teste","-R$ 100,00"],
-      ["16/02/2026","Entrada","Vendas","Recebimento Amazon","R$ 2.000,00"]
-    ],
-    theme: 'grid',
-    headStyles:{ fillColor:[20,40,70], textColor:255 },
-    styles:{ fontSize:10 }
-  });
-
-  doc.save("relatorio.pdf");
+ doc.save("relatorio.pdf");
 }
 </script>
-
 </body>
 </html>
