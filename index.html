@@ -325,6 +325,42 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
+
+    /* ✅ Seleção múltipla */
+    .bulkBar{
+      margin-top: 10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,194,255,.08);
+      border: 1px solid rgba(0,194,255,.18);
+    }
+    .bulkBar .info{
+      font-size: 12px;
+      color: rgba(226,232,240,.78);
+    }
+    .bulkLeft{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .chkWrap{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .chkWrap input{
+      width: 18px;
+      height: 18px;
+      margin:0;
+      cursor:pointer;
+      accent-color: var(--cyan);
+    }
   </style>
 </head>
 
@@ -417,12 +453,17 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <div style="display:flex;gap:10px;align-items:center">
-                <select id="categoria"></select>
-                <button class="btn btn-ghost btn-icon" id="btnAddCategoria" type="button" title="Adicionar categoria">＋</button>
-                <button class="btn btn-ghost btn-icon" id="btnDelCategoria" type="button" title="Excluir categoria selecionada">🗑️</button>
-              </div>
-              <div class="hint">Clique no + para criar nova categoria. Para excluir, selecione e clique na lixeira.</div>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -479,16 +520,33 @@
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <!-- ✅ NOVO: seleção múltipla -->
+            <button class="btn btn-ghost" id="btnBulkMode" type="button">☑️ Selecionar</button>
+
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
+
         <div class="body" style="padding-top:12px">
           <div class="searchBox">
             <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
           </div>
+
+          <!-- ✅ NOVO: barra de ações da seleção -->
+          <div class="bulkBar hidden" id="bulkBar">
+            <div class="bulkLeft">
+              <div class="info" id="bulkInfo">0 selecionados</div>
+              <button class="btn btn-ghost" id="btnBulkSelectAll" type="button">✅ Selecionar todos (na lista)</button>
+              <button class="btn btn-ghost" id="btnBulkClear" type="button">⬜ Limpar seleção</button>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <button class="btn btn-danger" id="btnBulkDelete" type="button">🗑️ Excluir selecionados</button>
+            </div>
+          </div>
         </div>
+
         <div class="list" id="lista">
           <div class="empty">Nenhum registro neste mês.</div>
         </div>
@@ -507,7 +565,6 @@
             <div class="field">
               <label>Mês da meta (MM/AAAA)</label>
               <input id="metaMes" placeholder="Ex: 02/2026" />
-              <div class="hint">Troque o mês aqui para ver/salvar metas diferentes (agora é por mês ✅).</div>
             </div>
             <div class="field">
               <label>Meta do mês (R$)</label>
@@ -533,20 +590,6 @@
                 <div style="height:100%;width:0%;background:linear-gradient(90deg,var(--cyan),rgba(34,197,94,.85));border-radius:999px;transition:width .25s ease" id="bar"></div>
               </div>
               <div class="hint" id="progressText">0% da meta</div>
-            </div>
-          </div>
-
-          <!-- GRÁFICO DE FATURAMENTO (COLUNAS) -->
-          <div class="catBox" style="margin-top:14px">
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between">
-              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                <button class="btn btn-ghost" id="btnMetaModeDia" type="button">📅 Dia a dia</button>
-                <button class="btn btn-ghost" id="btnMetaModeMes" type="button">🗓️ Meses</button>
-              </div>
-              <div class="hint" id="metaChartHint">—</div>
-            </div>
-            <div style="height:260px;margin-top:10px">
-              <canvas id="metaChart" style="width:100%;height:100%"></canvas>
             </div>
           </div>
         </div>
@@ -790,22 +833,6 @@
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
 
-  // ===== Base path (funciona no Vercel e no GitHub Pages) =====
-  // Ex.: "/" no Vercel, "/meu-repo/" no GitHub Pages
-  function getAppBasePath(){
-    const path = window.location.pathname || "/";
-    if (path.endsWith("/")) return path;
-    // remove o nome do arquivo (ex: /index.html) e mantém a pasta
-    return path.replace(/\/[^\/]*$/, "/");
-  }
-
-  // URL "limpa" para redirecionar e para remover o "#access_token=..."
-  function getCleanRedirectUrl(){
-    const base = window.location.origin + getAppBasePath();
-    return base; // sempre termina com "/"
-  }
-
-
   // UI refs
   const loginBox = document.getElementById("loginBox");
   const financasBox = document.getElementById("financasBox");
@@ -830,18 +857,18 @@
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
 
-  const btnSelAll = document.getElementById("btnSelAll");
-  const btnSelNone = document.getElementById("btnSelNone");
-  const btnDelSelected = document.getElementById("btnDelSelected");
-  const bulkCount = document.getElementById("bulkCount");
+  // ✅ NOVO: seleção múltipla
+  const btnBulkMode = document.getElementById("btnBulkMode");
+  const bulkBar = document.getElementById("bulkBar");
+  const bulkInfo = document.getElementById("bulkInfo");
+  const btnBulkSelectAll = document.getElementById("btnBulkSelectAll");
+  const btnBulkClear = document.getElementById("btnBulkClear");
+  const btnBulkDelete = document.getElementById("btnBulkDelete");
 
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
   const bancoSelect = document.getElementById("bancoSelect");
-
-  const btnAddCategoria = document.getElementById("btnAddCategoria");
-  const btnDelCategoria = document.getElementById("btnDelCategoria");
 
   const kpiEntradas = document.getElementById("kpiEntradas");
   const kpiSaidas = document.getElementById("kpiSaidas");
@@ -877,10 +904,6 @@
   const mediaDiaKpi = document.getElementById("mediaDiaKpi");
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
-
-  const btnMetaModeDia = document.getElementById("btnMetaModeDia");
-  const btnMetaModeMes = document.getElementById("btnMetaModeMes");
-  const metaChartHint = document.getElementById("metaChartHint");
 
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
@@ -935,23 +958,25 @@
 
   let chartDiario = null;
   let chartComparacao = null;
-  let metaChart = null;
 
   let currentUser = null;
   let currentMonth = null;
   let dashboardMonth = null;
 
   let pendingDelete = null;
+  let pendingBulkDeleteIds = null; // ✅ NOVO
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
   let editingItem = null;
 
   let banksCache = [];
-  let categoriesCache = []; // NOVO ✅
   let ofxRows = [];
 
-  let metaChartMode = "dia"; // "dia" | "mes"
+  // ✅ NOVO: seleção múltipla (estado)
+  let selectionMode = false;
+  let selectedIds = new Set();
+  let lastRenderedIds = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1053,90 +1078,23 @@
       dashMonthsMulti.appendChild(opt);
     }
   }
-
-  // ===== CATEGORIAS (NOVO ✅) =====
-  const DEFAULT_CATEGORIES = [
-    "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"
-  ];
-
-  async function loadCategories(){
-    if (!currentUser) return;
-    // tabela esperada: categorias (id, user_id, nome)
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error){
-      // se não existir a tabela, seguimos com defaults (não quebra o app)
-      categoriesCache = [];
-    categoriesCache = (data || []).map(c => ({ id: c.id, nome: (c.nome || "").trim() })).filter(c => c.nome);
-  }
-
-  function getAllCategoryNames(){
-    const set = new Set(DEFAULT_CATEGORIES);
-    for (const c of categoriesCache) set.add(c.nome);
-    return Array.from(set).sort((a,b) => a.localeCompare(b, "pt-BR"));
-  }
-
-  function fillCategorySelects(){
-    const cats = getAllCategoryNames();
-    // select principal
-    categoriaEl.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    // filtro
-    filtroCategoriaEl.innerHTML = `<option value="Todas">Todas</option>` + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    // mantém seleção atual do filtro
-    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
-      filtroCategoriaEl.value = currentFiltroCategoria;
-      if (filtroCategoriaEl.value !== currentFiltroCategoria) filtroCategoriaEl.value = "Todas";
-    } else filtroCategoriaEl.value = "Todas";
-  }
-
-  async function addCategoriaFlow(){
-    if (!currentUser) return;
-    const nome = prompt("Nova categoria (ex: Shopee, Ads, Salário...):");
-    const n = (nome || "").trim();
-    if (!n) return;
-    // evita duplicar
-    const exists = getAllCategoryNames().some(x => x.toLowerCase() === n.toLowerCase());
-    if (exists){ showToast("Categorias", "Essa categoria já existe."); return; }
-    try{
-      const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
-      if (error) throw error;
-      await loadCategories();
-      fillCategorySelects();
-      categoriaEl.value = n;
-      showToast("Categorias ✅", "Categoria adicionada.");
-      // Atualiza OFX aberto (se estiver)
-      if (ofxOverlay.classList.contains("show")) renderOfxTable();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
+  function fillCategoriaFilter(categorias, selected){
+    const unique = Array.from(new Set(categorias.filter(Boolean)));
+    unique.sort((a,b) => a.localeCompare(b, "pt-BR"));
+    filtroCategoriaEl.innerHTML = "";
+    const optAll = document.createElement("option");
+    optAll.value = "Todas";
+    optAll.textContent = "Todas";
+    filtroCategoriaEl.appendChild(optAll);
+    for (const c of unique){
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      filtroCategoriaEl.appendChild(opt);
     }
+    filtroCategoriaEl.value = selected || "Todas";
   }
 
-  async function deleteCategoriaFlow(){
-    if (!currentUser) return;
-    const selected = (categoriaEl.value || "").trim();
-    if (!selected){ showToast("Categorias", "Selecione uma categoria."); return; }
-    // só pode deletar categorias criadas (custom)
-    const custom = categoriesCache.find(c => c.nome.toLowerCase() === selected.toLowerCase());
-    if (!custom){
-      showToast("Categorias", "Essa é uma categoria padrão. Não dá para excluir.");
-    const ok = confirm(`Excluir a categoria "${selected}"?\n\nObs: os lançamentos antigos vão continuar com o texto da categoria, mas ela não aparece mais na lista.`);
-    if (!ok) return;
-    try{
-      const { error } = await supa.from("categorias").delete().eq("id", custom.id).eq("user_id", currentUser.id);
-      if (error) throw error;
-      await loadCategories();
-      fillCategorySelects();
-      showToast("Categorias ✅", "Categoria excluída.");
-      if (ofxOverlay.classList.contains("show")) renderOfxTable();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  }
-
-  // ===== APP UI SHOW/HIDE =====
   function showLogin(){
     loginBox.classList.remove("hidden");
     tabs.classList.add("hidden");
@@ -1183,6 +1141,22 @@
     }
   }
 
+  // ✅ NOVO: atualizar barra da seleção
+  function updateBulkUI(){
+    bulkBar.classList.toggle("hidden", !selectionMode);
+    btnBulkMode.textContent = selectionMode ? "✅ Concluir seleção" : "☑️ Selecionar";
+
+    const count = selectedIds.size;
+    bulkInfo.textContent = `${count} selecionado(s)`;
+    btnBulkDelete.disabled = count === 0;
+
+    if (!selectionMode){
+      // quando sair do modo seleção, limpa seleção (pra não confundir)
+      selectedIds.clear();
+      bulkInfo.textContent = `0 selecionado(s)`;
+    }
+  }
+
   // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
@@ -1213,6 +1187,8 @@
   function renderBankList(){
     if (!banksCache.length){
       bankList.innerHTML = `<div class="empty">Nenhum banco cadastrado.</div>`;
+      return;
+    }
     bankList.innerHTML = banksCache.map(b => `
       <div class="item" style="padding:10px 10px">
         <div class="leftcol">
@@ -1290,8 +1266,13 @@
       buscaInfo.textContent = "Mostrando tudo";
     }
 
+    // ✅ guarda ids que estão na lista agora (pra “Selecionar todos”)
+    lastRenderedIds = filtered.map(r => String(r.id));
+
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
+      return;
+    }
 
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
@@ -1299,8 +1280,13 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
+      const checked = selectedIds.has(String(r.id)) ? "checked" : "";
       return `
         <div class="item">
+          <div class="chkWrap ${selectionMode ? "" : "hidden"}">
+            <input type="checkbox" data-bulk-check="1" data-id="${escapeHtml(String(r.id))}" ${checked}>
+          </div>
+
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1311,7 +1297,6 @@
             </div>
           </div>
           <div class="rightcol">
-            <input class="chkRow" type="checkbox" data-sel="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""} title="Selecionar">
             <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
@@ -1336,6 +1321,12 @@
         </div>
       `;
     }).join("");
+
+    // ✅ atualiza info do bulk sem “resetar” a seleção
+    if (selectionMode){
+      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+      btnBulkDelete.disabled = selectedIds.size === 0;
+    }
   }
 
   // ===== METAS =====
@@ -1348,93 +1339,9 @@
     const { error } = await supa.from("config").upsert({ user_id: userId, mes, meta }, { onConflict: "user_id,mes" });
     if (error) throw error;
   }
-
-  function makeMetaChartOptions(){
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false, labels: { color: "rgba(226,232,240,.85)" } },
-        tooltip: { callbacks: { label: (ctx) => brl(ctx.raw) } }
-      },
-      scales: {
-        x: { ticks: { color: "rgba(226,232,240,.70)" }, grid: { color: "rgba(148,163,184,.10)" } },
-        y: { ticks: { color: "rgba(226,232,240,.70)", callback: (v) => brl(v) }, grid: { color: "rgba(148,163,184,.10)" } }
-      }
-    };
-  }
-
-  function buildDailyEntradasSeries(fin){
-    const endDay = fin.range?.endDay || 30;
-    const daily = Array.from({length: endDay}, (_,i) => 0);
-    for (const r of fin.rows){
-      if (Number(r.valor || 0) < 0) continue; // só entradas
-      const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
-      if (!m) continue;
-      const d = Number(m[1]);
-      if (d >= 1 && d <= endDay) daily[d-1] += Number(r.valor || 0);
-    }
-    const labels = Array.from({length: endDay}, (_,i) => String(i+1));
-    return { labels, values: daily };
-  }
-
-  async function refreshMetaChart(mes){
-    if (!currentUser) return;
-    const mk = (mes || "").trim() || currentMonth || getDefaultMonth();
-    try{
-      if (metaChartMode === "dia"){
-        const fin = (lastFinCache && currentMonth === mk) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mk);
-        const series = buildDailyEntradasSeries(fin);
-        metaChartHint.textContent = `Faturamento (entradas) • ${mk} • Dia a dia`;
-        const ctx = document.getElementById("metaChart");
-        if (!metaChart){
-          metaChart = new Chart(ctx, {
-            type: "bar",
-            data: { labels: series.labels, datasets: [{ label: "Faturamento", data: series.values }] },
-            options: makeMetaChartOptions()
-          });
-        } else {
-          metaChart.config.type = "bar";
-          metaChart.data.labels = series.labels;
-          metaChart.data.datasets = [{ label: "Faturamento", data: series.values }];
-          metaChart.options = makeMetaChartOptions();
-          metaChart.update();
-        }
-      } else {
-        const keys = getLastNMonthKeys(12);
-        const agg = await fetchAggByMonths(currentUser.id, keys);
-        const labels = agg.keys;
-        const values = agg.keys.map(k => agg.byMonth[k]?.entradas || 0);
-        metaChartHint.textContent = `Faturamento (entradas) • Últimos ${labels.length} meses`;
-        const ctx = document.getElementById("metaChart");
-        if (!metaChart){
-          metaChart = new Chart(ctx, {
-            type: "bar",
-            data: { labels, datasets: [{ label: "Faturamento", data: values }] },
-            options: makeMetaChartOptions()
-          });
-        } else {
-          metaChart.config.type = "bar";
-          metaChart.data.labels = labels;
-          metaChart.data.datasets = [{ label: "Faturamento", data: values }];
-          metaChart.options = makeMetaChartOptions();
-          metaChart.update();
-        }
-      }
-    }catch(e){
-      metaChartHint.textContent = "Falha ao carregar gráfico.";
-    }
-  }
-
   async function atualizarMetasUI(mes){
-    const mk = (mes || "").trim() || currentMonth || getDefaultMonth();
-    const meta = await getMeta(currentUser.id, mk);
-
-    // garante que o input sempre mostre o mês que está sendo usado
-    metaMesEl.value = mk;
-
-    // pega entradas do mês (finanças)
-    const fin = (lastFinCache && currentMonth === mk) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mk);
+    const meta = await getMeta(currentUser.id, mes);
+    const fin = (lastFinCache && currentMonth === mes) ? lastFinCache : await fetchRegistrosByMonth(currentUser.id, mes);
     const entradasMes = fin.entradas;
 
     metaKpi.textContent = brl(meta);
@@ -1443,7 +1350,7 @@
     const falta = Math.max(meta - entradasMes, 0);
     faltaKpi.textContent = brl(falta);
 
-    const p = parseMonthKey(mk);
+    const p = parseMonthKey(mes);
     const dias = p ? remainingDays(p.mm, p.yyyy) : 30;
     const mediaDia = dias > 0 ? (falta / dias) : falta;
     mediaDiaKpi.textContent = brl(mediaDia);
@@ -1451,8 +1358,6 @@
     const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
-
-    await refreshMetaChart(mk);
   }
 
   // ===== CSV EXPORT =====
@@ -1499,6 +1404,8 @@
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
+      return;
+    }
 
     const mk = currentMonth || getDefaultMonth();
     const safeMonth = mk.replace("/", "-");
@@ -1713,6 +1620,8 @@
   function renderAlertsSimple(list){
     if (!list.length){
       dashAlerts.innerHTML = `<div class="empty">Sem alertas ✅</div>`;
+      return;
+    }
     dashAlerts.innerHTML = list.map(a => `
       <div class="catBox" style="margin:0">
         <div style="font-weight:900;margin-bottom:4px">${escapeHtml(a.title)}</div>
@@ -1900,16 +1809,12 @@
     ofxOverlay.classList.remove("show");
     ofxRows = [];
   }
-
-  function ofxCategoryOptionsHTML(selected){
-    const cats = getAllCategoryNames();
-    return cats.map(c => `<option value="${escapeHtml(c)}" ${String(selected||"").toLowerCase()===c.toLowerCase()?"selected":""}>${escapeHtml(c)}</option>`).join("");
-  }
-
   function renderOfxTable(){
     ofxCount.textContent = `${ofxRows.length} itens`;
     if (!ofxRows.length){
       ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
+      return;
+    }
     ofxTbody.innerHTML = ofxRows.map((r, idx) => `
       <tr data-i="${idx}">
         <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
@@ -1923,12 +1828,25 @@
         <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
         <td>
           <select data-ofx-cat>
-            ${ofxCategoryOptionsHTML(r.categoria || "Outros")}
+            <option value="Vendas">Vendas</option>
+            <option value="Tráfego">Tráfego</option>
+            <option value="Fornecedor">Fornecedor</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Frete/Logística">Frete/Logística</option>
+            <option value="Impostos/Taxas">Impostos/Taxas</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Outros" selected>Outros</option>
           </select>
         </td>
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
       </tr>
     `).join("");
+    for (const tr of ofxTbody.querySelectorAll("tr")){
+      const i = Number(tr.dataset.i);
+      const sel = tr.querySelector("[data-ofx-cat]");
+      if (sel) sel.value = ofxRows[i].categoria || "Outros";
+    }
   }
   function syncOfxFromTable(){
     for (const tr of ofxTbody.querySelectorAll("tr")){
@@ -2035,6 +1953,8 @@
     const col = mapColumns(parsed.header);
     if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
       showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
+      return;
+    }
 
     let ok = 0, bad = 0;
     const inserts = [];
@@ -2098,65 +2018,44 @@
 
   // ===== LISTENERS =====
   tabFin.addEventListener("click", () => forceShowFinancas());
-  tabMeta.addEventListener("click", async () => {
-    showMetas();
-    // sempre usa o mês do input (se vazio, usa currentMonth)
-    const mk = (metaMesEl.value || "").trim() || currentMonth || getDefaultMonth();
-    await atualizarMetasUI(mk);
-  });
+  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
 
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: getCleanRedirectUrl() }
+      options: { redirectTo: window.location.origin }
     });
     if (error) showToast("Login", error.message);
   });
 
   btnSair.addEventListener("click", async () => {
     await supa.auth.signOut();
-    location.href = getCleanRedirectUrl();
+    location.href = "/";
   });
 
   mesSelect.addEventListener("change", async () => {
     if (!currentUser) return;
     currentMonth = mesSelect.value;
-    // sincroniza o mês da meta com o mês selecionado (mas não impede trocar manualmente)
     metaMesEl.value = currentMonth;
+
+    // ✅ muda de mês: limpa seleção pra não confundir
+    selectedIds.clear();
+    updateBulkUI();
+
     await refreshUI();
   });
 
   filtroCategoriaEl.addEventListener("change", async () => {
     currentFiltroCategoria = filtroCategoriaEl.value;
+
+    // ✅ ao trocar filtro, mantém seleção (mas só vai aparecer nos itens visíveis)
     await refreshUI();
   });
 
   buscaEl.addEventListener("input", () => {
     currentSearch = buscaEl.value;
     if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  // Categorias (+ / excluir)
-  btnAddCategoria.addEventListener("click", addCategoriaFlow);
-  btnDelCategoria.addEventListener("click", deleteCategoriaFlow);
-
-  // Meta chart mode
-  btnMetaModeDia.addEventListener("click", async () => {
-    metaChartMode = "dia";
-    await refreshMetaChart((metaMesEl.value || "").trim() || currentMonth);
-  });
-  btnMetaModeMes.addEventListener("click", async () => {
-    metaChartMode = "mes";
-    await refreshMetaChart((metaMesEl.value || "").trim() || currentMonth);
-  });
-
-  // ao digitar mês manualmente, atualiza meta e gráfico
-  metaMesEl.addEventListener("change", async () => {
-    if (!currentUser) return;
-    const mk = (metaMesEl.value || "").trim();
-    if (!/^\d{2}\/\d{4}$/.test(mk)) return; // não incomoda enquanto digitando errado
-    await atualizarMetasUI(mk);
   });
 
   btnSalvar.addEventListener("click", async () => {
@@ -2193,6 +2092,10 @@
     valorEl.value = "";
     currentMonth = mesAuto;
 
+    // ✅ após salvar: limpa seleção pra não confundir
+    selectedIds.clear();
+    updateBulkUI();
+
     await refreshUI();
     if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
   });
@@ -2217,13 +2120,55 @@
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
+  // ✅ NOVO: botão “Selecionar”
+  btnBulkMode.addEventListener("click", () => {
+    selectionMode = !selectionMode;
+    if (!selectionMode){
+      selectedIds.clear();
+    }
+    updateBulkUI();
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkSelectAll.addEventListener("click", () => {
+    if (!selectionMode) return;
+    for (const id of lastRenderedIds){
+      selectedIds.add(String(id));
+    }
+    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+    btnBulkDelete.disabled = selectedIds.size === 0;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkClear.addEventListener("click", () => {
+    selectedIds.clear();
+    bulkInfo.textContent = `0 selecionado(s)`;
+    btnBulkDelete.disabled = true;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnBulkDelete.addEventListener("click", () => {
+    if (!selectionMode) return;
+    const ids = Array.from(selectedIds);
+    if (!ids.length){ showToast("Seleção", "Selecione pelo menos 1 lançamento."); return; }
+    pendingBulkDeleteIds = ids;
+
+    modalBody.innerHTML = `Excluir <b>${ids.length}</b> lançamento(s) selecionado(s)?<br><br><span class="hint" style="margin:0">Essa ação não pode ser desfeita.</span>`;
+    modalOverlay.classList.add("show");
+  });
+
   // Editar / Excluir
   function openDeleteModal(item){
     pendingDelete = item;
+    pendingBulkDeleteIds = null; // ✅ garante que não confunda com bulk
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
     modalOverlay.classList.add("show");
   }
-  function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
+  function closeDeleteModal(){
+    modalOverlay.classList.remove("show");
+    pendingDelete = null;
+    pendingBulkDeleteIds = null;
+  }
 
   function openEditModal(item){
     editingItem = item;
@@ -2237,24 +2182,29 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
-  
-  // Clique na lista: seleção / editar / excluir
+  // ✅ NOVO: marcar/desmarcar checkbox (sem atrapalhar editar/excluir)
+  listaEl.addEventListener("change", (e) => {
+    const chk = e.target.closest("[data-bulk-check]");
+    if (!chk) return;
+    if (!selectionMode) return;
+
+    const id = String(chk.dataset.id || "");
+    if (!id) return;
+
+    if (chk.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+
+    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+    btnBulkDelete.disabled = selectedIds.size === 0;
+  });
+
   listaEl.addEventListener("click", (e) => {
-    // Seleção (checkbox)
-    const chk = e.target.closest("[data-sel]");
-    if (chk){
-      const id = String(chk.dataset.id || "");
-      if (!id) return;
-      if (chk.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
-
-      const itemEl = chk.closest(".item");
-      if (itemEl) itemEl.classList.toggle("selected", chk.checked);
-
-      updateBulkUI();
-
-    // Excluir
     const delBtn = e.target.closest("[data-del]");
+    const editBtn = e.target.closest("[data-edit]");
+
+    // se clicou na checkbox, não abre nada
+    if (e.target && e.target.matches && e.target.matches("[data-bulk-check]")) return;
+
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2263,9 +2213,8 @@
         dataISO: delBtn.dataset.data || "",
         categoria: delBtn.dataset.cat || "Outros"
       });
-
-    // Editar
-    const editBtn = e.target.closest("[data-edit]");
+      return;
+    }
     if (editBtn){
       openEditModal({
         id: editBtn.dataset.id,
@@ -2278,17 +2227,60 @@
     }
   });
 
-btnModalClose.addEventListener("click", closeDeleteModal);
+  btnModalClose.addEventListener("click", closeDeleteModal);
   btnCancelar.addEventListener("click", closeDeleteModal);
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
   btnConfirmar.addEventListener("click", async () => {
-    if (!currentUser || !pendingDelete) return;
+    if (!currentUser) return;
+
+    // ✅ BULK delete
+    if (pendingBulkDeleteIds && pendingBulkDeleteIds.length){
+      const ids = pendingBulkDeleteIds.slice(0);
+      try{
+        btnConfirmar.disabled = true;
+        btnConfirmar.textContent = "Excluindo…";
+
+        const { error } = await supa
+          .from("registros")
+          .delete()
+          .in("id", ids)
+          .eq("user_id", currentUser.id);
+
+        if (error) throw error;
+
+        closeDeleteModal();
+        showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
+
+        // limpa seleção e sai do modo seleção (fica mais simples)
+        selectedIds.clear();
+        selectionMode = false;
+        updateBulkUI();
+
+        await refreshUI();
+        if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+      }catch(err){
+        showToast("Excluir", err.message || String(err));
+      }finally{
+        btnConfirmar.disabled = false;
+        btnConfirmar.textContent = "Excluir";
+      }
+      return;
+    }
+
+    // delete normal (1 item)
+    if (!pendingDelete) return;
     try{
       const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
       if (error) throw error;
       closeDeleteModal();
       showToast("Excluído ✅", "Lançamento removido.");
+
+      // se estava selecionado, remove também
+      selectedIds.delete(String(pendingDelete.id));
+      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
+      btnBulkDelete.disabled = selectedIds.size === 0;
+
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2334,6 +2326,7 @@ btnModalClose.addEventListener("click", closeDeleteModal);
       closeEditModal();
       showToast("Salvo ✅", "Alterações aplicadas.");
       currentMonth = mesAuto;
+
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2463,6 +2456,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     if (!session){
       currentUser = null;
       showLogin();
+      return;
+    }
 
     currentUser = session.user;
     showApp(session.user.email);
@@ -2478,12 +2473,6 @@ btnModalClose.addEventListener("click", closeDeleteModal);
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
 
-    // categorias (não pode sumir) ✅
-    try{
-      await loadCategories();
-    }catch(e){}
-    fillCategorySelects();
-
     let months = [getDefaultMonth()];
     try{
       months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
@@ -2498,25 +2487,25 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     dashboardMonth = dashMesSelect.value || desiredDash;
 
     fillDashboardMulti(months);
-
-    // sincroniza metaMes com o mês atual se estiver vazio
-    if (!metaMesEl.value) metaMesEl.value = currentMonth;
+    metaMesEl.value = currentMonth;
 
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
-      // filtro sempre usa a lista completa, mas mantém a seleção
-      fillCategorySelects();
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
       listaEl.innerHTML = `<div class="empty">Falha ao carregar registros.</div>`;
     }
 
-    try{ await atualizarMetasUI((metaMesEl.value || "").trim() || currentMonth); }catch(e){}
+    try{ await atualizarMetasUI(currentMonth); }catch(e){}
 
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
+
+    // ✅ garante que botões/visuais do bulk batam com o estado
+    updateBulkUI();
   }
 
   // Init
@@ -2527,6 +2516,11 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     currentSearch = "";
     currentMonth = getDefaultMonth();
     dashboardMonth = currentMonth;
+
+    selectionMode = false;
+    selectedIds = new Set();
+    updateBulkUI();
+
     await refreshUI();
   })();
 
@@ -2534,7 +2528,7 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     await refreshUI();
   });
 
-  // Meta save (CORRIGIDO: salva e atualiza pelo mês digitado ✅)
+  // Meta save
   btnSalvarMeta.addEventListener("click", async () => {
     if (!currentUser) return;
     const mes = (metaMesEl.value || "").trim();
@@ -2543,8 +2537,8 @@ btnModalClose.addEventListener("click", closeDeleteModal);
     if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite um valor válido."); return; }
     try{
       await upsertMeta(currentUser.id, mes, meta);
-      showToast("Meta ✅", `Meta salva para ${mes}.`);
-      await atualizarMetasUI(mes);
+      showToast("Meta ✅", "Meta salva.");
+      await atualizarMetasUI(currentMonth);
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(e){
       showToast("Meta", e.message || String(e));
