@@ -1,3 +1,6 @@
+Eu já tinha mandado, mas vou mandar dinovo 
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1715,4 +1718,619 @@
     renderOfxTable();
   }
   function closeOfxModal(){
-    ofxOverlay.clas
+    ofxOverlay.classList.remove("show");
+    ofxRows = [];
+  }
+  function renderOfxTable(){
+    ofxCount.textContent = `${ofxRows.length} itens`;
+    if (!ofxRows.length){
+      ofxTbody.innerHTML = `<tr><td colspan="6" class="empty">Nenhuma transação encontrada.</td></tr>`;
+      return;
+    }
+    ofxTbody.innerHTML = ofxRows.map((r, idx) => `
+      <tr data-i="${idx}">
+        <td class="ofxCheck"><input type="checkbox" data-ofx-ok ${r.ok ? "checked" : ""}></td>
+        <td class="ofxDate"><input class="ofxDate" data-ofx-date value="${escapeHtml(formatISOToBR(r.dataISO))}" placeholder="DD/MM/AAAA"></td>
+        <td>
+          <select data-ofx-tipo>
+            <option value="entrada" ${r.tipo==="entrada"?"selected":""}>Entrada</option>
+            <option value="saida" ${r.tipo==="saida"?"selected":""}>Saída</option>
+          </select>
+        </td>
+        <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
+        <td>
+          <select data-ofx-cat>
+            <option value="Vendas">Vendas</option>
+            <option value="Tráfego">Tráfego</option>
+            <option value="Fornecedor">Fornecedor</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Frete/Logística">Frete/Logística</option>
+            <option value="Impostos/Taxas">Impostos/Taxas</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Outros" selected>Outros</option>
+          </select>
+        </td>
+        <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
+      </tr>
+    `).join("");
+    for (const tr of ofxTbody.querySelectorAll("tr")){
+      const i = Number(tr.dataset.i);
+      const sel = tr.querySelector("[data-ofx-cat]");
+      if (sel) sel.value = ofxRows[i].categoria || "Outros";
+    }
+  }
+  function syncOfxFromTable(){
+    for (const tr of ofxTbody.querySelectorAll("tr")){
+      const i = Number(tr.dataset.i);
+      const ok = tr.querySelector("[data-ofx-ok]")?.checked ?? true;
+      const dateBR = tr.querySelector("[data-ofx-date]")?.value ?? "";
+      const tipo = tr.querySelector("[data-ofx-tipo]")?.value ?? "entrada";
+      const valor = Number(tr.querySelector("[data-ofx-valor]")?.value ?? 0);
+      const cat = tr.querySelector("[data-ofx-cat]")?.value ?? "Outros";
+      const desc = tr.querySelector("[data-ofx-desc]")?.value ?? "";
+      const iso = parseBRDateToISO(dateBR);
+      ofxRows[i].ok = ok;
+      ofxRows[i].tipo = tipo;
+      ofxRows[i].valor = valor;
+      ofxRows[i].categoria = cat;
+      ofxRows[i].descricao = desc;
+      ofxRows[i].dataISO = iso || ofxRows[i].dataISO;
+    }
+  }
+  async function confirmOfx(){
+    if (!currentUser) return;
+    syncOfxFromTable();
+    const bankId = (ofxBancoSelect.value || bancoSelect.value || "").trim() || null;
+
+    const toInsert = [];
+    for (const r of ofxRows){
+      if (!r.ok) continue;
+      if (!r.dataISO || !r.descricao || !Number.isFinite(Number(r.valor)) || Number(r.valor) <= 0) continue;
+      const mesAuto = monthKeyFromDateObj(new Date(r.dataISO + "T00:00:00"));
+      const valorFinal = (r.tipo === "saida") ? -Math.abs(Number(r.valor)) : Math.abs(Number(r.valor));
+      toInsert.push({
+        user_id: currentUser.id,
+        descricao: r.descricao.trim(),
+        valor: valorFinal,
+        data: r.dataISO,
+        mes: mesAuto,
+        categoria: (r.categoria || "Outros").trim() || "Outros",
+        banco_id: bankId ? Number(bankId) : null
+      });
+    }
+    if (!toInsert.length){ showToast("OFX", "Nenhum lançamento selecionado."); return; }
+
+    btnOfxConfirmar.disabled = true;
+    btnOfxConfirmar.textContent = "Confirmando…";
+    try{
+      const chunkSize = 200;
+      for (let i=0;i<toInsert.length;i+=chunkSize){
+        const chunk = toInsert.slice(i, i+chunkSize);
+        const { error } = await supa.from("registros").insert(chunk);
+        if (error) throw error;
+      }
+      showToast("OFX ✅", `${toInsert.length} lançamentos adicionados.`);
+      closeOfxModal();
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(e){
+      showToast("OFX", e.message || String(e));
+    }finally{
+      btnOfxConfirmar.disabled = false;
+      btnOfxConfirmar.textContent = "Confirmar lançamentos";
+    }
+  }
+
+  // ===== CSV IMPORT =====
+  function cleanMoneyToNumber(str){
+    let s = String(str ?? "").trim();
+    if (!s) return NaN;
+    s = s.replace(/\s/g, "");
+    s = s.replace("R$", "").replace("r$", "");
+    if (s.includes(",")){
+      s = s.replace(/\./g, "");
+      s = s.replace(",", ".");
+    }
+    s = s.replace(/[^0-9.-]/g, "");
+    return Number(s);
+  }
+  function parseCSV(text){
+    const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim() !== "");
+    if (!lines.length) return { header: [], rows: [] };
+    const first = lines[0];
+    const sep = (first.split(";").length >= 3) ? ";" : ",";
+    const header = first.split(sep).map(x => x.trim().replace(/^"|"$/g,""));
+    const rows = [];
+    for (let i=1;i<lines.length;i++){
+      const raw = lines[i];
+      const cols = raw.split(sep).map(x => x.trim().replace(/^"|"$/g,"").replace(/""/g,'"'));
+      if (cols.every(c => c === "")) continue;
+      rows.push(cols);
+    }
+    return { header, rows, sep };
+  }
+  function mapColumns(header){
+    const norm = header.map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
+    const idx = (name) => norm.indexOf(name);
+    const d = idx("descricao") >= 0 ? idx("descricao") : idx("descrição");
+    return { data: idx("data"), tipo: idx("tipo"), categoria: idx("categoria"), descricao: d, valor: idx("valor") };
+  }
+  async function importCSVFile(file){
+    if (!currentUser){ showToast("Importar", "Faça login primeiro."); return; }
+    const text = await file.text();
+    const parsed = parseCSV(text);
+    if (!parsed.rows.length){ showToast("Importar", "Arquivo vazio ou inválido."); return; }
+
+    const col = mapColumns(parsed.header);
+    if ([col.data,col.tipo,col.categoria,col.descricao,col.valor].some(x => x < 0)){
+      showToast("Importar", "Cabeçalho inválido. Use: Data;Tipo;Categoria;Descrição;Valor");
+      return;
+    }
+
+    let ok = 0, bad = 0;
+    const inserts = [];
+    let latestISO = null;
+    const bankId = (bancoSelect.value || "").trim() || null;
+
+    for (const r of parsed.rows){
+      const dataBR = r[col.data] ?? "";
+      const tipoRaw = (r[col.tipo] ?? "").trim().toLowerCase();
+      const categoria = (r[col.categoria] ?? "Outros").trim() || "Outros";
+      const descricao = (r[col.descricao] ?? "").trim();
+      const valorRaw = r[col.valor];
+
+      const dataISO = parseBRDateToISO(dataBR);
+      if (!dataISO || !descricao){ bad++; continue; }
+
+      let valor = cleanMoneyToNumber(valorRaw);
+      if (!Number.isFinite(valor) || valor === 0){ bad++; continue; }
+
+      const tipo = (tipoRaw.includes("saida") || tipoRaw.includes("saída") || tipoRaw === "out" || tipoRaw === "despesa") ? "saida" : "entrada";
+      const valorFinal = (tipo === "saida") ? -Math.abs(valor) : Math.abs(valor);
+
+      const mesAuto = monthKeyFromDateObj(new Date(dataISO + "T00:00:00"));
+
+      inserts.push({
+        user_id: currentUser.id,
+        data: dataISO,
+        mes: mesAuto,
+        categoria,
+        descricao,
+        valor: valorFinal,
+        banco_id: bankId ? Number(bankId) : null
+      });
+
+      ok++;
+      if (!latestISO || dataISO > latestISO) latestISO = dataISO;
+    }
+
+    if (!inserts.length){ showToast("Importar", "Nenhuma linha válida encontrada."); return; }
+
+    importInfo.textContent = `Importando… (${ok} válidas, ${bad} inválidas)`;
+    try{
+      const chunkSize = 200;
+      let inserted = 0;
+      for (let i=0;i<inserts.length;i+=chunkSize){
+        const chunk = inserts.slice(i, i+chunkSize);
+        const { error } = await supa.from("registros").insert(chunk);
+        if (error) throw error;
+        inserted += chunk.length;
+      }
+      if (latestISO) currentMonth = monthKeyFromDateObj(new Date(latestISO + "T00:00:00"));
+      importInfo.textContent = `✅ Importado: ${inserted} lançamentos • Ignorados: ${bad}`;
+      showToast("CSV ✅", `${inserted} lançamentos importados.`);
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(e){
+      importInfo.textContent = "Falha ao importar.";
+      showToast("Importar", e.message || String(e));
+    }
+  }
+
+  // ===== LISTENERS =====
+  tabFin.addEventListener("click", () => forceShowFinancas());
+  tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
+  tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
+
+  btnLogin.addEventListener("click", async () => {
+    const { error } = await supa.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: window.location.origin }
+    });
+    if (error) showToast("Login", error.message);
+  });
+
+  btnSair.addEventListener("click", async () => {
+    await supa.auth.signOut();
+    location.href = "/";
+  });
+
+  mesSelect.addEventListener("change", async () => {
+    if (!currentUser) return;
+    currentMonth = mesSelect.value;
+    metaMesEl.value = currentMonth;
+    await refreshUI();
+  });
+
+  filtroCategoriaEl.addEventListener("change", async () => {
+    currentFiltroCategoria = filtroCategoriaEl.value;
+    await refreshUI();
+  });
+
+  buscaEl.addEventListener("input", () => {
+    currentSearch = buscaEl.value;
+    if (lastFinCache) renderFinancas(lastFinCache);
+  });
+
+  btnSalvar.addEventListener("click", async () => {
+    if (!currentUser){ showLogin(); return; }
+
+    const tipo = tipoEl.value;
+    const dataBR = dataEl.value.trim();
+    const dataISO = parseBRDateToISO(dataBR);
+    const valorDigitado = Number(valorEl.value);
+    const descricao = descricaoEl.value.trim();
+    const categoria = (categoriaEl.value || "Outros").trim();
+    const bankId = (bancoSelect.value || "").trim();
+
+    if (!dataISO){ showToast("Data inválida", "Use DD/MM/AAAA."); return; }
+    if (!descricao){ showToast("Descrição", "Preencha a descrição."); return; }
+    if (Number.isNaN(valorDigitado) || valorDigitado <= 0){ showToast("Valor", "Digite um valor positivo."); return; }
+
+    const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
+    const mesAuto = monthKeyFromDateObj(new Date(dataISO + "T00:00:00"));
+
+    const { error } = await supa.from("registros").insert({
+      user_id: currentUser.id,
+      descricao,
+      valor: valorFinal,
+      data: dataISO,
+      mes: mesAuto,
+      categoria,
+      banco_id: bankId ? Number(bankId) : null
+    });
+
+    if (error){ showToast("Não salvou", error.message); return; }
+
+    descricaoEl.value = "";
+    valorEl.value = "";
+    currentMonth = mesAuto;
+
+    await refreshUI();
+    if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+  });
+
+  btnExportar.addEventListener("click", () => {
+    if (!lastFinCache || !lastFinCache.rows) { showToast("Exportar", "Sem dados para exportar."); return; }
+    let rows = lastFinCache.rows;
+    if (currentFiltroCategoria && currentFiltroCategoria !== "Todas"){
+      rows = rows.filter(r => (r.categoria || "Outros") === currentFiltroCategoria);
+    }
+    const q = (currentSearch || "").trim().toLowerCase();
+    if (q) rows = rows.filter(r => (r.descricao || "").toLowerCase().includes(q));
+    if (!rows.length){ showToast("Exportar", "Não há registros neste filtro/busca."); return; }
+
+    const csv = makeCSV(rows);
+    const safeMonth = (currentMonth || "mes").replace("/", "-");
+    const filename = `controle-premium_${safeMonth}.csv`;
+    downloadCSV(csv, filename);
+    showToast("Exportado ✅", `Arquivo: ${filename}`);
+  });
+
+  // PDF
+  btnPdf.addEventListener("click", generatePDFClassic);
+
+  // Editar / Excluir
+  function openDeleteModal(item){
+    pendingDelete = item;
+    modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
+    modalOverlay.classList.add("show");
+  }
+  function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
+
+  function openEditModal(item){
+    editingItem = item;
+    editDataEl.value = formatISOToBR(item.dataISO || "");
+    editTipoEl.value = (Number(item.valor) >= 0) ? "entrada" : "saida";
+    editValorEl.value = Math.abs(Number(item.valor || 0));
+    editCategoriaEl.value = item.categoria || "Outros";
+    editDescricaoEl.value = item.descricao || "";
+    editBancoSelect.value = item.banco_id || "";
+    editOverlay.classList.add("show");
+  }
+  function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
+
+  listaEl.addEventListener("click", (e) => {
+    const delBtn = e.target.closest("[data-del]");
+    const editBtn = e.target.closest("[data-edit]");
+    if (delBtn){
+      openDeleteModal({
+        id: delBtn.dataset.id,
+        descricao: delBtn.dataset.desc || "",
+        valor: Number(delBtn.dataset.valor || 0),
+        dataISO: delBtn.dataset.data || "",
+        categoria: delBtn.dataset.cat || "Outros"
+      });
+      return;
+    }
+    if (editBtn){
+      openEditModal({
+        id: editBtn.dataset.id,
+        descricao: editBtn.dataset.desc || "",
+        valor: Number(editBtn.dataset.valor || 0),
+        dataISO: editBtn.dataset.data || "",
+        categoria: editBtn.dataset.cat || "Outros",
+        banco_id: editBtn.dataset.bankid || ""
+      });
+    }
+  });
+
+  btnModalClose.addEventListener("click", closeDeleteModal);
+  btnCancelar.addEventListener("click", closeDeleteModal);
+  modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
+
+  btnConfirmar.addEventListener("click", async () => {
+    if (!currentUser || !pendingDelete) return;
+    try{
+      const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
+      if (error) throw error;
+      closeDeleteModal();
+      showToast("Excluído ✅", "Lançamento removido.");
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(err){
+      showToast("Excluir", err.message || String(err));
+    }
+  });
+
+  btnEditClose.addEventListener("click", closeEditModal);
+  btnEditCancelar.addEventListener("click", closeEditModal);
+  editOverlay.addEventListener("click", (e) => { if (e.target === editOverlay) closeEditModal(); });
+
+  btnEditSalvar.addEventListener("click", async () => {
+    if (!currentUser || !editingItem) return;
+
+    const dataISO = parseBRDateToISO(editDataEl.value.trim());
+    if (!dataISO){ showToast("Data", "Use DD/MM/AAAA."); return; }
+
+    const valorDigitado = Number(editValorEl.value);
+    if (!Number.isFinite(valorDigitado) || valorDigitado <= 0){ showToast("Valor", "Digite um valor positivo."); return; }
+
+    const tipo = editTipoEl.value;
+    const valorFinal = (tipo === "saida") ? -Math.abs(valorDigitado) : Math.abs(valorDigitado);
+
+    const desc = editDescricaoEl.value.trim();
+    if (!desc){ showToast("Descrição", "Preencha a descrição."); return; }
+
+    const cat = (editCategoriaEl.value || "Outros").trim() || "Outros";
+    const bankId = (editBancoSelect.value || "").trim() || null;
+    const mesAuto = monthKeyFromDateObj(new Date(dataISO + "T00:00:00"));
+
+    try{
+      const { error } = await supa.from("registros").update({
+        data: dataISO,
+        mes: mesAuto,
+        valor: valorFinal,
+        descricao: desc,
+        categoria: cat,
+        banco_id: bankId ? Number(bankId) : null
+      }).eq("id", editingItem.id).eq("user_id", currentUser.id);
+
+      if (error) throw error;
+
+      closeEditModal();
+      showToast("Salvo ✅", "Alterações aplicadas.");
+      currentMonth = mesAuto;
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(err){
+      showToast("Editar", err.message || String(err));
+    }
+  });
+
+  // CSV
+  btnImportar.addEventListener("click", () => fileCsv.click());
+  fileCsv.addEventListener("change", async () => {
+    const f = fileCsv.files && fileCsv.files[0];
+    if (f) await importCSVFile(f);
+    fileCsv.value = "";
+  });
+  dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.style.borderColor = "rgba(0,194,255,.65)"; });
+  dropZone.addEventListener("dragleave", () => { dropZone.style.borderColor = "rgba(0,194,255,.35)"; });
+  dropZone.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dropZone.style.borderColor = "rgba(0,194,255,.35)";
+    const f = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) await importCSVFile(f);
+  });
+
+  // OFX
+  btnImportarOfx.addEventListener("click", () => fileOfx.click());
+  fileOfx.addEventListener("change", async () => {
+    const f = fileOfx.files && fileOfx.files[0];
+    if (!f) return;
+    try{
+      const text = await f.text();
+      const rows = parseOfx(text);
+      if (!rows.length) showToast("OFX", "Não encontrei transações nesse OFX.");
+      else {
+        ofxInfo.textContent = `Arquivo carregado: ${f.name} • ${rows.length} transações`;
+        openOfxModal(rows);
+      }
+    }catch(e){
+      showToast("OFX", e.message || String(e));
+    }finally{
+      fileOfx.value = "";
+    }
+  });
+
+  btnOfxClose.addEventListener("click", closeOfxModal);
+  btnOfxCancelar.addEventListener("click", closeOfxModal);
+  ofxOverlay.addEventListener("click", (e) => { if (e.target === ofxOverlay) closeOfxModal(); });
+
+  btnOfxSelectAll.addEventListener("click", () => { for (const r of ofxRows) r.ok = true; renderOfxTable(); });
+  btnOfxUnselectAll.addEventListener("click", () => { for (const r of ofxRows) r.ok = false; renderOfxTable(); });
+  btnOfxConfirmar.addEventListener("click", confirmOfx);
+
+  // Bancos
+  btnGerenciarBancos.addEventListener("click", async () => {
+    if (!currentUser) return;
+    try{
+      await loadBanks();
+      fillBankSelects();
+      openBankModal();
+    }catch(e){
+      showToast("Bancos", e.message || String(e));
+    }
+  });
+  btnBankClose.addEventListener("click", closeBankModal);
+  btnBankFechar2.addEventListener("click", closeBankModal);
+  bankOverlay.addEventListener("click", (e) => { if (e.target === bankOverlay) closeBankModal(); });
+
+  btnBankAdd.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const nome = (bankNome.value || "").trim();
+    if (!nome){ showToast("Bancos", "Digite o nome do banco."); return; }
+    try{
+      const { error } = await supa.from("bancos").insert({ user_id: currentUser.id, nome });
+      if (error) throw error;
+      bankNome.value = "";
+      await loadBanks();
+      fillBankSelects();
+      renderBankList();
+      showToast("Bancos ✅", "Banco adicionado.");
+    }catch(e){
+      showToast("Bancos", e.message || String(e));
+    }
+  });
+
+  bankList.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-bank-del]");
+    if (!btn) return;
+    const id = btn.dataset.id;
+    try{
+      const { error } = await supa.from("bancos").delete().eq("id", id).eq("user_id", currentUser.id);
+      if (error) throw error;
+      await loadBanks();
+      fillBankSelects();
+      renderBankList();
+      showToast("Bancos ✅", "Banco excluído.");
+    }catch(err){
+      showToast("Bancos", err.message || String(err));
+    }
+  });
+
+  // Dashboard controls
+  chkComparar.addEventListener("change", async () => {
+    multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
+    await refreshDashboard();
+  });
+  dashQuickRange.addEventListener("change", () => {
+    const n = Number(dashQuickRange.value || 0);
+    if (!n) return;
+    const keys = getLastNMonthKeys(n);
+    const set = new Set(keys);
+    for (const opt of dashMonthsMulti.options) opt.selected = set.has(opt.value);
+  });
+  btnAplicarComparacao.addEventListener("click", async () => {
+    chkComparar.checked = true;
+    multiMonthsWrap.classList.remove("hidden");
+    await refreshDashboard();
+  });
+  dashMesSelect.addEventListener("change", async () => {
+    dashboardMonth = dashMesSelect.value;
+    await refreshDashboard();
+  });
+
+  // ===== REFRESH UI =====
+  async function refreshUI(){
+    const { data } = await supa.auth.getSession();
+    const session = data.session;
+
+    if (!session){
+      currentUser = null;
+      showLogin();
+      return;
+    }
+
+    currentUser = session.user;
+    showApp(session.user.email);
+
+    if (!dataEl.value) dataEl.value = getTodayBR();
+
+    try{
+      await loadBanks();
+      fillBankSelects();
+    }catch(e){
+      bancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
+      editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
+      ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
+    }
+
+    let months = [getDefaultMonth()];
+    try{
+      months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
+    }catch(e){}
+
+    const desiredFin = currentMonth || getDefaultMonth();
+    fillMonthDropdown(mesSelect, months, desiredFin);
+    currentMonth = mesSelect.value || getDefaultMonth();
+
+    const desiredDash = dashboardMonth || currentMonth;
+    fillMonthDropdown(dashMesSelect, months, desiredDash);
+    dashboardMonth = dashMesSelect.value || desiredDash;
+
+    fillDashboardMulti(months);
+    metaMesEl.value = currentMonth;
+
+    try{
+      const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
+      renderFinancas(fin);
+    }catch(e){
+      showToast("Finanças", e.message || String(e));
+      listaEl.innerHTML = `<div class="empty">Falha ao carregar registros.</div>`;
+    }
+
+    try{ await atualizarMetasUI(currentMonth); }catch(e){}
+
+    if (!dashboardBox.classList.contains("hidden")){
+      await refreshDashboard();
+    }
+  }
+
+  // Init
+  (async () => {
+    await captureTokenIfPresent();
+    if (!dataEl.value) dataEl.value = getTodayBR();
+    currentFiltroCategoria = "Todas";
+    currentSearch = "";
+    currentMonth = getDefaultMonth();
+    dashboardMonth = currentMonth;
+    await refreshUI();
+  })();
+
+  supa.auth.onAuthStateChange(async () => {
+    await refreshUI();
+  });
+
+  // Meta save
+  btnSalvarMeta.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const mes = (metaMesEl.value || "").trim();
+    const meta = Number(metaValorEl.value || 0);
+    if (!/^\d{2}\/\d{4}$/.test(mes)){ showToast("Meta", "Use MM/AAAA"); return; }
+    if (!Number.isFinite(meta) || meta < 0){ showToast("Meta", "Digite um valor válido."); return; }
+    try{
+      await upsertMeta(currentUser.id, mes, meta);
+      showToast("Meta ✅", "Meta salva.");
+      await atualizarMetasUI(currentMonth);
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(e){
+      showToast("Meta", e.message || String(e));
+    }
+  });
+</script>
+</body>
+</html>
