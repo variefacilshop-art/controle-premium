@@ -325,42 +325,6 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-
-    /* ✅ Seleção múltipla */
-    .bulkBar{
-      margin-top: 10px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: rgba(0,194,255,.08);
-      border: 1px solid rgba(0,194,255,.18);
-    }
-    .bulkBar .info{
-      font-size: 12px;
-      color: rgba(226,232,240,.78);
-    }
-    .bulkLeft{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .chkWrap{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .chkWrap input{
-      width: 18px;
-      height: 18px;
-      margin:0;
-      cursor:pointer;
-      accent-color: var(--cyan);
-    }
   </style>
 </head>
 
@@ -520,33 +484,16 @@
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
-            <!-- ✅ NOVO: seleção múltipla -->
-            <button class="btn btn-ghost" id="btnBulkMode" type="button">☑️ Selecionar</button>
-
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
         </div>
-
         <div class="body" style="padding-top:12px">
           <div class="searchBox">
             <input id="busca" placeholder="🔎 Buscar na descrição (ex: mercado, fornecedor, venda...)" />
             <div class="smallNote" id="buscaInfo">Mostrando tudo</div>
           </div>
-
-          <!-- ✅ NOVO: barra de ações da seleção -->
-          <div class="bulkBar hidden" id="bulkBar">
-            <div class="bulkLeft">
-              <div class="info" id="bulkInfo">0 selecionados</div>
-              <button class="btn btn-ghost" id="btnBulkSelectAll" type="button">✅ Selecionar todos (na lista)</button>
-              <button class="btn btn-ghost" id="btnBulkClear" type="button">⬜ Limpar seleção</button>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-              <button class="btn btn-danger" id="btnBulkDelete" type="button">🗑️ Excluir selecionados</button>
-            </div>
-          </div>
         </div>
-
         <div class="list" id="lista">
           <div class="empty">Nenhum registro neste mês.</div>
         </div>
@@ -856,15 +803,6 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
-
-  // ✅ NOVO: seleção múltipla
-  const btnBulkMode = document.getElementById("btnBulkMode");
-  const bulkBar = document.getElementById("bulkBar");
-  const bulkInfo = document.getElementById("bulkInfo");
-  const btnBulkSelectAll = document.getElementById("btnBulkSelectAll");
-  const btnBulkClear = document.getElementById("btnBulkClear");
-  const btnBulkDelete = document.getElementById("btnBulkDelete");
-
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -964,7 +902,6 @@
   let dashboardMonth = null;
 
   let pendingDelete = null;
-  let pendingBulkDeleteIds = null; // ✅ NOVO
   let currentFiltroCategoria = "Todas";
   let currentSearch = "";
   let lastFinCache = null;
@@ -972,11 +909,6 @@
 
   let banksCache = [];
   let ofxRows = [];
-
-  // ✅ NOVO: seleção múltipla (estado)
-  let selectionMode = false;
-  let selectedIds = new Set();
-  let lastRenderedIds = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1141,22 +1073,6 @@
     }
   }
 
-  // ✅ NOVO: atualizar barra da seleção
-  function updateBulkUI(){
-    bulkBar.classList.toggle("hidden", !selectionMode);
-    btnBulkMode.textContent = selectionMode ? "✅ Concluir seleção" : "☑️ Selecionar";
-
-    const count = selectedIds.size;
-    bulkInfo.textContent = `${count} selecionado(s)`;
-    btnBulkDelete.disabled = count === 0;
-
-    if (!selectionMode){
-      // quando sair do modo seleção, limpa seleção (pra não confundir)
-      selectedIds.clear();
-      bulkInfo.textContent = `0 selecionado(s)`;
-    }
-  }
-
   // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
@@ -1266,9 +1182,6 @@
       buscaInfo.textContent = "Mostrando tudo";
     }
 
-    // ✅ guarda ids que estão na lista agora (pra “Selecionar todos”)
-    lastRenderedIds = filtered.map(r => String(r.id));
-
     if (!filtered.length){
       listaEl.innerHTML = `<div class="empty">Nenhum registro para este mês/filtro.</div>`;
       return;
@@ -1280,13 +1193,8 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
-      const checked = selectedIds.has(String(r.id)) ? "checked" : "";
       return `
         <div class="item">
-          <div class="chkWrap ${selectionMode ? "" : "hidden"}">
-            <input type="checkbox" data-bulk-check="1" data-id="${escapeHtml(String(r.id))}" ${checked}>
-          </div>
-
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1321,12 +1229,6 @@
         </div>
       `;
     }).join("");
-
-    // ✅ atualiza info do bulk sem “resetar” a seleção
-    if (selectionMode){
-      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
-      btnBulkDelete.disabled = selectedIds.size === 0;
-    }
   }
 
   // ===== METAS =====
@@ -1427,19 +1329,22 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;
-    const pageH = doc.internal.pageSize.height;
+    const pageW = doc.internal.pageSize.width;    // ~595
+    const pageH = doc.internal.pageSize.height;   // ~842
 
+    // Centralização igual ao modelo (margens simétricas)
     const margin = 54;
     const contentW = pageW - margin*2;
     const x0 = (pageW - contentW) / 2;
 
+    // Fundo branco
     doc.setFillColor(255,255,255);
     doc.rect(0,0,pageW,pageH,"F");
     doc.setTextColor(0,0,0);
 
     let y = 64;
 
+    // Título (igual ao modelo)
     doc.setFont("helvetica","bold");
     doc.setFontSize(24);
     doc.text("Controle Premium", x0, y);
@@ -1453,6 +1358,7 @@
     doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
     y += 30;
 
+    // Caixa KPIs (centralizada)
     const boxX = x0;
     const boxY = y;
     const boxW = contentW;
@@ -1482,6 +1388,7 @@
 
     y = boxY + boxH + 30;
 
+    // Meta do mês
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
     doc.text("Meta do mês", x0, y);
@@ -1495,6 +1402,7 @@
     );
     y += 20;
 
+    // Barra de progresso (azul, grossa, centralizada)
     const barX = x0;
     const barY = y;
     const barW = contentW;
@@ -1511,6 +1419,7 @@
 
     y = barY + barH + 30;
 
+    // Lançamentos do mês
     doc.setFont("helvetica","bold");
     doc.setFontSize(12.5);
     doc.text("Lançamentos do mês", x0, y);
@@ -1541,7 +1450,7 @@
         lineColor: 230
       },
       headStyles: {
-        fillColor: [12, 18, 38],
+        fillColor: [12, 18, 38],     // igual ao modelo (faixa escura)
         textColor: 255,
         fontStyle: "bold"
       },
@@ -2038,18 +1947,11 @@
     if (!currentUser) return;
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
-
-    // ✅ muda de mês: limpa seleção pra não confundir
-    selectedIds.clear();
-    updateBulkUI();
-
     await refreshUI();
   });
 
   filtroCategoriaEl.addEventListener("change", async () => {
     currentFiltroCategoria = filtroCategoriaEl.value;
-
-    // ✅ ao trocar filtro, mantém seleção (mas só vai aparecer nos itens visíveis)
     await refreshUI();
   });
 
@@ -2092,10 +1994,6 @@
     valorEl.value = "";
     currentMonth = mesAuto;
 
-    // ✅ após salvar: limpa seleção pra não confundir
-    selectedIds.clear();
-    updateBulkUI();
-
     await refreshUI();
     if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
   });
@@ -2120,55 +2018,13 @@
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
 
-  // ✅ NOVO: botão “Selecionar”
-  btnBulkMode.addEventListener("click", () => {
-    selectionMode = !selectionMode;
-    if (!selectionMode){
-      selectedIds.clear();
-    }
-    updateBulkUI();
-    if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  btnBulkSelectAll.addEventListener("click", () => {
-    if (!selectionMode) return;
-    for (const id of lastRenderedIds){
-      selectedIds.add(String(id));
-    }
-    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
-    btnBulkDelete.disabled = selectedIds.size === 0;
-    if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  btnBulkClear.addEventListener("click", () => {
-    selectedIds.clear();
-    bulkInfo.textContent = `0 selecionado(s)`;
-    btnBulkDelete.disabled = true;
-    if (lastFinCache) renderFinancas(lastFinCache);
-  });
-
-  btnBulkDelete.addEventListener("click", () => {
-    if (!selectionMode) return;
-    const ids = Array.from(selectedIds);
-    if (!ids.length){ showToast("Seleção", "Selecione pelo menos 1 lançamento."); return; }
-    pendingBulkDeleteIds = ids;
-
-    modalBody.innerHTML = `Excluir <b>${ids.length}</b> lançamento(s) selecionado(s)?<br><br><span class="hint" style="margin:0">Essa ação não pode ser desfeita.</span>`;
-    modalOverlay.classList.add("show");
-  });
-
   // Editar / Excluir
   function openDeleteModal(item){
     pendingDelete = item;
-    pendingBulkDeleteIds = null; // ✅ garante que não confunda com bulk
     modalBody.innerHTML = `Excluir este lançamento?<br><br><b>${escapeHtml(item.descricao || "")}</b><br>${escapeHtml(formatISOToBR(item.dataISO || ""))} • ${escapeHtml(item.categoria || "Outros")} • <b>${brl(item.valor)}</b>`;
     modalOverlay.classList.add("show");
   }
-  function closeDeleteModal(){
-    modalOverlay.classList.remove("show");
-    pendingDelete = null;
-    pendingBulkDeleteIds = null;
-  }
+  function closeDeleteModal(){ modalOverlay.classList.remove("show"); pendingDelete = null; }
 
   function openEditModal(item){
     editingItem = item;
@@ -2182,29 +2038,9 @@
   }
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
-  // ✅ NOVO: marcar/desmarcar checkbox (sem atrapalhar editar/excluir)
-  listaEl.addEventListener("change", (e) => {
-    const chk = e.target.closest("[data-bulk-check]");
-    if (!chk) return;
-    if (!selectionMode) return;
-
-    const id = String(chk.dataset.id || "");
-    if (!id) return;
-
-    if (chk.checked) selectedIds.add(id);
-    else selectedIds.delete(id);
-
-    bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
-    btnBulkDelete.disabled = selectedIds.size === 0;
-  });
-
   listaEl.addEventListener("click", (e) => {
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
-
-    // se clicou na checkbox, não abre nada
-    if (e.target && e.target.matches && e.target.matches("[data-bulk-check]")) return;
-
     if (delBtn){
       openDeleteModal({
         id: delBtn.dataset.id,
@@ -2232,55 +2068,12 @@
   modalOverlay.addEventListener("click", (e) => { if (e.target === modalOverlay) closeDeleteModal(); });
 
   btnConfirmar.addEventListener("click", async () => {
-    if (!currentUser) return;
-
-    // ✅ BULK delete
-    if (pendingBulkDeleteIds && pendingBulkDeleteIds.length){
-      const ids = pendingBulkDeleteIds.slice(0);
-      try{
-        btnConfirmar.disabled = true;
-        btnConfirmar.textContent = "Excluindo…";
-
-        const { error } = await supa
-          .from("registros")
-          .delete()
-          .in("id", ids)
-          .eq("user_id", currentUser.id);
-
-        if (error) throw error;
-
-        closeDeleteModal();
-        showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
-
-        // limpa seleção e sai do modo seleção (fica mais simples)
-        selectedIds.clear();
-        selectionMode = false;
-        updateBulkUI();
-
-        await refreshUI();
-        if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-      }catch(err){
-        showToast("Excluir", err.message || String(err));
-      }finally{
-        btnConfirmar.disabled = false;
-        btnConfirmar.textContent = "Excluir";
-      }
-      return;
-    }
-
-    // delete normal (1 item)
-    if (!pendingDelete) return;
+    if (!currentUser || !pendingDelete) return;
     try{
       const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
       if (error) throw error;
       closeDeleteModal();
       showToast("Excluído ✅", "Lançamento removido.");
-
-      // se estava selecionado, remove também
-      selectedIds.delete(String(pendingDelete.id));
-      bulkInfo.textContent = `${selectedIds.size} selecionado(s)`;
-      btnBulkDelete.disabled = selectedIds.size === 0;
-
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2326,7 +2119,6 @@
       closeEditModal();
       showToast("Salvo ✅", "Alterações aplicadas.");
       currentMonth = mesAuto;
-
       await refreshUI();
       if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
     }catch(err){
@@ -2503,9 +2295,6 @@
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
-
-    // ✅ garante que botões/visuais do bulk batam com o estado
-    updateBulkUI();
   }
 
   // Init
@@ -2516,11 +2305,6 @@
     currentSearch = "";
     currentMonth = getDefaultMonth();
     dashboardMonth = currentMonth;
-
-    selectionMode = false;
-    selectedIds = new Set();
-    updateBulkUI();
-
     await refreshUI();
   })();
 
