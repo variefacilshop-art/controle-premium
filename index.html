@@ -1305,6 +1305,7 @@
 
   
   // ===== PDF PREMIUM EXECUTIVO =====
+
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
@@ -1312,108 +1313,304 @@
     }
 
     const mk = currentMonth || getDefaultMonth();
-    const safeMonth = mk.replace("/", "-");
+    const safeMonth = mk.replace("/", "_").toLowerCase();
+
     const fin = lastFinCache;
+    const rows = fin.rows || [];
 
+    // Meta (opcional)
     let meta = 0;
-    try{ meta = await getMeta(currentUser.id, mk); }catch(e){}
+    try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
 
-    const entradas = fin.entradas;
-    const saidas = fin.saidas;
-    const saldo = fin.saldo;
-    const qtd = fin.rows.length;
-    const progresso = meta > 0 ? Math.min((entradas/meta)*100,100) : 0;
+    const entradas = Number(fin.entradas || 0);
+    const saidas = Number(fin.saidas || 0);
+    const saldo = Number(fin.saldo || 0);
+    const qtd = rows.length;
+
+    const falta = Math.max(meta - entradas, 0);
+    const progresso = meta > 0 ? Math.min((entradas / meta) * 100, 100) : 0;
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:"pt", format:"a4" });
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;
-    const margin = 48;
+    const pageW = doc.internal.pageSize.width;    // 595
+    const pageH = doc.internal.pageSize.height;   // 842
+
+    // Margens e largura útil (centralizado)
+    const margin = 46;
     const contentW = pageW - margin*2;
+    const x0 = margin;
 
-    let y = 70;
+    // Paleta (igual ao modelo aprovado)
+    const C = {
+      ink: [15, 23, 42],
+      muted: [100, 116, 139],
+      border: [229, 231, 235],
+      bg: [245, 247, 250],
+      card: [255, 255, 255],
+      brand: [0, 194, 255],
+      brand2: [65, 214, 255],
+      success: [34, 197, 94],
+      danger: [239, 68, 68]
+    };
 
-    // Título
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(22);
-    doc.text("Controle Premium", margin, y);
+    // Helpers
+    const now = new Date();
+    const genDate = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(11);
-    y += 18;
-    doc.text(`Relatório Financeiro • ${mk}`, margin, y);
-
-    y += 30;
-
-    // cartões KPI
-    const cardW = (contentW - 15) / 4;
-    const cardH = 70;
-
-    const kpis = [
-      ["Entradas", entradas],
-      ["Saídas", saidas],
-      ["Saldo", saldo],
-      ["Registros", qtd]
-    ];
-
-    kpis.forEach((k,i)=>{
-      const x = margin + i*(cardW+5);
-      doc.setDrawColor(230);
-      doc.setFillColor(255,255,255);
-      doc.roundedRect(x, y, cardW, cardH, 10,10,"FD");
-
-      doc.setFontSize(9);
-      doc.setTextColor(120);
-      doc.text(k[0].toUpperCase(), x+cardW/2, y+22,{align:"center"});
-
-      doc.setFontSize(14);
-      doc.setTextColor(0);
-      doc.text(
-        k[0]==="Registros" ? String(k[1]) :
-        new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(k[1]),
-        x+cardW/2, y+48,{align:"center"}
-      );
-    });
-
-    y += cardH + 35;
-
-    // barra meta
-    if(meta>0){
-      doc.setFontSize(11);
-      doc.text("Progresso da meta", margin, y);
-      y+=10;
-
-      doc.setDrawColor(220);
-      doc.roundedRect(margin, y, contentW, 10,6,6);
-
-      doc.setFillColor(0,194,255);
-      doc.roundedRect(margin, y, contentW*(progresso/100), 10,6,6,"F");
-
-      y+=25;
+    function setFont(style, size){
+      doc.setFont("helvetica", style);
+      doc.setFontSize(size);
+    }
+    function txt(str, x, y, opt){
+      doc.text(String(str || ""), x, y, opt || {});
+    }
+    function rrect(x,y,w,h,r, fillRGB, strokeRGB, lw){
+      if (fillRGB){
+        doc.setFillColor(fillRGB[0], fillRGB[1], fillRGB[2]);
+      }
+      if (strokeRGB){
+        doc.setDrawColor(strokeRGB[0], strokeRGB[1], strokeRGB[2]);
+      }
+      doc.setLineWidth(lw ?? 1);
+      doc.roundedRect(x,y,w,h,r,r, fillRGB ? (strokeRGB ? "FD" : "F") : "S");
+    }
+    function shadowCard(x,y,w,h,r){
+      // Sombra leve (simulada)
+      doc.setFillColor(235, 238, 245);
+      doc.roundedRect(x+3, y+4, w, h, r, r, "F");
+      rrect(x,y,w,h,r, C.card, C.border, 1);
+    }
+    function chip(x,y,w,h,label){
+      doc.setFillColor(235, 248, 255);
+      doc.setDrawColor(186, 230, 253);
+      doc.setLineWidth(1);
+      doc.roundedRect(x, y, w, h, 999, 999, "FD");
+      setFont("bold", 9.5);
+      doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
+      txt(label, x + w/2, y + h/2 + 3, { align:"center" });
+      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
     }
 
-    // tabela
-    const body = fin.rows.map(r=>([
-      formatISOToBR(r.dataISO),
-      r.valor>=0?"Entrada":"Saída",
-      r.categoria||"Outros",
-      r.descricao,
-      new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(r.valor)
-    ]));
+    // Fundo da página
+    doc.setFillColor(C.bg[0], C.bg[1], C.bg[2]);
+    doc.rect(0,0,pageW,pageH,"F");
 
-    doc.autoTable({
-      startY:y,
-      head:[["Data","Tipo","Categoria","Descrição","Valor"]],
-      body,
-      margin:{left:margin,right:margin},
-      headStyles:{fillColor:[15,23,42],textColor:255},
-      alternateRowStyles:{fillColor:[245,245,245]},
-      styles:{fontSize:9}
+    // ===== Header (Executivo) =====
+    let y = 44;
+
+    // barra/linha de marca
+    doc.setFillColor(C.brand2[0], C.brand2[1], C.brand2[2]);
+    doc.roundedRect(x0, y, 140, 4, 3, 3, "F");
+    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
+    doc.circle(x0 + 140, y + 2, 2, "F");
+
+    y += 20;
+
+    setFont("bold", 22);
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    txt("Relatório Financeiro", x0, y);
+
+    setFont("normal", 10.5);
+    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+    txt(`Mês: ${mk} • Controle Premium`, x0, y + 16);
+
+    // meta info direita
+    const rightX = x0 + contentW;
+    setFont("normal", 9.5);
+    txt(`Gerado em: ${genDate}`, rightX, y - 2, { align:"right" });
+    // chip "Finanças"
+    chip(rightX - 78, y + 6, 78, 20, "Finanças");
+
+    y += 40;
+
+    // ===== KPI cards =====
+    const kpiGap = 12;
+    const kpiW = (contentW - 3*kpiGap) / 4;
+    const kpiH = 88;
+
+    function drawKPI(i, title, value, accent){
+      const x = x0 + i*(kpiW + kpiGap);
+      shadowCard(x, y, kpiW, kpiH, 14);
+
+      // bolinha de acento
+      if (accent){
+        doc.setFillColor(accent[0], accent[1], accent[2]);
+        doc.circle(x + kpiW - 16, y + 18, 4.5, "F");
+      }
+
+      setFont("normal", 9.5);
+      doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+      txt(title, x + 14, y + 28);
+
+      setFont("bold", 14.5);
+      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+      txt(value, x + 14, y + 55);
+    }
+
+    drawKPI(0, "Entradas", moneyBRAbs(entradas), C.success);
+    drawKPI(1, "Saídas", moneyBRAbs(saidas), C.danger);
+    drawKPI(2, "Saldo", moneyBR(saldo), saldo >= 0 ? C.success : C.danger);
+    drawKPI(3, "Registros", String(qtd), C.brand);
+
+    y += kpiH + 16;
+
+    // ===== Meta + gráfico (2 colunas) =====
+    const colGap = 12;
+    const leftW = (contentW - colGap) * 0.54;
+    const rightW = contentW - colGap - leftW;
+    const cardH = 160;
+
+    // Meta card
+    shadowCard(x0, y, leftW, cardH, 16);
+
+    setFont("bold", 11.5);
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    txt("Meta do mês", x0 + 14, y + 26);
+
+    setFont("normal", 9.5);
+    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+    const metaStr = moneyBRAbs(meta);
+    const entradasStr = moneyBRAbs(entradas);
+    const faltaStr = moneyBRAbs(falta);
+    txt(`Meta: ${metaStr}   •   Entradas: ${entradasStr}`, x0 + 14, y + 46);
+    txt(`Falta: ${faltaStr}   •   Progresso: ${progresso.toFixed(1)}%`, x0 + 14, y + 62);
+
+    // barra
+    const barX = x0 + 14;
+    const barY = y + 86;
+    const barW = leftW - 28;
+    const barH = 10;
+
+    doc.setFillColor(241, 245, 249);
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(1);
+    doc.roundedRect(barX, barY, barW, barH, 999, 999, "FD");
+
+    const fillW = Math.max(0, Math.min(barW*(progresso/100), barW));
+    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
+    doc.roundedRect(barX, barY, fillW, barH, 999, 999, "F");
+
+    // etiqueta
+    doc.setFillColor(235, 248, 255);
+    doc.setDrawColor(186, 230, 253);
+    doc.roundedRect(barX, barY + 16, 160, 20, 999, 999, "FD");
+    setFont("bold", 9.5);
+    doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
+    txt(`${progresso.toFixed(1)}% da meta`, barX + 80, barY + 31, { align:"center" });
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+
+    // Card gráfico (mock premium)
+    const gx = x0 + leftW + colGap;
+    shadowCard(gx, y, rightW, cardH, 16);
+
+    setFont("bold", 11.5);
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    txt("Visão rápida", gx + 14, y + 26);
+
+    setFont("normal", 9.5);
+    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+    txt("Entradas vs Saídas (mês)", gx + 14, y + 44);
+
+    // mini gráfico (barras) proporcional
+    const chartX = gx + 14;
+    const chartY = y + 62;
+    const chartW = rightW - 28;
+    const chartH = 82;
+    rrect(chartX, chartY, chartW, chartH, 12, [248, 250, 252], C.border, 1);
+
+    const maxV = Math.max(entradas, saidas, 1);
+    const inW = (chartW - 34) * (entradas / maxV);
+    const outW = (chartW - 34) * (saidas / maxV);
+
+    // barras horizontais estilo "executivo"
+    doc.setFillColor(226, 232, 240);
+    doc.roundedRect(chartX + 12, chartY + 22, chartW - 24, 10, 999, 999, "F");
+    doc.roundedRect(chartX + 12, chartY + 48, chartW - 24, 10, 999, 999, "F");
+
+    doc.setFillColor(C.success[0], C.success[1], C.success[2]);
+    doc.roundedRect(chartX + 12, chartY + 22, Math.max(8, inW), 10, 999, 999, "F");
+
+    doc.setFillColor(C.danger[0], C.danger[1], C.danger[2]);
+    doc.roundedRect(chartX + 12, chartY + 48, Math.max(8, outW), 10, 999, 999, "F");
+
+    setFont("bold", 9.2);
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    txt("Entradas", chartX + 12, chartY + 16);
+    txt("Saídas", chartX + 12, chartY + 42);
+
+    setFont("normal", 9.2);
+    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+    txt(moneyBRAbs(entradas), chartX + chartW - 12, chartY + 30, { align:"right" });
+    txt(moneyBRAbs(saidas), chartX + chartW - 12, chartY + 56, { align:"right" });
+
+    y += cardH + 18;
+
+    // ===== Tabela =====
+    setFont("bold", 12);
+    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    txt("Lançamentos do mês", x0, y);
+
+    const body = rows.map(r => {
+      const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
+      const valorStr = moneyBR(Number(r.valor || 0));
+      return [
+        formatISOToBR(r.dataISO || ""),
+        tipo,
+        (r.categoria || "Outros"),
+        (r.descricao || "").toString(),
+        valorStr
+      ];
     });
 
+    doc.autoTable({
+      startY: y + 10,
+      head: [["Data", "Tipo", "Categoria", "Descrição", "Valor"]],
+      body,
+      margin: { left: x0, right: x0 },
+      styles: {
+        font: "helvetica",
+        fontSize: 9.0,
+        cellPadding: 6,
+        textColor: 30,
+        lineColor: 236
+      },
+      headStyles: {
+        fillColor: [12, 18, 38],
+        textColor: 255,
+        fontStyle: "bold"
+      },
+      alternateRowStyles: { fillColor: [248, 249, 251] },
+      columnStyles: {
+        0: { cellWidth: 70 },
+        1: { cellWidth: 62 },
+        2: { cellWidth: 108 },
+        3: { cellWidth: contentW - (70+62+108+92) },
+        4: { cellWidth: 92, halign: "right" }
+      },
+      didParseCell: function (data) {
+        if (data.section === "body" && data.column.index === 4){
+          const txtv = String(data.cell.raw || "");
+          if (txtv.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
+        }
+      }
+    });
+
+    // Rodapé
+    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : (pageH - 60);
+    doc.setDrawColor(C.border[0], C.border[1], C.border[2]);
+    doc.setLineWidth(1);
+    doc.line(x0, finalY + 18, x0 + contentW, finalY + 18);
+
+    setFont("normal", 9);
+    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
+    txt("Controle Premium • Relatório executivo", x0, finalY + 36);
+    txt(`Mês: ${mk}`, x0 + contentW, finalY + 36, { align:"right" });
+
     doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
-    showToast("PDF","Relatório gerado");
+    showToast("PDF ✅", "Relatório gerado no padrão Premium.");
   }
+
 // ===== DASHBOARD =====
   function makeChartCommonOptions(){
     return {
