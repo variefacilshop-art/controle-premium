@@ -4,18 +4,32 @@
 <meta charset="UTF-8" />
 <title>Controle Premium</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body{
   font-family: Arial, sans-serif;
   background:#020617;
-  color:#111;
+  color:white;
+  text-align:center;
+  padding-top:40px;
 }
 button{
-  padding:10px 16px;
+  padding:12px 20px;
   font-weight:bold;
+  border:none;
+  border-radius:8px;
+  background:#00c2ff;
+  color:#001018;
   cursor:pointer;
+}
+canvas{
+  background:white;
+  border-radius:8px;
+  margin-top:20px;
 }
 </style>
 </head>
@@ -24,41 +38,60 @@ button{
 <h2>Controle Premium</h2>
 <button onclick="gerarPDF()">Gerar PDF</button>
 
-<script>
-function gerarPDF(){
+<canvas id="grafico" width="400" height="200"></canvas>
 
+<script>
+const ctx = document.getElementById('grafico');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Entradas','Saídas','Saldo'],
+    datasets: [{ data: [10292,4500,5792] }]
+  },
+  options:{ plugins:{ legend:{ display:false } } }
+});
+
+function gerarPDF(){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // LOGO + TÍTULO (centralizado)
   doc.setFont("helvetica","bold");
   doc.setFontSize(18);
   doc.text("💎 Controle Premium", 105, 20, { align: "center" });
 
   doc.setFontSize(10);
   doc.setFont("helvetica","normal");
-  doc.text("Relatório Financeiro", 105, 26, { align: "center" });
+  doc.text("Relatório Financeiro • Fevereiro 2026", 105, 27, { align: "center" });
 
-  // linha separadora
-  doc.setDrawColor(200);
-  doc.line(20, 30, 190, 30);
+  doc.setDrawColor(220);
+  doc.line(20, 32, 190, 32);
 
-  // KPIs exemplo
   doc.setFontSize(12);
-  doc.text("Entradas: R$ 3.000,00", 20, 45);
-  doc.text("Saídas: R$ 1.200,00", 20, 55);
-  doc.text("Saldo: R$ 1.800,00", 20, 65);
+  doc.setFont("helvetica","bold");
+  doc.text("Entradas:", 20, 50);
+  doc.text("Saídas:", 20, 58);
+  doc.text("Saldo:", 20, 66);
 
-  // tabela exemplo
+  doc.setFont("helvetica","normal");
+  doc.text("R$ 10.292,00", 60, 50);
+  doc.text("R$ 4.500,00", 60, 58);
+  doc.text("R$ 5.792,00", 60, 66);
+
+  const canvas = document.getElementById("grafico");
+  const imgData = canvas.toDataURL("image/png");
+  doc.addImage(imgData, "PNG", 20, 75, 170, 60);
+
   doc.autoTable({
-    startY: 80,
-    head: [["Data","Descrição","Categoria","Valor"]],
+    startY: 145,
+    head: [["Data","Tipo","Categoria","Descrição","Valor"]],
     body: [
-      ["01/02/2026","Venda","Vendas","3000"],
-      ["02/02/2026","Mercado","Despesa","-1200"]
+      ["05/02/2026","Entrada","Vendas","teste","R$ 150,00"],
+      ["04/02/2026","Saída","Outros","reembolso","-R$ 2.000,00"],
+      ["04/02/2026","Entrada","Frete","frete receita","R$ 19,00"]
     ],
-    styles:{ halign:"center" },
-    headStyles:{ fillColor:[0,0,0] }
+    theme: 'grid',
+    headStyles:{ fillColor:[20,20,20], textColor:255 },
+    styles:{ fontSize:10 }
   });
 
   doc.save("relatorio.pdf");
