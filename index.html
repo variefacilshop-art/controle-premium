@@ -374,7 +374,6 @@
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
             <button class="btn btn-ghost" id="btnGerenciarBancos" type="button">🏦 Gerenciar bancos</button>
-            <button class="btn btn-ghost" id="btnGerenciarCategorias" type="button">🏷️ Categorias</button>
           </div>
         </div>
 
@@ -418,7 +417,17 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <select id="categoria"></select>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -713,55 +722,6 @@
     </div>
   </div>
 
-
-  <!-- Modal categorias -->
-  <div class="modalOverlay" id="catOverlay">
-    <div class="modal sm">
-      <div class="modalHead">
-        <h3>Gerenciar categorias</h3>
-        <button class="btn btn-ghost btn-icon" id="btnCatClose" type="button">✕</button>
-      </div>
-      <div class="modalBody">
-        <div class="row">
-          <div class="field"><label>Nova categoria</label><input id="catNome" placeholder="Ex: Ads, Marketplace, Energia..." /></div>
-          <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" id="btnCatAdd" type="button" style="width:100%">Adicionar</button></div>
-        </div>
-
-        <div class="catBox" style="margin-top:10px">
-          <div class="hint" style="margin:0 0 8px 0">Suas categorias</div>
-          <div id="catList" class="empty">Carregando…</div>
-        </div>
-
-        <div class="hint" style="margin-top:10px">Dica: “Outros” é categoria padrão e não pode ser apagada.</div>
-      </div>
-      <div class="modalFoot">
-        <button class="btn btn-ghost" id="btnCatFechar2" type="button">Fechar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal editar categoria -->
-  <div class="modalOverlay" id="catEditOverlay">
-    <div class="modal sm">
-      <div class="modalHead">
-        <h3>Editar categoria</h3>
-        <button class="btn btn-ghost btn-icon" id="btnCatEditClose" type="button">✕</button>
-      </div>
-      <div class="modalBody">
-        <div class="field">
-          <label>Novo nome</label>
-          <input id="catEditNome" />
-          <div class="hint">Isso também atualiza os lançamentos que usavam esta categoria.</div>
-        </div>
-      </div>
-      <div class="modalFoot">
-        <button class="btn btn-ghost" id="btnCatEditCancelar" type="button">Cancelar</button>
-        <button class="btn btn-primary" id="btnCatEditSalvar" type="button">Salvar</button>
-      </div>
-    </div>
-  </div>
-
-
   <!-- Modal OFX -->
   <div class="modalOverlay" id="ofxOverlay">
     <div class="modal lg">
@@ -913,22 +873,6 @@
   const btnBankAdd = document.getElementById("btnBankAdd");
   const bankList = document.getElementById("bankList");
 
-  // Categorias
-  const btnGerenciarCategorias = document.getElementById("btnGerenciarCategorias");
-  const catOverlay = document.getElementById("catOverlay");
-  const btnCatClose = document.getElementById("btnCatClose");
-  const btnCatFechar2 = document.getElementById("btnCatFechar2");
-  const catNome = document.getElementById("catNome");
-  const btnCatAdd = document.getElementById("btnCatAdd");
-  const catList = document.getElementById("catList");
-
-  const catEditOverlay = document.getElementById("catEditOverlay");
-  const btnCatEditClose = document.getElementById("btnCatEditClose");
-  const btnCatEditCancelar = document.getElementById("btnCatEditCancelar");
-  const btnCatEditSalvar = document.getElementById("btnCatEditSalvar");
-  const catEditNome = document.getElementById("catEditNome");
-
-
   const dashTitleSub = document.getElementById("dashTitleSub");
   const chkComparar = document.getElementById("chkComparar");
   const multiMonthsWrap = document.getElementById("multiMonthsWrap");
@@ -965,9 +909,6 @@
 
   let banksCache = [];
   let ofxRows = [];
-
-  let categoriasCache = [];
-  let editingCategoria = null;
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1176,166 +1117,6 @@
       </div>
     `).join("");
   }
-
-
-  // ===== CATEGORIAS =====
-  const DEFAULT_CATEGORIAS = [
-    "Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"
-  ];
-
-  async function loadCategorias(){
-    if (!currentUser) return;
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error) throw error;
-    categoriasCache = (data || []).map(x => ({ id: x.id, nome: x.nome }));
-  }
-
-  async function ensureDefaultCategorias(){
-    if (!currentUser) return;
-    await loadCategorias();
-    if (categoriasCache.length) return;
-
-    // cria padrão (inclui "Outros")
-    const payload = DEFAULT_CATEGORIAS.map(nome => ({ user_id: currentUser.id, nome }));
-    const { error } = await supa.from("categorias").insert(payload);
-    if (error) throw error;
-    await loadCategorias();
-  }
-
-  function normalizeCatName(name){
-    return (name || "").toString().replace(/\s+/g, " ").trim();
-  }
-
-  async function ensureCategoriaExists(nome){
-    const n = normalizeCatName(nome);
-    if (!n) return "Outros";
-    const exists = categoriasCache.some(c => c.nome.toLowerCase() === n.toLowerCase());
-    if (exists) return categoriasCache.find(c => c.nome.toLowerCase() === n.toLowerCase())?.nome || n;
-    const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
-    if (error) throw error;
-    await loadCategorias();
-    return n;
-  }
-
-  function fillCategoriaSelects(){
-    const list = categoriasCache.length ? categoriasCache.map(c => c.nome) : DEFAULT_CATEGORIAS;
-    const unique = Array.from(new Set(list.filter(Boolean).map(normalizeCatName))).filter(Boolean);
-
-    // garante "Outros" no final
-    const hasOutros = unique.some(x => x.toLowerCase() === "outros");
-    const final = unique.filter(x => x.toLowerCase() !== "outros").sort((a,b) => a.localeCompare(b, "pt-BR"));
-    final.push(hasOutros ? unique.find(x => x.toLowerCase()==="outros") : "Outros");
-
-    categoriaEl.innerHTML = final.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-    if (!categoriaEl.value) categoriaEl.value = "Outros";
-
-    // Filtro
-    fillCategoriaFilter(final, currentFiltroCategoria);
-  }
-
-
-  function categoriaOptionsHTML(selected){
-    const list = categoriasCache.length ? categoriasCache.map(c => c.nome) : DEFAULT_CATEGORIAS;
-    const unique = Array.from(new Set(list.filter(Boolean).map(normalizeCatName))).filter(Boolean);
-    const hasOutros = unique.some(x => x.toLowerCase() === "outros");
-    const final = unique.filter(x => x.toLowerCase() !== "outros").sort((a,b) => a.localeCompare(b, "pt-BR"));
-    final.push(hasOutros ? unique.find(x => x.toLowerCase()==="outros") : "Outros");
-    const sel = normalizeCatName(selected) || "Outros";
-    return final.map(n => `<option value="${escapeHtml(n)}" ${n.toLowerCase()===sel.toLowerCase()?"selected":""}>${escapeHtml(n)}</option>`).join("");
-  }
-
-
-  function openCatModal(){
-    catOverlay.classList.add("show");
-    renderCatList();
-  }
-  function closeCatModal(){
-    catOverlay.classList.remove("show");
-    catNome.value = "";
-  }
-
-  function renderCatList(){
-    const list = categoriasCache.length ? categoriasCache.slice() : DEFAULT_CATEGORIAS.map((n,i)=>({id: "local_"+i, nome:n}));
-    list.sort((a,b)=> a.nome.localeCompare(b.nome, "pt-BR"));
-    catList.innerHTML = list.map(c => {
-      const locked = (String(c.nome).toLowerCase() === "outros");
-      return `
-        <div class="item" style="padding:10px 10px">
-          <div class="leftcol">
-            <div class="desc">🏷️ ${escapeHtml(c.nome)}</div>
-          </div>
-          <div class="rightcol">
-            <button class="btn btn-icon btn-icon-edit" data-cat-edit="1" data-id="${escapeHtml(String(c.id))}" data-nome="${escapeHtml(String(c.nome))}" title="Editar">✏️</button>
-            <button class="btn btn-icon btn-icon-danger" data-cat-del="1" data-id="${escapeHtml(String(c.id))}" data-nome="${escapeHtml(String(c.nome))}" title="Excluir" ${locked ? "disabled" : ""}>🗑️</button>
-          </div>
-        </div>
-      `;
-    }).join("") || `<div class="empty">Nenhuma categoria.</div>`;
-  }
-
-  function openCatEdit(cat){
-    editingCategoria = cat;
-    catEditNome.value = cat.nome || "";
-    catEditOverlay.classList.add("show");
-  }
-  function closeCatEdit(){
-    catEditOverlay.classList.remove("show");
-    editingCategoria = null;
-  }
-
-  async function renameCategoria(catId, oldName, newName){
-    const novo = normalizeCatName(newName);
-    const antigo = normalizeCatName(oldName);
-    if (!novo) throw new Error("Nome inválido.");
-    if (antigo.toLowerCase() === "outros") throw new Error("A categoria 'Outros' não pode ser editada.");
-
-    // 1) atualiza a tabela categorias
-    const { error: e1 } = await supa
-      .from("categorias")
-      .update({ nome: novo })
-      .eq("id", catId)
-      .eq("user_id", currentUser.id);
-    if (e1) throw e1;
-
-    // 2) atualiza registros que usam a categoria antiga
-    const { error: e2 } = await supa
-      .from("registros")
-      .update({ categoria: novo })
-      .eq("user_id", currentUser.id)
-      .eq("categoria", antigo);
-    if (e2) throw e2;
-
-    await loadCategorias();
-    fillCategoriaSelects();
-  }
-
-  async function deleteCategoria(catId, nome){
-    const n = normalizeCatName(nome);
-    if (n.toLowerCase() === "outros") throw new Error("A categoria 'Outros' não pode ser apagada.");
-
-    // move lançamentos dessa categoria para "Outros"
-    const { error: e1 } = await supa
-      .from("registros")
-      .update({ categoria: "Outros" })
-      .eq("user_id", currentUser.id)
-      .eq("categoria", n);
-    if (e1) throw e1;
-
-    const { error: e2 } = await supa
-      .from("categorias")
-      .delete()
-      .eq("id", catId)
-      .eq("user_id", currentUser.id);
-    if (e2) throw e2;
-
-    await loadCategorias();
-    fillCategoriaSelects();
-  }
-
 
   // ===== REGISTROS =====
   async function fetchMonthsFromRegistros(userId){
@@ -2092,7 +1873,17 @@
         </td>
         <td class="ofxMoney"><input class="ofxMoney" data-ofx-valor type="number" value="${escapeHtml(String(r.valor))}"></td>
         <td>
-          <select data-ofx-cat>${categoriaOptionsHTML(r.categoria)}</select>
+          <select data-ofx-cat>
+            <option value="Vendas">Vendas</option>
+            <option value="Tráfego">Tráfego</option>
+            <option value="Fornecedor">Fornecedor</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Frete/Logística">Frete/Logística</option>
+            <option value="Impostos/Taxas">Impostos/Taxas</option>
+            <option value="Mercado">Mercado</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Outros" selected>Outros</option>
+          </select>
         </td>
         <td><input class="ofxDesc" data-ofx-desc value="${escapeHtml(r.descricao)}"></td>
       </tr>
@@ -2249,16 +2040,6 @@
     }
 
     if (!inserts.length){ showToast("Importar", "Nenhuma linha válida encontrada."); return; }
-
-    // garante categorias do CSV
-    try{
-      await ensureDefaultCategorias();
-      const uniqCats = Array.from(new Set(inserts.map(x => normalizeCatName(x.categoria || "Outros")).filter(Boolean)));
-      for (const c of uniqCats){
-        if (c) await ensureCategoriaExists(c);
-      }
-      fillCategoriaSelects();
-    }catch(_e){}
 
     importInfo.textContent = `Importando… (${ok} válidas, ${bad} inválidas)`;
     try{
@@ -2426,20 +2207,6 @@
   btnConfirmar.addEventListener("click", async () => {
     if (!currentUser || !pendingDelete) return;
     try{
-      // Exclusão de categoria (gerenciada via modal padrão)
-      if (pendingDelete.kind === "categoria"){
-        const nome = pendingDelete.nome || "";
-        const id = pendingDelete.id;
-        await deleteCategoria(id, nome);
-        closeDeleteModal();
-        showToast("Categoria ✅", "Categoria excluída.");
-        renderCatList();
-        await refreshUI();
-        if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-        return;
-      }
-
-      // Exclusão de lançamento
       const { error } = await supa.from("registros").delete().eq("id", pendingDelete.id).eq("user_id", currentUser.id);
       if (error) throw error;
       closeDeleteModal();
@@ -2450,7 +2217,6 @@
       showToast("Excluir", err.message || String(err));
     }
   });
-
 
   btnEditClose.addEventListener("click", closeEditModal);
   btnEditCancelar.addEventListener("click", closeEditModal);
@@ -2471,13 +2237,11 @@
     const desc = editDescricaoEl.value.trim();
     if (!desc){ showToast("Descrição", "Preencha a descrição."); return; }
 
-    const catRaw = (editCategoriaEl.value || "Outros").trim() || "Outros";
-    let cat = catRaw;
+    const cat = (editCategoriaEl.value || "Outros").trim() || "Outros";
     const bankId = (editBancoSelect.value || "").trim() || null;
     const mesAuto = monthKeyFromDateObj(new Date(dataISO + "T00:00:00"));
 
     try{
-      cat = await ensureCategoriaExists(catRaw);
       const { error } = await supa.from("registros").update({
         data: dataISO,
         mes: mesAuto,
@@ -2549,8 +2313,6 @@
     try{
       await loadBanks();
       fillBankSelects();
-      await ensureDefaultCategorias();
-      fillCategoriaSelects();
       openBankModal();
     }catch(e){
       showToast("Bancos", e.message || String(e));
@@ -2592,83 +2354,6 @@
       showToast("Bancos", err.message || String(err));
     }
   });
-
-
-  // Categorias
-  btnGerenciarCategorias.addEventListener("click", async () => {
-    if (!currentUser) return;
-    try{
-      await ensureDefaultCategorias();
-      await loadCategorias();
-      fillCategoriaSelects();
-      openCatModal();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  });
-
-  function closeAllCatModals(){
-    closeCatEdit();
-    closeCatModal();
-  }
-
-  btnCatClose.addEventListener("click", closeCatModal);
-  btnCatFechar2.addEventListener("click", closeCatModal);
-  catOverlay.addEventListener("click", (e) => { if (e.target === catOverlay) closeCatModal(); });
-
-  btnCatAdd.addEventListener("click", async () => {
-    if (!currentUser) return;
-    const nome = normalizeCatName(catNome.value);
-    if (!nome){ showToast("Categorias", "Digite o nome da categoria."); return; }
-    try{
-      await ensureDefaultCategorias();
-      await ensureCategoriaExists(nome);
-      catNome.value = "";
-      renderCatList();
-      showToast("Categorias ✅", "Categoria adicionada.");
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  });
-
-  catList.addEventListener("click", async (e) => {
-    const editBtn = e.target.closest("[data-cat-edit]");
-    const delBtn = e.target.closest("[data-cat-del]");
-    if (editBtn){
-      openCatEdit({ id: editBtn.dataset.id, nome: editBtn.dataset.nome });
-      return;
-    }
-    if (delBtn){
-      const id = delBtn.dataset.id;
-      const nome = delBtn.dataset.nome || "";
-      if (String(nome).toLowerCase() === "outros") return;
-
-      // reutiliza modal de exclusão
-      pendingDelete = { kind: "categoria", id, nome };
-      modalBody.innerHTML = `Excluir a categoria?<br><br><b>${escapeHtml(nome)}</b><br><span class="hint">Os lançamentos dessa categoria serão movidos para “Outros”.</span>`;
-      modalOverlay.classList.add("show");
-    }
-  });
-
-  btnCatEditClose.addEventListener("click", closeCatEdit);
-  btnCatEditCancelar.addEventListener("click", closeCatEdit);
-  catEditOverlay.addEventListener("click", (e) => { if (e.target === catEditOverlay) closeCatEdit(); });
-
-  btnCatEditSalvar.addEventListener("click", async () => {
-    if (!currentUser || !editingCategoria) return;
-    const novo = normalizeCatName(catEditNome.value);
-    try{
-      await renameCategoria(editingCategoria.id, editingCategoria.nome, novo);
-      showToast("Categorias ✅", "Categoria atualizada.");
-      closeCatEdit();
-      renderCatList();
-      await refreshUI();
-      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  });
-
 
   // Dashboard controls
   chkComparar.addEventListener("change", async () => {
@@ -2715,7 +2400,6 @@
       bancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
-      try{ await ensureDefaultCategorias(); fillCategoriaSelects(); }catch(_e){}
     }
 
     let months = [getDefaultMonth()];
@@ -2736,7 +2420,7 @@
 
     try{
       const fin = await fetchRegistrosByMonth(currentUser.id, currentMonth);
-      fillCategoriaSelects();
+      fillCategoriaFilter(fin.categorias.length ? fin.categorias : ["Vendas","Outros"], currentFiltroCategoria);
       renderFinancas(fin);
     }catch(e){
       showToast("Finanças", e.message || String(e));
