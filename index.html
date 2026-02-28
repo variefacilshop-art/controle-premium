@@ -632,8 +632,6 @@
               <div class="head"><h2>Alertas inteligentes</h2><span>Rodapé do dashboard</span></div>
               <div class="body">
                 <div id="dashAlerts"><div class="empty">Carregando…</div></div>
-                <div style="height:10px"></div>
-                <div id="dashInsights"></div>
                 <div class="hint" id="dashHintAlerts">—</div>
               </div>
             </div>
@@ -1748,46 +1746,6 @@
       else if (fin.rows.length) alerts.push({ title:"💰 Saldo", msg:`Saldo do mês: ${brl(fin.saldo)}.` });
 
       renderAlertsSimple(alerts);
-
-      // ===== INSIGHTS FINANCEIROS =====
-      const insights = [];
-
-      // Maior gasto
-      const gastos = {};
-      for (const r of fin.rows){
-        if (r.valor < 0){
-          const cat = r.categoria || "Outros";
-          gastos[cat] = (gastos[cat] || 0) + Math.abs(r.valor);
-        }
-      }
-      const top = Object.entries(gastos).sort((a,b)=>b[1]-a[1])[0];
-      if(top){
-        insights.push(`💸 Maior gasto: <b>${top[0]}</b> (${brl(top[1])})`);
-      }
-
-      // Previsão de saldo
-      if(fin.rows.length){
-        const hoje = new Date().getDate();
-        const diasMes = new Date().getDate() + (30-hoje);
-        const media = fin.saldo / hoje;
-        const previsao = media * diasMes;
-        insights.push(`🔮 Previsão de saldo no fim do mês: <b>${brl(previsao)}</b>`);
-      }
-
-      // Categoria dominante
-      if(top){
-        const totalSaidas = Object.values(gastos).reduce((a,b)=>a+b,0);
-        const perc = ((top[1]/totalSaidas)*100).toFixed(0);
-        insights.push(`🏆 Categoria dominante: <b>${top[0]}</b> (${perc}% das saídas)`);
-      }
-
-      const insightsEl = document.getElementById("dashInsights");
-      insightsEl.innerHTML = insights.map(i => `
-        <div class="catBox" style="margin:0">
-          <div style="font-weight:700">${i}</div>
-        </div>
-      `).join("");
-
       dashHintAlerts.textContent = "Alertas atualizados.";
 
       const daily = buildDailySeries(fin);
