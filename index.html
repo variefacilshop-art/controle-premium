@@ -416,7 +416,10 @@
 
           <div class="row">
             <div class="field">
-              <label>Categoria</label>
+              <label style="display:flex;align-items:center;justify-content:space-between">
+  Categoria
+  <button type="button" id="btnAddCategoria" style="background:none;border:none;color:#38bdf8;font-size:18px;cursor:pointer">＋</button>
+</label>
               <select id="categoria">
                 <option value="Vendas">Vendas</option>
                 <option value="Tráfego">Tráfego</option>
@@ -686,7 +689,10 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
+          <div class="field"><label style="display:flex;align-items:center;justify-content:space-between">
+  Categoria
+  <button type="button" id="btnAddCategoria" style="background:none;border:none;color:#38bdf8;font-size:18px;cursor:pointer">＋</button>
+</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -2342,5 +2348,26 @@ function openCategoriasModal(){
 }
 </script>
 
-</body>
+<script>
+// ===== NOVA CATEGORIA =====
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnAddCategoria");
+  const categoriaEl = document.getElementById("categoria");
+
+  if(btn && categoriaEl){
+    btn.onclick = () => {
+      const nome = prompt("Nova categoria:");
+      if (!nome || nome.trim() === "") return;
+
+      const nova = nome.trim();
+
+      const opt = document.createElement("option");
+      opt.value = nova;
+      opt.textContent = nova;
+      categoriaEl.appendChild(opt);
+      categoriaEl.value = nova;
+    };
+  }
+});
+</script></body>
 </html>
