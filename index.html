@@ -86,6 +86,13 @@
     .btn-icon-danger{ background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.22); color: #ffb4b4; }
     .btn-icon-edit{ background: rgba(0,194,255,.10); border: 1px solid rgba(0,194,255,.22); color: rgba(200,245,255,.95); }
 
+    /* botão discreto de exclusão em massa */
+    #btnExcluirSelecionados{
+      background: rgba(239,68,68,.12);
+      border: 1px solid rgba(239,68,68,.22);
+      color: #ffb4b4;
+    }
+
     .tabs{ display:flex; gap:10px; align-items:center; margin: 10px 0 16px; flex-wrap:wrap; }
     .tab{
       padding: 10px 14px; border-radius: 999px;
@@ -159,11 +166,13 @@
 
     .list{ max-height: 520px; overflow:auto; }
     .item{
-      display:flex; justify-content:space-between; gap:12px;
+      display:flex; gap:12px;
       padding: 14px 16px;
       border-bottom: 1px solid rgba(148,163,184,.10);
       align-items:center;
     }
+    .selectcol{ width: 34px; display:flex; align-items:center; justify-content:center; flex: 0 0 34px; }
+    .selectcol input{ width: 18px; height: 18px; accent-color: var(--cyan); cursor:pointer; }
     .item:last-child{ border-bottom:none; }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -480,10 +489,11 @@
       <div class="card">
         <div class="head">
           <div>
-            <h2>Movimentações</h2><button onclick='excluirSelecionados()' class='btn btn-danger' style='margin-left:10px'>Excluir selecionados</button>
+            <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost hidden" id="btnExcluirSelecionados" type="button" title="Excluir lançamentos selecionados">🗑️ Excluir (0)</button>
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
           </div>
@@ -538,6 +548,16 @@
               </div>
               <div class="hint" id="progressText">0% da meta</div>
             </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div class="field">
+            <label>Faturamento (Entradas) por dia</label>
+            <div class="catBox" style="height:260px">
+              <canvas id="chartMetaFaturamento" style="width:100%;height:100%"></canvas>
+            </div>
+            <div class="hint" id="metaHintChart">Carregando…</div>
           </div>
         </div>
       </div>
@@ -803,6 +823,7 @@
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
   const btnPdf = document.getElementById("btnPdf");
+  const btnExcluirSelecionados = document.getElementById("btnExcluirSelecionados");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
   const buscaInfo = document.getElementById("buscaInfo");
@@ -842,6 +863,8 @@
   const mediaDiaKpi = document.getElementById("mediaDiaKpi");
   const bar = document.getElementById("bar");
   const progressText = document.getElementById("progressText");
+  const metaHintChart = document.getElementById("metaHintChart");
+  const chartMetaFaturamentoEl = document.getElementById("chartMetaFaturamento");
 
   const toast = document.getElementById("toast");
   const toastTitle = document.getElementById("toastTitle");
@@ -896,6 +919,7 @@
 
   let chartDiario = null;
   let chartComparacao = null;
+  let chartMetaFaturamento = null;
 
   let currentUser = null;
   let currentMonth = null;
@@ -1193,8 +1217,12 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
+      const isSel = selecionados.includes(String(r.id));
       return `
         <div class="item">
+          <div class="selectcol">
+            <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" ${isSel ? "checked" : ""}>
+          </div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1205,7 +1233,7 @@
             </div>
           </div>
           <div class="rightcol">
-            <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount ${cls}">${brl(r.valor)}</div>
+            <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
               data-edit="1"
@@ -1229,6 +1257,9 @@
         </div>
       `;
     }).join("");
+
+    // botão de exclusão em massa (só aparece quando há seleção)
+    updateExcluirBtn();
   }
 
   // ===== METAS =====
@@ -1260,6 +1291,44 @@
     const perc = meta > 0 ? (entradasMes / meta) * 100 : 0;
     bar.style.width = Math.max(0, Math.min(perc, 100)) + "%";
     progressText.textContent = `${(Math.min(perc, 100)).toFixed(1)}% da meta • ${dias} dias`;
+
+    // gráfico de colunas (faturamento/entradas por dia)
+    try{ renderMetaFaturamento(fin, mes); }
+    catch(e){ metaHintChart.textContent = "Falha ao carregar gráfico."; }
+  }
+
+  function buildDailyEntradasSeries(fin){
+    const endDay = fin.range?.endDay || 30;
+    const daily = Array.from({length: endDay}, (_,i) => ({ day: i+1, total: 0 }));
+    for (const r of (fin.rows || [])){
+      if (Number(r.valor || 0) <= 0) continue; // só entradas
+      const m = (r.dataISO || "").match(/^\d{4}-\d{2}-(\d{2})$/);
+      if (!m) continue;
+      const d = Number(m[1]);
+      if (d >= 1 && d <= endDay) daily[d-1].total += Number(r.valor || 0);
+    }
+    return {
+      labels: daily.map(x => String(x.day)),
+      values: daily.map(x => x.total)
+    };
+  }
+
+  function renderMetaFaturamento(fin, mes){
+    if (!chartMetaFaturamentoEl) return;
+    const s = buildDailyEntradasSeries(fin);
+    if (!chartMetaFaturamento){
+      chartMetaFaturamento = new Chart(chartMetaFaturamentoEl, {
+        type: "bar",
+        data: { labels: s.labels, datasets: [{ label: `Faturamento (${mes})`, data: s.values }] },
+        options: makeChartCommonOptions()
+      });
+    } else {
+      chartMetaFaturamento.data.labels = s.labels;
+      chartMetaFaturamento.data.datasets[0].label = `Faturamento (${mes})`;
+      chartMetaFaturamento.data.datasets[0].data = s.values;
+      chartMetaFaturamento.update();
+    }
+    metaHintChart.textContent = "Gráfico atualizado.";
   }
 
   // ===== CSV EXPORT =====
@@ -2084,6 +2153,8 @@
     if (!currentUser) return;
     currentMonth = mesSelect.value;
     metaMesEl.value = currentMonth;
+    selecionados = [];
+    updateExcluirBtn();
     await refreshUI();
   });
 
@@ -2154,6 +2225,7 @@
 
   // PDF
   btnPdf.addEventListener("click", generatePDFClassic);
+  btnExcluirSelecionados.addEventListener("click", excluirSelecionados);
 
   // Editar / Excluir
   function openDeleteModal(item){
@@ -2536,29 +2608,40 @@ async function editarCategoria(id,nome){
 <script>
 let selecionados = [];
 
+function updateExcluirBtn(){
+  if (!btnExcluirSelecionados) return;
+  const n = selecionados.length;
+  btnExcluirSelecionados.textContent = `🗑️ Excluir (${n})`;
+  btnExcluirSelecionados.classList.toggle("hidden", n === 0);
+}
+
 function toggleSelecionado(id, el){
+  const sid = String(id);
   if(el.checked){
-    if(!selecionados.includes(id)) selecionados.push(id);
+    if(!selecionados.includes(sid)) selecionados.push(sid);
   } else {
-    selecionados = selecionados.filter(i=>i!==id);
+    selecionados = selecionados.filter(i=>i!==sid);
   }
+  updateExcluirBtn();
 }
 
 async function excluirSelecionados(){
   if(selecionados.length===0){
-    alert("Selecione lançamentos");
+    showToast("Excluir", "Selecione lançamentos");
     return;
   }
-  if(!confirm("Excluir selecionados?")) return;
+  if(!confirm("Excluir " + selecionados.length + " selecionados?")) return;
 
-  const { error } = await supa.from("registros").delete().in("id", selecionados);
+  const { error } = await supa.from("registros").delete().in("id", selecionados).eq("user_id", currentUser.id);
   if(error){
-    alert("Erro ao excluir");
+    showToast("Excluir", error.message || "Erro ao excluir");
     return;
   }
 
   selecionados=[];
+  updateExcluirBtn();
   refreshUI();
+  showToast("Excluído ✅", "Lançamentos removidos.");
 }
 </script>
 
