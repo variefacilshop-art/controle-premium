@@ -325,80 +325,7 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  
-    /* ===== CATEGORIAS POPUP + EXCLUSÃO MÚLTIPLA (PREMIUM) ===== */
-    .catInlineWrap{ position: relative; }
-    .catManageBtn{
-      position:absolute; right:8px; top:50%;
-      transform: translateY(-50%);
-      width:34px; height:34px;
-      border-radius: 12px;
-      border: 1px solid rgba(0,194,255,.22);
-      background: rgba(0,194,255,.10);
-      color: rgba(200,245,255,.95);
-      display:grid; place-items:center;
-      cursor:pointer;
-      user-select:none;
-    }
-    .catInlineWrap select{ padding-right: 48px; }
-
-    .catRow{
-      display:flex; gap:10px; align-items:center;
-      padding: 10px 10px;
-      border: 1px solid rgba(148,163,184,.12);
-      background: rgba(2,6,23,.35);
-      border-radius: 14px;
-      margin-bottom: 10px;
-    }
-    .catRow input{
-      flex:1;
-      margin:0;
-    }
-    .catList .item{ padding: 12px 12px; }
-    .catList .rightcol{ gap:8px; }
-
-    .bulkBar{
-      position: sticky;
-      top: 0;
-      z-index: 5;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      padding: 10px 12px;
-      background: rgba(2,6,23,.92);
-      border-bottom: 1px solid rgba(148,163,184,.10);
-      backdrop-filter: blur(10px);
-    }
-    .bulkLeft{
-      display:flex; align-items:center; gap:10px;
-      color: rgba(226,232,240,.85);
-      font-size: 12px;
-      flex-wrap:wrap;
-    }
-    .bulkPill{
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,.14);
-      background: rgba(2,6,23,.40);
-      color: rgba(226,232,240,.85);
-      font-weight: 900;
-    }
-    .chkCell{
-      width: 34px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex: 0 0 34px;
-    }
-    .chkCell input{
-      width: 18px; height: 18px;
-      accent-color: var(--cyan);
-      cursor: pointer;
-    }
-    .item{ align-items:center; }
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -490,9 +417,7 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              
-              <div class="catInlineWrap">
-                <select id="categoria">
+              <select id="categoria">
                 <option value="Vendas">Vendas</option>
                 <option value="Tráfego">Tráfego</option>
                 <option value="Fornecedor">Fornecedor</option>
@@ -503,9 +428,6 @@
                 <option value="Lazer">Lazer</option>
                 <option value="Outros">Outros</option>
               </select>
-                <button class="catManageBtn" id="btnCategorias" type="button" title="Gerenciar categorias">+</button>
-              </div>
-
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -573,14 +495,6 @@
           </div>
         </div>
         <div class="list" id="lista">
-          <div class="bulkBar" id="bulkBar" style="display:none">
-            <div class="bulkLeft">
-              <span class="bulkPill" id="bulkCount">0 selecionado(s)</span>
-              <button class="btn btn-ghost" id="btnBulkAll" type="button">Marcar tudo</button>
-              <button class="btn btn-ghost" id="btnBulkNone" type="button">Limpar</button>
-            </div>
-            <button class="btn btn-danger" id="btnBulkDelete" type="button">Excluir selecionados</button>
-          </div>
           <div class="empty">Nenhum registro neste mês.</div>
         </div>
       </div>
@@ -772,7 +686,7 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><select id="editCategoria"></select></div>
+          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -854,31 +768,6 @@
       <div class="modalFoot">
         <button class="btn btn-ghost" id="btnOfxCancelar" type="button">Cancelar</button>
         <button class="btn btn-primary" id="btnOfxConfirmar" type="button">Confirmar lançamentos</button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Modal Categorias -->
-  <div class="modalOverlay" id="catOverlay">
-    <div class="modal sm">
-      <div class="modalHead">
-        <h3>Categorias</h3>
-        <button class="btn btn-ghost btn-icon" id="btnCatClose" type="button">✕</button>
-      </div>
-      <div class="modalBody">
-        <div class="catRow">
-          <input id="catNome" placeholder="Nova categoria (ex: Marketplace, Ads...)" />
-          <button class="btn btn-primary" id="btnCatAdd" type="button">Adicionar</button>
-        </div>
-        <div class="hint" style="margin-top:-2px">Dica: clique no ✏️ para renomear e na 🗑️ para excluir.</div>
-        <div class="catBox" style="margin-top:12px">
-          <div class="hint" style="margin:0 0 8px 0">Sua lista</div>
-          <div id="catList" class="catList"><div class="empty">Carregando…</div></div>
-        </div>
-      </div>
-      <div class="modalFoot">
-        <button class="btn btn-ghost" id="btnCatFechar2" type="button">Fechar</button>
       </div>
     </div>
   </div>
@@ -984,23 +873,6 @@
   const btnBankAdd = document.getElementById("btnBankAdd");
   const bankList = document.getElementById("bankList");
 
-  // Categorias
-  const btnCategorias = document.getElementById("btnCategorias");
-  const catOverlay = document.getElementById("catOverlay");
-  const btnCatClose = document.getElementById("btnCatClose");
-  const btnCatFechar2 = document.getElementById("btnCatFechar2");
-  const catNome = document.getElementById("catNome");
-  const btnCatAdd = document.getElementById("btnCatAdd");
-  const catList = document.getElementById("catList");
-
-  // Exclusão múltipla
-  const bulkBar = document.getElementById("bulkBar");
-  const bulkCount = document.getElementById("bulkCount");
-  const btnBulkAll = document.getElementById("btnBulkAll");
-  const btnBulkNone = document.getElementById("btnBulkNone");
-  const btnBulkDelete = document.getElementById("btnBulkDelete");
-
-
   const dashTitleSub = document.getElementById("dashTitleSub");
   const chkComparar = document.getElementById("chkComparar");
   const multiMonthsWrap = document.getElementById("multiMonthsWrap");
@@ -1036,10 +908,6 @@
   let editingItem = null;
 
   let banksCache = [];
-
-  let categoriasCache = [];
-  let selectedIds = new Set();
-
   let ofxRows = [];
 
   function showToast(title, msg){
@@ -1156,154 +1024,6 @@
       opt.textContent = c;
       filtroCategoriaEl.appendChild(opt);
     }
-
-  // ===== CATEGORIAS (Supabase) =====
-  const DEFAULT_CATS = ["Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"];
-
-  async function loadCategorias(){
-    if (!currentUser) return;
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error) throw error;
-    categoriasCache = (data || []).map(x => ({ id: x.id, nome: (x.nome || "").trim() })).filter(x => x.nome);
-  }
-
-  function getCategoriasMerged(){
-    const set = new Set(DEFAULT_CATS);
-    for (const c of categoriasCache) set.add(c.nome);
-    return Array.from(set).sort((a,b) => a.localeCompare(b, "pt-BR"));
-  }
-
-  function fillCategoriaSelects(){
-    const list = getCategoriasMerged();
-    const makeOpts = (selected) => list.map(n => {
-      const sel = (n === selected) ? "selected" : "";
-      return `<option value="${escapeHtml(n)}" ${sel}>${escapeHtml(n)}</option>`;
-    }).join("");
-
-    // categoria principal
-    const current = categoriaEl.value || "Vendas";
-    categoriaEl.innerHTML = makeOpts(current);
-    if (!categoriaEl.value) categoriaEl.value = current;
-
-    // editar
-    const editCurrent = editCategoriaEl ? (editCategoriaEl.value || "Outros") : "Outros";
-    const editSel = document.getElementById("editCategoria");
-    if (editSel){
-      const cur = (editSel.value || editCurrent);
-      editSel.innerHTML = makeOpts(cur);
-      if (!editSel.value) editSel.value = cur;
-    }
-
-    // OFX (se existir select por linha, mantemos o fixo)
-  }
-
-  function openCategoriasModal(){
-    catOverlay.classList.add("show");
-    renderCategoriasList();
-    setTimeout(() => catNome?.focus(), 50);
-  }
-  function closeCategoriasModal(){
-    catOverlay.classList.remove("show");
-    catNome.value = "";
-  }
-
-  function renderCategoriasList(){
-    const items = getCategoriasMerged();
-    if (!items.length){
-      catList.innerHTML = `<div class="empty">Nenhuma categoria.</div>`;
-      return;
-    }
-    catList.innerHTML = items.map(nome => `
-      <div class="item">
-          <div class="chkCell"><input type="checkbox" data-bulk-chk="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""}></div>
-          <div class="leftcol">
-          <div class="desc">${escapeHtml(nome)}</div>
-          <div class="hint" style="margin:0">Clique no ✏️ para renomear</div>
-        </div>
-        <div class="rightcol">
-          <button class="btn btn-icon btn-icon-edit" type="button" data-cat-edit="1" data-nome="${escapeHtml(nome)}" title="Editar">✏️</button>
-          <button class="btn btn-icon btn-icon-danger" type="button" data-cat-del="1" data-nome="${escapeHtml(nome)}" title="Excluir">🗑️</button>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  async function addCategoria(nome){
-    const n = (nome || "").trim();
-    if (!n) return;
-    // evita duplicar no supabase
-    const exists = categoriasCache.some(c => c.nome.toLowerCase() === n.toLowerCase());
-    if (exists){ showToast("Categorias", "Essa categoria já existe."); return; }
-    const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
-    if (error) throw error;
-    await loadCategorias();
-    fillCategoriaSelects();
-    renderCategoriasList();
-  }
-
-  async function renameCategoria(oldName, newName){
-    const o = (oldName || "").trim();
-    const n = (newName || "").trim();
-    if (!o || !n) return;
-    // se categoria era default e não existe no banco, criamos a nova e, opcionalmente, migramos registros do old para new
-    // Aqui: sempre atualiza registros e garante new no banco.
-    const { error: up1 } = await supa.from("registros").update({ categoria: n }).eq("user_id", currentUser.id).eq("categoria", o);
-    if (up1) throw up1;
-
-    // remove old do banco (se existir) e garante new
-    const oldRow = categoriasCache.find(c => c.nome.toLowerCase() === o.toLowerCase());
-    if (oldRow){
-      const { error: delErr } = await supa.from("categorias").delete().eq("id", oldRow.id).eq("user_id", currentUser.id);
-      if (delErr) throw delErr;
-    }
-    const existsNew = categoriasCache.some(c => c.nome.toLowerCase() === n.toLowerCase());
-    if (!existsNew){
-      const { error: insErr } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
-      if (insErr) throw insErr;
-    }
-    await loadCategorias();
-    fillCategoriaSelects();
-    renderCategoriasList();
-    await refreshUI(); // atualiza filtros/lista
-  }
-
-  async function deleteCategoria(nome){
-    const n = (nome || "").trim();
-    if (!n) return;
-
-    // Não deixa excluir se tem registros usando (para evitar bagunça)
-    const { data, error } = await supa.from("registros").select("id", { count: "exact", head: true })
-      .eq("user_id", currentUser.id).eq("categoria", n);
-    if (error) throw error;
-    const count = data?.length ?? 0; // head:true não retorna rows em alguns casos; mas mantém compatível
-    // fallback: faz uma consulta simples sem head
-    let cnt = 0
-    try{
-      const r = await supa.from("registros").select("id").eq("user_id", currentUser.id).eq("categoria", n).limit(1);
-      if (r.error) throw r.error;
-      cnt = (r.data || []).length;
-    }catch(e){ cnt = 0; }
-    if (cnt > 0){
-      showToast("Categorias", "Essa categoria está em uso. Troque nos lançamentos antes de excluir.");
-      return;
-    }
-
-    const row = categoriasCache.find(c => c.nome.toLowerCase() === n.toLowerCase());
-    if (row){
-      const { error: delErr } = await supa.from("categorias").delete().eq("id", row.id).eq("user_id", currentUser.id);
-      if (delErr) throw delErr;
-      await loadCategorias();
-      fillCategoriaSelects();
-      renderCategoriasList();
-    } else {
-      // era default: apenas some do cache (não tem como) então avisa
-      showToast("Categorias", "Categorias padrão não precisam ser excluídas.");
-    }
-  }
     filtroCategoriaEl.value = selected || "Todas";
   }
 
@@ -1475,7 +1195,6 @@
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
         <div class="item">
-          <div class="chkCell"><input type="checkbox" data-bulk-chk="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""}></div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1510,16 +1229,6 @@
         </div>
       `;
     }).join("");
-    
-  function updateBulkBarUI(){
-    const count = selectedIds.size;
-    if (bulkBar){
-      bulkBar.style.display = count > 0 ? "flex" : "none";
-      bulkCount.textContent = `${count} selecionado(s)`;
-    }
-  }
-updateBulkBarUI();
-
   }
 
   // ===== METAS =====
@@ -2330,15 +2039,6 @@ updateBulkBarUI();
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
   listaEl.addEventListener("click", (e) => {
-    const chk = e.target.closest('[data-bulk-chk]');
-    if (chk){
-      const id = String(chk.dataset.id || "");
-      if (!id) return;
-      if (chk.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
-      updateBulkBarUI();
-      return;
-    }
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
     if (delBtn){
@@ -2426,46 +2126,7 @@ updateBulkBarUI();
     }
   });
 
-  
-  // Exclusão múltipla
-  btnBulkAll?.addEventListener("click", () => {
-    if (!lastFinCache) return;
-    for (const r of (lastFinCache.rows || [])) selectedIds.add(String(r.id));
-    if (lastFinCache) renderFinancas(lastFinCache);
-    updateBulkBarUI();
-  });
-  btnBulkNone?.addEventListener("click", () => {
-    selectedIds.clear();
-    if (lastFinCache) renderFinancas(lastFinCache);
-    updateBulkBarUI();
-  });
-  btnBulkDelete?.addEventListener("click", async () => {
-    if (!currentUser) return;
-    if (!selectedIds.size){ showToast("Excluir", "Selecione pelo menos 1."); return; }
-    const ids = Array.from(selectedIds);
-    const ok = confirm(`Excluir ${ids.length} lançamento(s)?`);
-    if (!ok) return;
-    btnBulkDelete.disabled = true;
-    const oldTxt = btnBulkDelete.textContent;
-    btnBulkDelete.textContent = "Excluindo…";
-    try{
-      // Supabase aceita .in
-      const { error } = await supa.from("registros").delete().in("id", ids).eq("user_id", currentUser.id);
-      if (error) throw error;
-      selectedIds.clear();
-      showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
-      await refreshUI();
-      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-    }catch(err){
-      showToast("Excluir", err.message || String(err));
-    }finally{
-      btnBulkDelete.disabled = false;
-      btnBulkDelete.textContent = oldTxt;
-      updateBulkBarUI();
-    }
-  });
-
-// CSV
+  // CSV
   btnImportar.addEventListener("click", () => fileCsv.click());
   fileCsv.addEventListener("change", async () => {
     const f = fileCsv.files && fileCsv.files[0];
@@ -2514,9 +2175,7 @@ updateBulkBarUI();
     if (!currentUser) return;
     try{
       await loadBanks();
-      await loadCategorias();
       fillBankSelects();
-      fillCategoriaSelects();
       openBankModal();
     }catch(e){
       showToast("Bancos", e.message || String(e));
@@ -2559,54 +2218,7 @@ updateBulkBarUI();
     }
   });
 
-  
-  // Categorias
-  btnCategorias?.addEventListener("click", async () => {
-    if (!currentUser) return;
-    try{
-      await loadCategorias();
-      fillCategoriaSelects();
-      openCategoriasModal();
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  });
-  btnCatClose?.addEventListener("click", closeCategoriasModal);
-  btnCatFechar2?.addEventListener("click", closeCategoriasModal);
-  catOverlay?.addEventListener("click", (e) => { if (e.target === catOverlay) closeCategoriasModal(); });
-
-  btnCatAdd?.addEventListener("click", async () => {
-    if (!currentUser) return;
-    const nome = (catNome.value || "").trim();
-    if (!nome){ showToast("Categorias", "Digite uma categoria."); return; }
-    try{
-      await addCategoria(nome);
-      catNome.value = "";
-      showToast("Categorias ✅", "Categoria adicionada.");
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  });
-
-  catList?.addEventListener("click", async (e) => {
-    const del = e.target.closest("[data-cat-del]");
-    const ed = e.target.closest("[data-cat-edit]");
-    if (!del && !ed) return;
-    const nome = (del || ed).dataset.nome || "";
-    if (!nome) return;
-
-    if (del){
-      try{ await deleteCategoria(nome); }catch(err){ showToast("Categorias", err.message || String(err)); }
-      return;
-    }
-    if (ed){
-      const novo = prompt("Renomear categoria:", nome);
-      if (!novo) return;
-      try{ await renameCategoria(nome, novo); showToast("Categorias ✅", "Categoria atualizada."); }catch(err){ showToast("Categorias", err.message || String(err)); }
-    }
-  });
-
-// Dashboard controls
+  // Dashboard controls
   chkComparar.addEventListener("change", async () => {
     multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
     await refreshDashboard();
@@ -2651,8 +2263,6 @@ updateBulkBarUI();
       bancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
-    try{ fillCategoriaSelects(); }catch(e){}
-
     }
 
     let months = [getDefaultMonth()];
@@ -2719,5 +2329,18 @@ updateBulkBarUI();
     }
   });
 </script>
+
+<script>
+function closeCategoriasModal(){
+  const modal = document.getElementById("categoriasModal");
+  if(modal){ modal.style.display = "none"; }
+}
+
+function openCategoriasModal(){
+  const modal = document.getElementById("categoriasModal");
+  if(modal){ modal.style.display = "flex"; }
+}
+</script>
+
 </body>
 </html>
