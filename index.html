@@ -325,7 +325,80 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  </style>
+  
+    /* ===== CATEGORIAS POPUP + EXCLUSÃO MÚLTIPLA (PREMIUM) ===== */
+    .catInlineWrap{ position: relative; }
+    .catManageBtn{
+      position:absolute; right:8px; top:50%;
+      transform: translateY(-50%);
+      width:34px; height:34px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,194,255,.22);
+      background: rgba(0,194,255,.10);
+      color: rgba(200,245,255,.95);
+      display:grid; place-items:center;
+      cursor:pointer;
+      user-select:none;
+    }
+    .catInlineWrap select{ padding-right: 48px; }
+
+    .catRow{
+      display:flex; gap:10px; align-items:center;
+      padding: 10px 10px;
+      border: 1px solid rgba(148,163,184,.12);
+      background: rgba(2,6,23,.35);
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+    .catRow input{
+      flex:1;
+      margin:0;
+    }
+    .catList .item{ padding: 12px 12px; }
+    .catList .rightcol{ gap:8px; }
+
+    .bulkBar{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(2,6,23,.92);
+      border-bottom: 1px solid rgba(148,163,184,.10);
+      backdrop-filter: blur(10px);
+    }
+    .bulkLeft{
+      display:flex; align-items:center; gap:10px;
+      color: rgba(226,232,240,.85);
+      font-size: 12px;
+      flex-wrap:wrap;
+    }
+    .bulkPill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.14);
+      background: rgba(2,6,23,.40);
+      color: rgba(226,232,240,.85);
+      font-weight: 900;
+    }
+    .chkCell{
+      width: 34px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex: 0 0 34px;
+    }
+    .chkCell input{
+      width: 18px; height: 18px;
+      accent-color: var(--cyan);
+      cursor: pointer;
+    }
+    .item{ align-items:center; }
+
+</style>
 </head>
 
 <body>
@@ -417,7 +490,9 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <select id="categoria">
+              
+              <div class="catInlineWrap">
+                <select id="categoria">
                 <option value="Vendas">Vendas</option>
                 <option value="Tráfego">Tráfego</option>
                 <option value="Fornecedor">Fornecedor</option>
@@ -428,6 +503,9 @@
                 <option value="Lazer">Lazer</option>
                 <option value="Outros">Outros</option>
               </select>
+                <button class="catManageBtn" id="btnCategorias" type="button" title="Gerenciar categorias">+</button>
+              </div>
+
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -480,7 +558,7 @@
       <div class="card">
         <div class="head">
           <div>
-            <h2>Movimentações</h2><button onclick='excluirSelecionados()' class='btn btn-danger' style='margin-left:10px'>Excluir selecionados</button>
+            <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
@@ -495,6 +573,14 @@
           </div>
         </div>
         <div class="list" id="lista">
+          <div class="bulkBar" id="bulkBar" style="display:none">
+            <div class="bulkLeft">
+              <span class="bulkPill" id="bulkCount">0 selecionado(s)</span>
+              <button class="btn btn-ghost" id="btnBulkAll" type="button">Marcar tudo</button>
+              <button class="btn btn-ghost" id="btnBulkNone" type="button">Limpar</button>
+            </div>
+            <button class="btn btn-danger" id="btnBulkDelete" type="button">Excluir selecionados</button>
+          </div>
           <div class="empty">Nenhum registro neste mês.</div>
         </div>
       </div>
@@ -686,7 +772,7 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
+          <div class="field"><label>Categoria</label><select id="editCategoria"></select></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -768,6 +854,31 @@
       <div class="modalFoot">
         <button class="btn btn-ghost" id="btnOfxCancelar" type="button">Cancelar</button>
         <button class="btn btn-primary" id="btnOfxConfirmar" type="button">Confirmar lançamentos</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Categorias -->
+  <div class="modalOverlay" id="catOverlay">
+    <div class="modal sm">
+      <div class="modalHead">
+        <h3>Categorias</h3>
+        <button class="btn btn-ghost btn-icon" id="btnCatClose" type="button">✕</button>
+      </div>
+      <div class="modalBody">
+        <div class="catRow">
+          <input id="catNome" placeholder="Nova categoria (ex: Marketplace, Ads...)" />
+          <button class="btn btn-primary" id="btnCatAdd" type="button">Adicionar</button>
+        </div>
+        <div class="hint" style="margin-top:-2px">Dica: clique no ✏️ para renomear e na 🗑️ para excluir.</div>
+        <div class="catBox" style="margin-top:12px">
+          <div class="hint" style="margin:0 0 8px 0">Sua lista</div>
+          <div id="catList" class="catList"><div class="empty">Carregando…</div></div>
+        </div>
+      </div>
+      <div class="modalFoot">
+        <button class="btn btn-ghost" id="btnCatFechar2" type="button">Fechar</button>
       </div>
     </div>
   </div>
@@ -873,6 +984,23 @@
   const btnBankAdd = document.getElementById("btnBankAdd");
   const bankList = document.getElementById("bankList");
 
+  // Categorias
+  const btnCategorias = document.getElementById("btnCategorias");
+  const catOverlay = document.getElementById("catOverlay");
+  const btnCatClose = document.getElementById("btnCatClose");
+  const btnCatFechar2 = document.getElementById("btnCatFechar2");
+  const catNome = document.getElementById("catNome");
+  const btnCatAdd = document.getElementById("btnCatAdd");
+  const catList = document.getElementById("catList");
+
+  // Exclusão múltipla
+  const bulkBar = document.getElementById("bulkBar");
+  const bulkCount = document.getElementById("bulkCount");
+  const btnBulkAll = document.getElementById("btnBulkAll");
+  const btnBulkNone = document.getElementById("btnBulkNone");
+  const btnBulkDelete = document.getElementById("btnBulkDelete");
+
+
   const dashTitleSub = document.getElementById("dashTitleSub");
   const chkComparar = document.getElementById("chkComparar");
   const multiMonthsWrap = document.getElementById("multiMonthsWrap");
@@ -908,6 +1036,10 @@
   let editingItem = null;
 
   let banksCache = [];
+
+  let categoriasCache = [];
+  let selectedIds = new Set();
+
   let ofxRows = [];
 
   function showToast(title, msg){
@@ -1024,6 +1156,154 @@
       opt.textContent = c;
       filtroCategoriaEl.appendChild(opt);
     }
+
+  // ===== CATEGORIAS (Supabase) =====
+  const DEFAULT_CATS = ["Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"];
+
+  async function loadCategorias(){
+    if (!currentUser) return;
+    const { data, error } = await supa
+      .from("categorias")
+      .select("id,nome")
+      .eq("user_id", currentUser.id)
+      .order("nome", { ascending: true });
+    if (error) throw error;
+    categoriasCache = (data || []).map(x => ({ id: x.id, nome: (x.nome || "").trim() })).filter(x => x.nome);
+  }
+
+  function getCategoriasMerged(){
+    const set = new Set(DEFAULT_CATS);
+    for (const c of categoriasCache) set.add(c.nome);
+    return Array.from(set).sort((a,b) => a.localeCompare(b, "pt-BR"));
+  }
+
+  function fillCategoriaSelects(){
+    const list = getCategoriasMerged();
+    const makeOpts = (selected) => list.map(n => {
+      const sel = (n === selected) ? "selected" : "";
+      return `<option value="${escapeHtml(n)}" ${sel}>${escapeHtml(n)}</option>`;
+    }).join("");
+
+    // categoria principal
+    const current = categoriaEl.value || "Vendas";
+    categoriaEl.innerHTML = makeOpts(current);
+    if (!categoriaEl.value) categoriaEl.value = current;
+
+    // editar
+    const editCurrent = editCategoriaEl ? (editCategoriaEl.value || "Outros") : "Outros";
+    const editSel = document.getElementById("editCategoria");
+    if (editSel){
+      const cur = (editSel.value || editCurrent);
+      editSel.innerHTML = makeOpts(cur);
+      if (!editSel.value) editSel.value = cur;
+    }
+
+    // OFX (se existir select por linha, mantemos o fixo)
+  }
+
+  function openCategoriasModal(){
+    catOverlay.classList.add("show");
+    renderCategoriasList();
+    setTimeout(() => catNome?.focus(), 50);
+  }
+  function closeCategoriasModal(){
+    catOverlay.classList.remove("show");
+    catNome.value = "";
+  }
+
+  function renderCategoriasList(){
+    const items = getCategoriasMerged();
+    if (!items.length){
+      catList.innerHTML = `<div class="empty">Nenhuma categoria.</div>`;
+      return;
+    }
+    catList.innerHTML = items.map(nome => `
+      <div class="item">
+          <div class="chkCell"><input type="checkbox" data-bulk-chk="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""}></div>
+          <div class="leftcol">
+          <div class="desc">${escapeHtml(nome)}</div>
+          <div class="hint" style="margin:0">Clique no ✏️ para renomear</div>
+        </div>
+        <div class="rightcol">
+          <button class="btn btn-icon btn-icon-edit" type="button" data-cat-edit="1" data-nome="${escapeHtml(nome)}" title="Editar">✏️</button>
+          <button class="btn btn-icon btn-icon-danger" type="button" data-cat-del="1" data-nome="${escapeHtml(nome)}" title="Excluir">🗑️</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  async function addCategoria(nome){
+    const n = (nome || "").trim();
+    if (!n) return;
+    // evita duplicar no supabase
+    const exists = categoriasCache.some(c => c.nome.toLowerCase() === n.toLowerCase());
+    if (exists){ showToast("Categorias", "Essa categoria já existe."); return; }
+    const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
+    if (error) throw error;
+    await loadCategorias();
+    fillCategoriaSelects();
+    renderCategoriasList();
+  }
+
+  async function renameCategoria(oldName, newName){
+    const o = (oldName || "").trim();
+    const n = (newName || "").trim();
+    if (!o || !n) return;
+    // se categoria era default e não existe no banco, criamos a nova e, opcionalmente, migramos registros do old para new
+    // Aqui: sempre atualiza registros e garante new no banco.
+    const { error: up1 } = await supa.from("registros").update({ categoria: n }).eq("user_id", currentUser.id).eq("categoria", o);
+    if (up1) throw up1;
+
+    // remove old do banco (se existir) e garante new
+    const oldRow = categoriasCache.find(c => c.nome.toLowerCase() === o.toLowerCase());
+    if (oldRow){
+      const { error: delErr } = await supa.from("categorias").delete().eq("id", oldRow.id).eq("user_id", currentUser.id);
+      if (delErr) throw delErr;
+    }
+    const existsNew = categoriasCache.some(c => c.nome.toLowerCase() === n.toLowerCase());
+    if (!existsNew){
+      const { error: insErr } = await supa.from("categorias").insert({ user_id: currentUser.id, nome: n });
+      if (insErr) throw insErr;
+    }
+    await loadCategorias();
+    fillCategoriaSelects();
+    renderCategoriasList();
+    await refreshUI(); // atualiza filtros/lista
+  }
+
+  async function deleteCategoria(nome){
+    const n = (nome || "").trim();
+    if (!n) return;
+
+    // Não deixa excluir se tem registros usando (para evitar bagunça)
+    const { data, error } = await supa.from("registros").select("id", { count: "exact", head: true })
+      .eq("user_id", currentUser.id).eq("categoria", n);
+    if (error) throw error;
+    const count = data?.length ?? 0; // head:true não retorna rows em alguns casos; mas mantém compatível
+    // fallback: faz uma consulta simples sem head
+    let cnt = 0
+    try{
+      const r = await supa.from("registros").select("id").eq("user_id", currentUser.id).eq("categoria", n).limit(1);
+      if (r.error) throw r.error;
+      cnt = (r.data || []).length;
+    }catch(e){ cnt = 0; }
+    if (cnt > 0){
+      showToast("Categorias", "Essa categoria está em uso. Troque nos lançamentos antes de excluir.");
+      return;
+    }
+
+    const row = categoriasCache.find(c => c.nome.toLowerCase() === n.toLowerCase());
+    if (row){
+      const { error: delErr } = await supa.from("categorias").delete().eq("id", row.id).eq("user_id", currentUser.id);
+      if (delErr) throw delErr;
+      await loadCategorias();
+      fillCategoriaSelects();
+      renderCategoriasList();
+    } else {
+      // era default: apenas some do cache (não tem como) então avisa
+      showToast("Categorias", "Categorias padrão não precisam ser excluídas.");
+    }
+  }
     filtroCategoriaEl.value = selected || "Todas";
   }
 
@@ -1068,8 +1348,7 @@
 
   async function captureTokenIfPresent(){
     if (window.location.hash && window.location.hash.includes("access_token=")) {
-      const { data, error } = await supa.auth.getSession();
-    if (error) console.error("Erro sessão:", error);
+      await supa.auth.getSessionFromUrl({ storeSession: true });
       history.replaceState({}, document.title, "/");
     }
   }
@@ -1196,6 +1475,7 @@
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
       return `
         <div class="item">
+          <div class="chkCell"><input type="checkbox" data-bulk-chk="1" data-id="${escapeHtml(String(r.id))}" ${selectedIds.has(String(r.id)) ? "checked" : ""}></div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1206,7 +1486,7 @@
             </div>
           </div>
           <div class="rightcol">
-            <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount ${cls}">${brl(r.valor)}</div>
+            <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
               data-edit="1"
@@ -1230,6 +1510,16 @@
         </div>
       `;
     }).join("");
+    
+  function updateBulkBarUI(){
+    const count = selectedIds.size;
+    if (bulkBar){
+      bulkBar.style.display = count > 0 ? "flex" : "none";
+      bulkCount.textContent = `${count} selecionado(s)`;
+    }
+  }
+updateBulkBarUI();
+
   }
 
   // ===== METAS =====
@@ -1304,9 +1594,6 @@
     return v < 0 ? "-" + abs : abs;
   }
 
-  
-  // ===== PDF PREMIUM EXECUTIVO =====
-
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
@@ -1314,12 +1601,11 @@
     }
 
     const mk = currentMonth || getDefaultMonth();
-    const safeMonth = mk.replace("/", "_").toLowerCase();
+    const safeMonth = mk.replace("/", "-");
 
     const fin = lastFinCache;
     const rows = fin.rows || [];
 
-    // Meta (opcional)
     let meta = 0;
     try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
 
@@ -1334,223 +1620,101 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;    // 595
-    const pageH = doc.internal.pageSize.height;   // 842
+    const pageW = doc.internal.pageSize.width;    // ~595
+    const pageH = doc.internal.pageSize.height;   // ~842
 
-    // Margens e largura útil (centralizado)
-    const margin = 46;
+    // Centralização igual ao modelo (margens simétricas)
+    const margin = 54;
     const contentW = pageW - margin*2;
-    const x0 = margin;
+    const x0 = (pageW - contentW) / 2;
 
-    // Paleta (igual ao modelo aprovado)
-    const C = {
-      ink: [15, 23, 42],
-      muted: [100, 116, 139],
-      border: [229, 231, 235],
-      bg: [245, 247, 250],
-      card: [255, 255, 255],
-      brand: [0, 194, 255],
-      brand2: [65, 214, 255],
-      success: [34, 197, 94],
-      danger: [239, 68, 68]
-    };
-
-    // Helpers
-    const now = new Date();
-    const genDate = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-
-    function setFont(style, size){
-      doc.setFont("helvetica", style);
-      doc.setFontSize(size);
-    }
-    function txt(str, x, y, opt){
-      doc.text(String(str || ""), x, y, opt || {});
-    }
-    function rrect(x,y,w,h,r, fillRGB, strokeRGB, lw){
-      if (fillRGB){
-        doc.setFillColor(fillRGB[0], fillRGB[1], fillRGB[2]);
-      }
-      if (strokeRGB){
-        doc.setDrawColor(strokeRGB[0], strokeRGB[1], strokeRGB[2]);
-      }
-      doc.setLineWidth(lw ?? 1);
-      doc.roundedRect(x,y,w,h,r,r, fillRGB ? (strokeRGB ? "FD" : "F") : "S");
-    }
-    function shadowCard(x,y,w,h,r){
-      // Sombra leve (simulada)
-      doc.setFillColor(235, 238, 245);
-      doc.roundedRect(x+3, y+4, w, h, r, r, "F");
-      rrect(x,y,w,h,r, C.card, C.border, 1);
-    }
-    function chip(x,y,w,h,label){
-      doc.setFillColor(235, 248, 255);
-      doc.setDrawColor(186, 230, 253);
-      doc.setLineWidth(1);
-      doc.roundedRect(x, y, w, h, 999, 999, "FD");
-      setFont("bold", 9.5);
-      doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
-      txt(label, x + w/2, y + h/2 + 3, { align:"center" });
-      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    }
-
-    // Fundo da página
-    doc.setFillColor(C.bg[0], C.bg[1], C.bg[2]);
+    // Fundo branco
+    doc.setFillColor(255,255,255);
     doc.rect(0,0,pageW,pageH,"F");
+    doc.setTextColor(0,0,0);
 
-    // ===== Header (Executivo) =====
-    let y = 44;
+    let y = 64;
 
-    // barra/linha de marca
-    doc.setFillColor(C.brand2[0], C.brand2[1], C.brand2[2]);
-    doc.roundedRect(x0, y, 140, 4, 3, 3, "F");
-    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
-    doc.circle(x0 + 140, y + 2, 2, "F");
+    // Título (igual ao modelo)
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(24);
+    doc.text("Controle Premium", x0, y);
+    y += 22;
 
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(11.5);
+    doc.text(`Relatório (Finanças) • Mês: ${mk}`, x0, y);
+    y += 16;
+
+    doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
+    y += 30;
+
+    // Caixa KPIs (centralizada)
+    const boxX = x0;
+    const boxY = y;
+    const boxW = contentW;
+    const boxH = 92;
+
+    doc.setDrawColor(200,200,200);
+    doc.setLineWidth(1);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 12, 12);
+
+    const colW = boxW / 4;
+
+    function kpi(i, label, value){
+      const cx = boxX + colW*i + colW/2;
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10.5);
+      doc.text(label.toUpperCase(), cx, boxY + 30, { align: "center" });
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(12.5);
+      doc.text(value, cx, boxY + 60, { align: "center" });
+    }
+
+    kpi(0, "Entradas", moneyBRAbs(entradas));
+    kpi(1, "Saídas", moneyBRAbs(saidas));
+    kpi(2, "Saldo", moneyBR(saldo));
+    kpi(3, "Registros", String(qtd));
+
+    y = boxY + boxH + 30;
+
+    // Meta do mês
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Meta do mês", x0, y);
+    y += 16;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    doc.text(
+      `Meta: ${moneyBRAbs(meta)} • Entradas: ${moneyBRAbs(entradas)} • Falta: ${moneyBRAbs(falta)} • Progresso: ${progresso.toFixed(1)}%`,
+      x0, y
+    );
     y += 20;
 
-    setFont("bold", 22);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Relatório Financeiro", x0, y);
+    // Barra de progresso (azul, grossa, centralizada)
+    const barX = x0;
+    const barY = y;
+    const barW = contentW;
+    const barH = 12;
 
-    setFont("normal", 10.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt(`Mês: ${mk} • Controle Premium`, x0, y + 16);
-
-    // meta info direita
-    const rightX = x0 + contentW;
-    setFont("normal", 9.5);
-    txt(`Gerado em: ${genDate}`, rightX, y - 2, { align:"right" });
-    // chip "Finanças"
-    chip(rightX - 78, y + 6, 78, 20, "Finanças");
-
-    y += 40;
-
-    // ===== KPI cards =====
-    const kpiGap = 12;
-    const kpiW = (contentW - 3*kpiGap) / 4;
-    const kpiH = 88;
-
-    function drawKPI(i, title, value, accent){
-      const x = x0 + i*(kpiW + kpiGap);
-      shadowCard(x, y, kpiW, kpiH, 14);
-
-      // bolinha de acento
-      if (accent){
-        doc.setFillColor(accent[0], accent[1], accent[2]);
-        doc.circle(x + kpiW - 16, y + 18, 4.5, "F");
-      }
-
-      setFont("normal", 9.5);
-      doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-      txt(title, x + 14, y + 28);
-
-      setFont("bold", 14.5);
-      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-      txt(value, x + 14, y + 55);
-    }
-
-    drawKPI(0, "Entradas", moneyBRAbs(entradas), C.success);
-    drawKPI(1, "Saídas", moneyBRAbs(saidas), C.danger);
-    drawKPI(2, "Saldo", moneyBR(saldo), saldo >= 0 ? C.success : C.danger);
-    drawKPI(3, "Registros", String(qtd), C.brand);
-
-    y += kpiH + 16;
-
-    // ===== Meta + gráfico (2 colunas) =====
-    const colGap = 12;
-    const leftW = (contentW - colGap) * 0.54;
-    const rightW = contentW - colGap - leftW;
-    const cardH = 160;
-
-    // Meta card
-    shadowCard(x0, y, leftW, cardH, 16);
-
-    setFont("bold", 11.5);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Meta do mês", x0 + 14, y + 26);
-
-    setFont("normal", 9.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    const metaStr = moneyBRAbs(meta);
-    const entradasStr = moneyBRAbs(entradas);
-    const faltaStr = moneyBRAbs(falta);
-    txt(`Meta: ${metaStr}   •   Entradas: ${entradasStr}`, x0 + 14, y + 46);
-    txt(`Falta: ${faltaStr}   •   Progresso: ${progresso.toFixed(1)}%`, x0 + 14, y + 62);
-
-    // barra
-    const barX = x0 + 14;
-    const barY = y + 86;
-    const barW = leftW - 28;
-    const barH = 10;
-
-    doc.setFillColor(241, 245, 249);
-    doc.setDrawColor(226, 232, 240);
+    doc.setDrawColor(220,220,220);
     doc.setLineWidth(1);
-    doc.roundedRect(barX, barY, barW, barH, 999, 999, "FD");
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(barX, barY, barW, barH, 8, 8);
 
-    const fillW = Math.max(0, Math.min(barW*(progresso/100), barW));
-    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
-    doc.roundedRect(barX, barY, fillW, barH, 999, 999, "F");
+    const fillW = Math.max(0, Math.min(barW * (progresso/100), barW));
+    doc.setFillColor(0, 194, 255);
+    doc.roundedRect(barX, barY, fillW, barH, 8, 8, "F");
 
-    // etiqueta
-    doc.setFillColor(235, 248, 255);
-    doc.setDrawColor(186, 230, 253);
-    doc.roundedRect(barX, barY + 16, 160, 20, 999, 999, "FD");
-    setFont("bold", 9.5);
-    doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
-    txt(`${progresso.toFixed(1)}% da meta`, barX + 80, barY + 31, { align:"center" });
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    y = barY + barH + 30;
 
-    // Card gráfico (mock premium)
-    const gx = x0 + leftW + colGap;
-    shadowCard(gx, y, rightW, cardH, 16);
-
-    setFont("bold", 11.5);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Visão rápida", gx + 14, y + 26);
-
-    setFont("normal", 9.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt("Entradas vs Saídas (mês)", gx + 14, y + 44);
-
-    // mini gráfico (barras) proporcional
-    const chartX = gx + 14;
-    const chartY = y + 62;
-    const chartW = rightW - 28;
-    const chartH = 82;
-    rrect(chartX, chartY, chartW, chartH, 12, [248, 250, 252], C.border, 1);
-
-    const maxV = Math.max(entradas, saidas, 1);
-    const inW = (chartW - 34) * (entradas / maxV);
-    const outW = (chartW - 34) * (saidas / maxV);
-
-    // barras horizontais estilo "executivo"
-    doc.setFillColor(226, 232, 240);
-    doc.roundedRect(chartX + 12, chartY + 22, chartW - 24, 10, 999, 999, "F");
-    doc.roundedRect(chartX + 12, chartY + 48, chartW - 24, 10, 999, 999, "F");
-
-    doc.setFillColor(C.success[0], C.success[1], C.success[2]);
-    doc.roundedRect(chartX + 12, chartY + 22, Math.max(8, inW), 10, 999, 999, "F");
-
-    doc.setFillColor(C.danger[0], C.danger[1], C.danger[2]);
-    doc.roundedRect(chartX + 12, chartY + 48, Math.max(8, outW), 10, 999, 999, "F");
-
-    setFont("bold", 9.2);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Entradas", chartX + 12, chartY + 16);
-    txt("Saídas", chartX + 12, chartY + 42);
-
-    setFont("normal", 9.2);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt(moneyBRAbs(entradas), chartX + chartW - 12, chartY + 30, { align:"right" });
-    txt(moneyBRAbs(saidas), chartX + chartW - 12, chartY + 56, { align:"right" });
-
-    y += cardH + 18;
-
-    // ===== Tabela =====
-    setFont("bold", 12);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Lançamentos do mês", x0, y);
+    // Lançamentos do mês
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Lançamentos do mês", x0, y);
+    y += 10;
 
     const body = rows.map(r => {
       const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
@@ -1571,48 +1735,37 @@
       margin: { left: x0, right: x0 },
       styles: {
         font: "helvetica",
-        fontSize: 9.0,
+        fontSize: 9.2,
         cellPadding: 6,
         textColor: 30,
-        lineColor: 236
+        lineColor: 230
       },
       headStyles: {
-        fillColor: [12, 18, 38],
+        fillColor: [12, 18, 38],     // igual ao modelo (faixa escura)
         textColor: 255,
         fontStyle: "bold"
       },
-      alternateRowStyles: { fillColor: [248, 249, 251] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
         0: { cellWidth: 70 },
-        1: { cellWidth: 62 },
-        2: { cellWidth: 108 },
-        3: { cellWidth: contentW - (70+62+108+92) },
-        4: { cellWidth: 92, halign: "right" }
+        1: { cellWidth: 60 },
+        2: { cellWidth: 100 },
+        3: { cellWidth: contentW - (70+60+100+90) },
+        4: { cellWidth: 90, halign: "right" }
       },
       didParseCell: function (data) {
         if (data.section === "body" && data.column.index === 4){
-          const txtv = String(data.cell.raw || "");
-          if (txtv.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
+          const txt = String(data.cell.raw || "");
+          if (txt.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
         }
       }
     });
 
-    // Rodapé
-    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : (pageH - 60);
-    doc.setDrawColor(C.border[0], C.border[1], C.border[2]);
-    doc.setLineWidth(1);
-    doc.line(x0, finalY + 18, x0 + contentW, finalY + 18);
-
-    setFont("normal", 9);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt("Controle Premium • Relatório executivo", x0, finalY + 36);
-    txt(`Mês: ${mk}`, x0 + contentW, finalY + 36, { align:"right" });
-
-    doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
-    showToast("PDF ✅", "Relatório gerado no padrão Premium.");
+    doc.save(`controle-premium_${safeMonth}.pdf`);
+    showToast("PDF ✅", `Gerado: controle-premium_${safeMonth}.pdf`);
   }
 
-// ===== DASHBOARD =====
+  // ===== DASHBOARD =====
   function makeChartCommonOptions(){
     return {
       responsive: true,
@@ -1659,7 +1812,7 @@
           <div class="desc">${escapeHtml(x.cat)}</div>
           <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
         </div>
-        <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
+        <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
       </div>
     `).join("") : `<div class="empty">Sem dados neste mês.</div>`;
     dashHintCats.textContent = top.length ? "Top categorias carregadas." : "Sem dados.";
@@ -2177,6 +2330,15 @@
   function closeEditModal(){ editOverlay.classList.remove("show"); editingItem = null; }
 
   listaEl.addEventListener("click", (e) => {
+    const chk = e.target.closest('[data-bulk-chk]');
+    if (chk){
+      const id = String(chk.dataset.id || "");
+      if (!id) return;
+      if (chk.checked) selectedIds.add(id);
+      else selectedIds.delete(id);
+      updateBulkBarUI();
+      return;
+    }
     const delBtn = e.target.closest("[data-del]");
     const editBtn = e.target.closest("[data-edit]");
     if (delBtn){
@@ -2264,7 +2426,46 @@
     }
   });
 
-  // CSV
+  
+  // Exclusão múltipla
+  btnBulkAll?.addEventListener("click", () => {
+    if (!lastFinCache) return;
+    for (const r of (lastFinCache.rows || [])) selectedIds.add(String(r.id));
+    if (lastFinCache) renderFinancas(lastFinCache);
+    updateBulkBarUI();
+  });
+  btnBulkNone?.addEventListener("click", () => {
+    selectedIds.clear();
+    if (lastFinCache) renderFinancas(lastFinCache);
+    updateBulkBarUI();
+  });
+  btnBulkDelete?.addEventListener("click", async () => {
+    if (!currentUser) return;
+    if (!selectedIds.size){ showToast("Excluir", "Selecione pelo menos 1."); return; }
+    const ids = Array.from(selectedIds);
+    const ok = confirm(`Excluir ${ids.length} lançamento(s)?`);
+    if (!ok) return;
+    btnBulkDelete.disabled = true;
+    const oldTxt = btnBulkDelete.textContent;
+    btnBulkDelete.textContent = "Excluindo…";
+    try{
+      // Supabase aceita .in
+      const { error } = await supa.from("registros").delete().in("id", ids).eq("user_id", currentUser.id);
+      if (error) throw error;
+      selectedIds.clear();
+      showToast("Excluídos ✅", `${ids.length} lançamento(s) removido(s).`);
+      await refreshUI();
+      if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
+    }catch(err){
+      showToast("Excluir", err.message || String(err));
+    }finally{
+      btnBulkDelete.disabled = false;
+      btnBulkDelete.textContent = oldTxt;
+      updateBulkBarUI();
+    }
+  });
+
+// CSV
   btnImportar.addEventListener("click", () => fileCsv.click());
   fileCsv.addEventListener("change", async () => {
     const f = fileCsv.files && fileCsv.files[0];
@@ -2313,7 +2514,9 @@
     if (!currentUser) return;
     try{
       await loadBanks();
+      await loadCategorias();
       fillBankSelects();
+      fillCategoriaSelects();
       openBankModal();
     }catch(e){
       showToast("Bancos", e.message || String(e));
@@ -2356,7 +2559,54 @@
     }
   });
 
-  // Dashboard controls
+  
+  // Categorias
+  btnCategorias?.addEventListener("click", async () => {
+    if (!currentUser) return;
+    try{
+      await loadCategorias();
+      fillCategoriaSelects();
+      openCategoriasModal();
+    }catch(e){
+      showToast("Categorias", e.message || String(e));
+    }
+  });
+  btnCatClose?.addEventListener("click", closeCategoriasModal);
+  btnCatFechar2?.addEventListener("click", closeCategoriasModal);
+  catOverlay?.addEventListener("click", (e) => { if (e.target === catOverlay) closeCategoriasModal(); });
+
+  btnCatAdd?.addEventListener("click", async () => {
+    if (!currentUser) return;
+    const nome = (catNome.value || "").trim();
+    if (!nome){ showToast("Categorias", "Digite uma categoria."); return; }
+    try{
+      await addCategoria(nome);
+      catNome.value = "";
+      showToast("Categorias ✅", "Categoria adicionada.");
+    }catch(e){
+      showToast("Categorias", e.message || String(e));
+    }
+  });
+
+  catList?.addEventListener("click", async (e) => {
+    const del = e.target.closest("[data-cat-del]");
+    const ed = e.target.closest("[data-cat-edit]");
+    if (!del && !ed) return;
+    const nome = (del || ed).dataset.nome || "";
+    if (!nome) return;
+
+    if (del){
+      try{ await deleteCategoria(nome); }catch(err){ showToast("Categorias", err.message || String(err)); }
+      return;
+    }
+    if (ed){
+      const novo = prompt("Renomear categoria:", nome);
+      if (!novo) return;
+      try{ await renameCategoria(nome, novo); showToast("Categorias ✅", "Categoria atualizada."); }catch(err){ showToast("Categorias", err.message || String(err)); }
+    }
+  });
+
+// Dashboard controls
   chkComparar.addEventListener("change", async () => {
     multiMonthsWrap.classList.toggle("hidden", !chkComparar.checked);
     await refreshDashboard();
@@ -2401,6 +2651,8 @@
       bancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       editBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
+    try{ fillCategoriaSelects(); }catch(e){}
+
     }
 
     let months = [getDefaultMonth()];
@@ -2467,101 +2719,5 @@
     }
   });
 </script>
-
-
-<!-- ===== POPUP CATEGORIAS ===== -->
-<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
-
-<div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <strong>Categorias</strong>
-      <span id="catClose" style="cursor:pointer">✕</span>
-    </div>
-    <div id="catLista" style="margin-bottom:10px"></div>
-    <input id="catNova" placeholder="Nova categoria" style="width:100%;padding:8px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff">
-    <button id="catAdd" style="margin-top:8px;width:100%;padding:8px;border-radius:10px;border:none;background:#00c2ff;color:#001018;font-weight:bold">Adicionar</button>
-  </div>
-</div>
-
-<script>
-const catOverlay = document.getElementById("catOverlay");
-const btnCategorias = document.getElementById("btnCategorias");
-const catClose = document.getElementById("catClose");
-const catLista = document.getElementById("catLista");
-const catNova = document.getElementById("catNova");
-const catAdd = document.getElementById("catAdd");
-
-btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
-catClose.onclick = ()=> catOverlay.style.display="none";
-catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
-
-async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
-}
-
-catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
-}
-
-async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
-  await supa.from("categorias").delete().eq("id", id);
-  carregarCategorias();
-}
-
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
-}
-</script>
-
-
-<script>
-let selecionados = [];
-
-function toggleSelecionado(id, el){
-  if(el.checked){
-    if(!selecionados.includes(id)) selecionados.push(id);
-  } else {
-    selecionados = selecionados.filter(i=>i!==id);
-  }
-}
-
-async function excluirSelecionados(){
-  if(selecionados.length===0){
-    alert("Selecione lançamentos");
-    return;
-  }
-  if(!confirm("Excluir selecionados?")) return;
-
-  const { error } = await supa.from("registros").delete().in("id", selecionados);
-  if(error){
-    alert("Erro ao excluir");
-    return;
-  }
-
-  selecionados=[];
-  refreshUI();
-}
-</script>
-
 </body>
 </html>
