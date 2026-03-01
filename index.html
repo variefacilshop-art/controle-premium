@@ -2467,75 +2467,68 @@
   });
 </script>
 
-<!-- POPUP CATEGORIAS -->
-<div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <h3 style="margin-top:0">Categorias</h3>
-    <div id="catList"></div>
-    <div style="display:flex;gap:6px;margin-top:10px">
-      <input id="newCatName" placeholder="Nova categoria" style="flex:1;padding:8px;border-radius:8px;border:none">
-      <button onclick="addCategoria()" style="padding:8px 10px;border:none;border-radius:8px;background:#00c2ff;font-weight:bold">+</button>
+
+<!-- ===== POPUP CATEGORIAS ===== -->
+<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
+
+<div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
+  <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <strong>Categorias</strong>
+      <span id="catClose" style="cursor:pointer">✕</span>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin-top:14px">
-      <button onclick="closeCatPopup()" style="padding:8px 12px;border:none;border-radius:8px;background:#222;color:#fff">Fechar</button>
-    </div>
+    <div id="catLista" style="margin-bottom:10px"></div>
+    <input id="catNova" placeholder="Nova categoria" style="width:100%;padding:8px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff">
+    <button id="catAdd" style="margin-top:8px;width:100%;padding:8px;border-radius:10px;border:none;background:#00c2ff;color:#001018;font-weight:bold">Adicionar</button>
   </div>
 </div>
 
-<button onclick="openCatPopup()" style="position:fixed;bottom:20px;right:20px;background:#00c2ff;border:none;border-radius:50%;width:48px;height:48px;font-size:24px;font-weight:bold;color:#001018;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.4)">+</button>
-
 <script>
-async function loadCategorias(){
-  if(!window.supa || !window.currentUser) return;
-  const { data } = await supa.from("categorias").select("*").eq("user_id", currentUser.id);
-  const list = document.getElementById("catList");
-  if(!list) return;
-  list.innerHTML = "";
-  data.forEach(c => {
-    const row = document.createElement("div");
-    row.style.display="flex";
-    row.style.justifyContent="space-between";
-    row.style.marginBottom="6px";
-    row.innerHTML = `
+const catOverlay = document.getElementById("catOverlay");
+const btnCategorias = document.getElementById("btnCategorias");
+const catClose = document.getElementById("catClose");
+const catLista = document.getElementById("catLista");
+const catNova = document.getElementById("catNova");
+const catAdd = document.getElementById("catAdd");
+
+btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
+catClose.onclick = ()=> catOverlay.style.display="none";
+catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
+
+async function carregarCategorias(){
+  if(!currentUser) return;
+  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
+  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
+  catLista.innerHTML = data.map(c=>`
+    <div style="display:flex;justify-content:space-between;margin:6px 0">
       <span>${c.nome}</span>
-      ${c.nome !== "Outros" ? `
       <span>
-        <button onclick="editCategoria(${c.id},'${c.nome}')" style="margin-right:6px">✏️</button>
-        <button onclick="deleteCategoria(${c.id})">🗑</button>
-      </span>` : ``}
-    `;
-    list.appendChild(row);
-  });
+        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
+        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
+      </span>
+    </div>
+  `).join("");
 }
 
-function openCatPopup(){
-  document.getElementById("catOverlay").style.display="flex";
-  loadCategorias();
-}
-function closeCatPopup(){
-  document.getElementById("catOverlay").style.display="none";
-}
-
-async function addCategoria(){
-  const name = document.getElementById("newCatName").value.trim();
-  if(!name) return;
-  await supa.from("categorias").insert({ user_id: currentUser.id, nome: name });
-  document.getElementById("newCatName").value="";
-  loadCategorias();
+catAdd.onclick = async ()=>{
+  const nome = catNova.value.trim();
+  if(!nome) return;
+  await supa.from("categorias").insert({user_id: currentUser.id, nome});
+  catNova.value="";
+  carregarCategorias();
 }
 
-async function editCategoria(id,nome){
-  const novo = prompt("Editar categoria:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({ nome: novo }).eq("id", id);
-  loadCategorias();
-}
-
-async function deleteCategoria(id){
+async function excluirCategoria(id){
   if(!confirm("Excluir categoria?")) return;
-  await supa.from("registros").update({ categoria:"Outros" }).eq("categoria_id", id);
   await supa.from("categorias").delete().eq("id", id);
-  loadCategorias();
+  carregarCategorias();
+}
+
+async function editarCategoria(id,nome){
+  const novo = prompt("Editar:", nome);
+  if(!novo) return;
+  await supa.from("categorias").update({nome:novo}).eq("id", id);
+  carregarCategorias();
 }
 </script>
 
