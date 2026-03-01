@@ -2077,7 +2077,7 @@
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin }
+      options: { redirectTo: window.location.href }
     });
     if (error) showToast("Login", error.message);
   });
