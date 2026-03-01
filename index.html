@@ -1,3 +1,66 @@
+
+<style>
+#categoriasModal{
+  backdrop-filter: blur(4px);
+}
+.popup-card{
+  background:#0b1225;
+  border-radius:14px;
+  padding:18px;
+  width:320px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  color:#e5e7eb;
+  animation:fadeIn .18s ease-out;
+}
+.popup-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  font-weight:600;
+}
+.popup-input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid rgba(148,163,184,.2);
+  background:#020617;
+  color:#fff;
+  margin-bottom:10px;
+}
+.popup-save{
+  width:100%;
+  padding:9px;
+  border-radius:8px;
+  border:none;
+  background:#38bdf8;
+  color:#001018;
+  font-weight:700;
+  cursor:pointer;
+}
+.popup-list{
+  margin-top:12px;
+  max-height:150px;
+  overflow:auto;
+}
+.popup-row{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-size:13px;
+}
+.popup-row button{
+  background:none;
+  border:none;
+  color:#94a3b8;
+  cursor:pointer;
+  margin-left:6px;
+}
+@keyframes fadeIn{
+ from{opacity:0; transform:translateY(6px)}
+ to{opacity:1; transform:translateY(0)}
+}
+</style>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -2371,81 +2434,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <!-- POPUP CATEGORIAS -->
-
-<style>
-#categoriasModal{
-  backdrop-filter: blur(6px);
-}
-.cat-modal-card{
-  background: linear-gradient(180deg,#0b1225,#020617);
-  border:1px solid rgba(148,163,184,.25);
-  border-radius:16px;
-  padding:18px;
-  width:340px;
-  box-shadow:0 30px 80px rgba(0,0,0,.65);
-  font-family:inherit;
-}
-.cat-title{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-  font-weight:700;
-  color:#e5e7eb;
-}
-.cat-input{
-  width:100%;
-  padding:10px 12px;
-  border-radius:10px;
-  border:1px solid rgba(148,163,184,.25);
-  background:#020617;
-  color:#fff;
-  margin-bottom:10px;
-}
-.cat-save{
-  width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  background:linear-gradient(180deg,#33d2ff,#00c2ff);
-  color:#001018;
-  font-weight:800;
-  cursor:pointer;
-}
-.cat-list{
-  margin-top:12px;
-  max-height:160px;
-  overflow:auto;
-  border-top:1px solid rgba(148,163,184,.15);
-  padding-top:10px;
-}
-.cat-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 0;
-  font-size:13px;
-  color:#cbd5e1;
-}
-.cat-actions button{
-  background:none;
-  border:none;
-  cursor:pointer;
-  font-size:14px;
-  margin-left:6px;
-}
-</style>
 <div id="categoriasModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:9999">
-  <div class="cat-modal-card">
+  <div class="popup-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <span>Gerenciar categorias</span>
+      <strong>Nova categoria</strong>
       <button onclick="closeCategoriasModal()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button>
     </div>
-    <input class="cat-input" id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
-    <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer"class="cat-save">Salvar</button>
-<!-- LISTA DE CATEGORIAS -->
-<div id="categoriasLista" style="margin-top:12px;max-height:150px;overflow:auto"></div>
-
+    <input id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
+    <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer">Salvar</button>
   </div>
 </div>
 <script>
@@ -2475,108 +2471,40 @@ function salvarNovaCategoria(){
 }
 
 function carregarCategoriasSalvas(){
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  const select = document.getElementById("categoria");
   const lista = document.getElementById("categoriasLista");
+  const select = document.getElementById("categoria");
+  const extras = JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  const existentes=[...select.options].map(o=>o.value);
+  const todas=[...new Set([...existentes,...extras])];
+  lista.innerHTML="";
 
-  lista.innerHTML = "";
-
-  salvas.forEach((nome, i) => {
-    // adiciona no select se não existir
-    if(![...select.options].some(o=>o.value===nome)){
-      const opt = document.createElement("option");
-      opt.value = nome;
-      opt.textContent = nome;
-      select.appendChild(opt);
-    }
-
-    const row = document.createElement("div");
-    row.style.display="flex";
-    row.style.justifyContent="space-between";
-    row.style.marginBottom="6px";
-
-    row.innerHTML = `
+  todas.forEach(nome=>{
+    const row=document.createElement("div");
+    row.className="popup-row";
+    row.innerHTML=`
       <span>${nome}</span>
       <div>
-        <button onclick="editarCategoria(${i})" style="margin-right:6px">✏️</button>
-        <button onclick="excluirCategoria(${i})">🗑️</button>
-      </div>
-    `;
-    lista.appendChild(row);
-  });
-}
-
-function salvarNovaCategoria(){
-  const input = document.getElementById("novaCategoriaInput");
-  const nome = input.value.trim();
-  if(!nome) return;
-
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  salvas.push(nome);
-  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
-
-  input.value="";
-  carregarCategoriasSalvas();
-}
-
-function excluirCategoria(i){
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  salvas.splice(i,1);
-  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
-  carregarCategoriasSalvas();
-}
-
-function editarCategoria(i){
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  const novo = prompt("Editar categoria:", salvas[i]);
-  if(!novo) return;
-  salvas[i]=novo;
-  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
-  carregarCategoriasSalvas();
-}
-
-
-function carregarCategoriasSalvas(){
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  const select = document.getElementById("categoria");
-  const lista = document.getElementById("categoriasLista");
-
-  lista.innerHTML = "";
-
-  // categorias existentes no select
-  const existentes = [...select.options].map(o=>o.value);
-
-  const todas = [...new Set([...existentes, ...salvas])];
-
-  todas.forEach((nome, i) => {
-    const row = document.createElement("div");
-    row.className="cat-row";
-
-    row.innerHTML = `
-      <span>${nome}</span>
-      <div class="cat-actions">
         <button onclick="editarCategoria('${nome}')">✏️</button>
-        <button onclick="excluirCategoria('${nome}')">🗑️</button>
-      </div>
-    `;
+        <button onclick="excluirCategoria('${nome}')">🗑</button>
+      </div>`;
     lista.appendChild(row);
   });
 }
 
 function salvarNovaCategoria(){
-  const input = document.getElementById("novaCategoriaInput");
-  const nome = input.value.trim();
+  const input=document.getElementById("novaCategoriaInput");
+  const nome=input.value.trim();
   if(!nome) return;
 
-  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  if(!salvas.includes(nome)) salvas.push(nome);
-  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+  let extras=JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  if(!extras.includes(nome)) extras.push(nome);
+  localStorage.setItem("categorias_extra",JSON.stringify(extras));
 
-  const select = document.getElementById("categoria");
+  const select=document.getElementById("categoria");
   if(![...select.options].some(o=>o.value===nome)){
-    const opt = document.createElement("option");
-    opt.value = nome;
-    opt.textContent = nome;
+    const opt=document.createElement("option");
+    opt.value=nome;
+    opt.textContent=nome;
     select.appendChild(opt);
   }
 
@@ -2585,26 +2513,18 @@ function salvarNovaCategoria(){
 }
 
 function excluirCategoria(nome){
-  let salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
-  salvas = salvas.filter(c=>c!==nome);
-  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
-
-  const select = document.getElementById("categoria");
-  [...select.options].forEach(o=>{
-    if(o.value===nome && !["Vendas","Outros"].includes(nome)) o.remove();
-  });
-
+  let extras=JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  extras=extras.filter(c=>c!==nome);
+  localStorage.setItem("categorias_extra",JSON.stringify(extras));
   carregarCategoriasSalvas();
 }
 
 function editarCategoria(nome){
-  const novo = prompt("Editar categoria:", nome);
+  const novo=prompt("Editar:",nome);
   if(!novo) return;
-
   excluirCategoria(nome);
   salvarNovaCategoria(novo);
 }
-
 
 document.addEventListener("DOMContentLoaded", carregarCategoriasSalvas);
 </script></body>
