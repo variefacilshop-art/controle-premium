@@ -5,12 +5,80 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function excluirSelecionados(){
+  const marcados = document.querySelectorAll('.chk-select:checked, .chkSel:checked, input[type="checkbox"]:checked');
+
+  if(marcados.length === 0){
+    alert("Selecione pelo menos um item");
+    return;
+  }
+
+  if(!confirm("Deseja excluir os itens selecionados?")) return;
+
+  marcados.forEach(el => {
+    const linha = el.closest('.item') || el.closest('.linha-registro') || el.closest('tr');
+    if(linha) linha.remove();
+  });
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+function excluirSelecionados(){
+  const marcados = document.querySelectorAll('.chk-select:checked, .chkSel:checked, input[type="checkbox"]:checked');
+
+  if(marcados.length === 0){
+    alert("Selecione pelo menos um item");
+    return;
+  }
+
+  if(!confirm("Deseja excluir os itens selecionados?")) return;
+
+  marcados.forEach(el => {
+    const linha = el.closest('.item') || el.closest('.linha-registro') || el.closest('tr');
+    if(linha) linha.remove();
+  });
+}
+
+</script>
 
   <!-- PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
+function excluirSelecionados(){
+  const marcados = document.querySelectorAll('.chk-select:checked, .chkSel:checked, input[type="checkbox"]:checked');
+
+  if(marcados.length === 0){
+    alert("Selecione pelo menos um item");
+    return;
+  }
+
+  if(!confirm("Deseja excluir os itens selecionados?")) return;
+
+  marcados.forEach(el => {
+    const linha = el.closest('.item') || el.closest('.linha-registro') || el.closest('tr');
+    if(linha) linha.remove();
+  });
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js">
+function excluirSelecionados(){
+  const marcados = document.querySelectorAll('.chk-select:checked, .chkSel:checked, input[type="checkbox"]:checked');
+
+  if(marcados.length === 0){
+    alert("Selecione pelo menos um item");
+    return;
+  }
+
+  if(!confirm("Deseja excluir os itens selecionados?")) return;
+
+  marcados.forEach(el => {
+    const linha = el.closest('.item') || el.closest('.linha-registro') || el.closest('tr');
+    if(linha) linha.remove();
+  });
+}
+
+</script>
 
   <style>
     :root{
@@ -325,14 +393,6 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  
-    .catRow{ display:flex; gap:10px; align-items:center; }
-    .catRow select{ flex: 1 1 auto; }
-    .selcol{ width: 44px; flex: 0 0 44px; display:flex; align-items:center; justify-content:center; }
-    .selcol input{ transform: scale(1.12); }
-    .btn-bulk{ padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 900; }
-    .btn-bulk.danger{ background: rgba(239,68,68,.10); border: 1px solid rgba(239,68,68,.22); color: #ffb4b4; }
-
   </style>
 </head>
 
@@ -425,10 +485,17 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <div class="catRow">
-                <select id="categoria"></select>
-                <button class="btn btn-ghost btn-icon" id="btnCategorias" type="button" title="Gerenciar categorias">＋</button>
-              </div>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -481,13 +548,12 @@
       <div class="card">
         <div class="head">
           <div>
-            <h2>Movimentações</h2><button onclick='excluirSelecionados()' class='btn btn-danger' style='margin-left:10px'>Excluir selecionados</button>
+            <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
-            <button class="btn btn-ghost btn-bulk danger" id="btnExcluirMult" type="button" disabled>🗑️ Excluir selecionados (0)</button>
           </div>
         </div>
         <div class="body" style="padding-top:12px">
@@ -804,7 +870,6 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
-  const btnExcluirMult = document.getElementById("btnExcluirMult");
   const btnPdf = document.getElementById("btnPdf");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
@@ -1190,18 +1255,14 @@
       return;
     }
 
-    updateBulkUI();
-
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
       const bCls = r.valor >= 0 ? "in" : "out";
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
-      const selChecked = selecionados.includes(String(r.id)) ? "checked" : "";
       return `
         <div class="item">
-          <div class="selcol"><input type="checkbox" ${selChecked} onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" /></div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -1212,7 +1273,7 @@
             </div>
           </div>
           <div class="rightcol">
-            <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount ${cls}">${brl(r.valor)}</div>
+            <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
               data-edit="1"
@@ -1665,7 +1726,7 @@
           <div class="desc">${escapeHtml(x.cat)}</div>
           <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
         </div>
-        <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
+        <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
       </div>
     `).join("") : `<div class="empty">Sem dados neste mês.</div>`;
     dashHintCats.textContent = top.length ? "Top categorias carregadas." : "Sem dados.";
@@ -2077,7 +2138,7 @@
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.href }
+      options: { redirectTo: window.location.origin }
     });
     if (error) showToast("Login", error.message);
   });
@@ -2270,9 +2331,6 @@
     }
   });
 
-  // Excluir múltiplos
-  if (btnExcluirMult) btnExcluirMult.addEventListener("click", excluirSelecionados);
-
   // CSV
   btnImportar.addEventListener("click", () => fileCsv.click());
   fileCsv.addEventListener("change", async () => {
@@ -2439,8 +2497,6 @@
 
     try{ await atualizarMetasUI(currentMonth); }catch(e){}
 
-    updateBulkUI();
-
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
@@ -2477,117 +2533,23 @@
       showToast("Meta", e.message || String(e));
     }
   });
-</script>
 
+function excluirSelecionados(){
+  const marcados = document.querySelectorAll('.chk-select:checked, .chkSel:checked, input[type="checkbox"]:checked');
 
-<!-- ===== POPUP CATEGORIAS ===== -->
-<div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <strong>Categorias</strong>
-      <span id="catClose" style="cursor:pointer">✕</span>
-    </div>
-    <div id="catLista" style="margin-bottom:10px"></div>
-    <input id="catNova" placeholder="Nova categoria" style="width:100%;padding:8px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff">
-    <button id="catAdd" style="margin-top:8px;width:100%;padding:8px;border-radius:10px;border:none;background:#00c2ff;color:#001018;font-weight:bold">Adicionar</button>
-  </div>
-</div>
-
-<script>
-const catOverlay = document.getElementById("catOverlay");
-const btnCategorias = document.getElementById("btnCategorias");
-const catClose = document.getElementById("catClose");
-const catLista = document.getElementById("catLista");
-const catNova = document.getElementById("catNova");
-const catAdd = document.getElementById("catAdd");
-
-btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
-catClose.onclick = ()=> catOverlay.style.display="none";
-catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
-
-async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
-}
-
-catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
-}
-
-async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
-  await supa.from("categorias").delete().eq("id", id);
-  carregarCategorias();
-}
-
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
-}
-</script>
-
-
-<script>
-let selecionados = [];
-
-function toggleSelecionado(id, el){
-  if(el.checked){
-    if(!selecionados.includes(id)) selecionados.push(id);
-  } else {
-    selecionados = selecionados.filter(i=>i!==id);
-  }
-  updateBulkUI();
-}
-
-function updateBulkUI(){
-  const n = selecionados.length;
-  if (!btnExcluirMult) return;
-  btnExcluirMult.textContent = `🗑️ Excluir selecionados (${n})`;
-  btnExcluirMult.disabled = n === 0;
-}
-
-async function excluirSelecionados(){
-  if(!currentUser){ showToast("Excluir", "Faça login primeiro."); return; }
-  if(selecionados.length===0){
-    showToast("Excluir", "Selecione pelo menos 1 lançamento.");
-    return;
-  }
-  if(!confirm(`Excluir ${selecionados.length} lançamento(s)?`)) return;
-
-  const { error } = await supa
-    .from("registros")
-    .delete()
-    .in("id", selecionados)
-    .eq("user_id", currentUser.id);
-
-  if(error){
-    showToast("Excluir", error.message || "Erro ao excluir");
+  if(marcados.length === 0){
+    alert("Selecione pelo menos um item");
     return;
   }
 
-  selecionados=[];
-  updateBulkUI();
-  await refreshUI();
-  if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-  showToast("Excluído ✅", "Lançamentos removidos.");
-}
-</script>
+  if(!confirm("Deseja excluir os itens selecionados?")) return;
 
+  marcados.forEach(el => {
+    const linha = el.closest('.item') || el.closest('.linha-registro') || el.closest('tr');
+    if(linha) linha.remove();
+  });
+}
+
+</script>
 </body>
 </html>
