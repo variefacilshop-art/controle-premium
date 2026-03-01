@@ -1,1 +1,113 @@
-Arquivo placeholder — use este link novamente se o download falhar.
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Lista Premium</title>
+<style>
+body{
+  background:#0b1225;
+  font-family:Arial, Helvetica, sans-serif;
+  color:#e5e7eb;
+  display:flex;
+  justify-content:center;
+  padding:40px;
+}
+.card{
+  width:600px;
+  background:#020617;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+#deleteBtn{
+  display:none;
+  background:#ef4444;
+  border:none;
+  color:white;
+  padding:6px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+.item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.item:last-child{border:none;}
+.checkbox{
+  width:18px;
+  height:18px;
+}
+.meta{
+  flex:1;
+}
+.valor{
+  font-weight:bold;
+  color:#22c55e;
+}
+.badge{
+  background:#0ea5e9;
+  padding:3px 8px;
+  border-radius:8px;
+  font-size:11px;
+  margin-right:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="topbar">
+    <div id="count">0 selecionados</div>
+    <button id="deleteBtn">Excluir</button>
+  </div>
+
+  <div class="item">
+    <input type="checkbox" class="checkbox">
+    <div class="meta">
+      <div><strong>Teste</strong></div>
+      <span class="badge">Entrada</span>
+      <span class="badge">Vendas</span>
+      <span class="badge">27/02/2026</span>
+    </div>
+    <div class="valor">R$ 2.500,00</div>
+  </div>
+
+  <div class="item">
+    <input type="checkbox" class="checkbox">
+    <div class="meta">
+      <div><strong>Teste</strong></div>
+      <span class="badge">Entrada</span>
+      <span class="badge">Embalagem</span>
+      <span class="badge">18/02/2026</span>
+    </div>
+    <div class="valor">R$ 100,00</div>
+  </div>
+
+</div>
+
+<script>
+const checkboxes = document.querySelectorAll('.checkbox');
+const countText = document.getElementById('count');
+const deleteBtn = document.getElementById('deleteBtn');
+
+function updateSelection(){
+  const selected = [...checkboxes].filter(c => c.checked).length;
+  countText.textContent = selected + " selecionados";
+  deleteBtn.style.display = selected ? "block" : "none";
+}
+
+checkboxes.forEach(cb => cb.addEventListener('change', updateSelection));
+</script>
+
+</body>
+</html>
