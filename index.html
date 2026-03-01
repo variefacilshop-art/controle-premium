@@ -325,25 +325,7 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  
-/* === Categorias Popup (Premium) === */
-#categoriasModal{ position: fixed; inset: 0; display:none; align-items:center; justify-content:center; z-index: 9999; background: rgba(0,0,0,.55); backdrop-filter: blur(6px); }
-#categoriasModal .cat-card{ width: 420px; max-width: calc(100vw - 28px); background: rgba(7,12,26,.88); border: 1px solid rgba(148,163,184,.18); border-radius: 18px; box-shadow: 0 18px 60px rgba(0,0,0,.45); padding: 16px; }
-#categoriasModal .cat-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 10px; }
-#categoriasModal .cat-title{ font-size: 16px; font-weight: 800; letter-spacing:.2px; }
-#categoriasModal .cat-close{ width: 34px; height: 34px; border-radius: 12px; border:1px solid rgba(148,163,184,.18); background: rgba(255,255,255,.06); color:#e5e7eb; cursor:pointer; }
-#categoriasModal .cat-list{ max-height: 220px; overflow:auto; padding-right: 4px; margin: 10px 0 12px; }
-#categoriasModal .cat-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 8px 10px; border-radius: 12px; border:1px solid rgba(148,163,184,.10); background: rgba(255,255,255,.04); margin-bottom: 8px; }
-#categoriasModal .cat-name{ font-weight: 700; }
-#categoriasModal .cat-actions{ display:flex; gap:8px; }
-#categoriasModal .cat-icon-btn{ width: 34px; height: 34px; border-radius: 12px; border:1px solid rgba(148,163,184,.18); background: rgba(255,255,255,.06); color:#e5e7eb; cursor:pointer; }
-#categoriasModal .cat-form{ display:flex; gap:10px; align-items:center; }
-#categoriasModal input.cat-input{ flex:1; height: 40px; border-radius: 12px; border: 1px solid rgba(148,163,184,.20); background: rgba(2,6,23,.55); color: #e5e7eb; padding: 0 12px; outline:none; }
-#categoriasModal input.cat-input::placeholder{ color: rgba(226,232,240,.55); }
-#categoriasModal .cat-primary{ height: 40px; padding: 0 14px; border-radius: 12px; border: 1px solid rgba(0,194,255,.35); background: rgba(0,194,255,.16); color: #e5e7eb; font-weight: 800; cursor:pointer; }
-#categoriasModal .cat-muted{ font-size: 12px; color: rgba(226,232,240,.7); margin-top: 8px; }
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -1091,31 +1073,10 @@
   }
 
   async function captureTokenIfPresent(){
-    // Compat: algumas versões do supabase-js não expõem getSessionFromUrl.
-    try{
-      const has = supa?.auth && typeof supa.auth.getSessionFromUrl === "function";
-      if (has){
-        const { data, error } = await supa.auth.getSessionFromUrl();
-        if (!error && data && data.session){
-          history.replaceState({}, document.title, window.location.pathname);
-        }
-        return;
-      }
-
-      // Fallback: tenta ler access_token/refresh_token do hash (#access_token=...)
-      const hash = window.location.hash || "";
-      if (!hash.includes("access_token")) return;
-
-      const params = new URLSearchParams(hash.replace(/^#/, ""));
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-      if (!access_token) return;
-
-      if (typeof supa.auth.setSession === "function"){
-        await supa.auth.setSession({ access_token, refresh_token: refresh_token || "" });
-        history.replaceState({}, document.title, window.location.pathname);
-      }
-    }catch(e){}
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      await supa.auth.getSessionFromUrl({ storeSession: true });
+      history.replaceState({}, document.title, "/");
+    }
   }
 
   // ===== BANCOS =====
@@ -2410,14 +2371,81 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 <!-- POPUP CATEGORIAS -->
+
+<style>
+#categoriasModal{
+  backdrop-filter: blur(6px);
+}
+.cat-modal-card{
+  background: linear-gradient(180deg,#0b1225,#020617);
+  border:1px solid rgba(148,163,184,.25);
+  border-radius:16px;
+  padding:18px;
+  width:340px;
+  box-shadow:0 30px 80px rgba(0,0,0,.65);
+  font-family:inherit;
+}
+.cat-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  font-weight:700;
+  color:#e5e7eb;
+}
+.cat-input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(148,163,184,.25);
+  background:#020617;
+  color:#fff;
+  margin-bottom:10px;
+}
+.cat-save{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  background:linear-gradient(180deg,#33d2ff,#00c2ff);
+  color:#001018;
+  font-weight:800;
+  cursor:pointer;
+}
+.cat-list{
+  margin-top:12px;
+  max-height:160px;
+  overflow:auto;
+  border-top:1px solid rgba(148,163,184,.15);
+  padding-top:10px;
+}
+.cat-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  font-size:13px;
+  color:#cbd5e1;
+}
+.cat-actions button{
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:14px;
+  margin-left:6px;
+}
+</style>
 <div id="categoriasModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#020617;border:1px solid rgba(148,163,184,.2);border-radius:14px;padding:20px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+  <div class="cat-modal-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <strong>Nova categoria</strong>
+      <span>Gerenciar categorias</span>
       <button onclick="closeCategoriasModal()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button>
     </div>
-    <input id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
-    <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer">Salvar</button>
+    <input class="cat-input" id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
+    <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer"class="cat-save">Salvar</button>
+<!-- LISTA DE CATEGORIAS -->
+<div id="categoriasLista" style="margin-top:12px;max-height:150px;overflow:auto"></div>
+
   </div>
 </div>
 <script>
@@ -2445,5 +2473,139 @@ function salvarNovaCategoria(){
   input.value="";
   closeCategoriasModal();
 }
+
+function carregarCategoriasSalvas(){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  const select = document.getElementById("categoria");
+  const lista = document.getElementById("categoriasLista");
+
+  lista.innerHTML = "";
+
+  salvas.forEach((nome, i) => {
+    // adiciona no select se não existir
+    if(![...select.options].some(o=>o.value===nome)){
+      const opt = document.createElement("option");
+      opt.value = nome;
+      opt.textContent = nome;
+      select.appendChild(opt);
+    }
+
+    const row = document.createElement("div");
+    row.style.display="flex";
+    row.style.justifyContent="space-between";
+    row.style.marginBottom="6px";
+
+    row.innerHTML = `
+      <span>${nome}</span>
+      <div>
+        <button onclick="editarCategoria(${i})" style="margin-right:6px">✏️</button>
+        <button onclick="excluirCategoria(${i})">🗑️</button>
+      </div>
+    `;
+    lista.appendChild(row);
+  });
+}
+
+function salvarNovaCategoria(){
+  const input = document.getElementById("novaCategoriaInput");
+  const nome = input.value.trim();
+  if(!nome) return;
+
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  salvas.push(nome);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+
+  input.value="";
+  carregarCategoriasSalvas();
+}
+
+function excluirCategoria(i){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  salvas.splice(i,1);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+  carregarCategoriasSalvas();
+}
+
+function editarCategoria(i){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  const novo = prompt("Editar categoria:", salvas[i]);
+  if(!novo) return;
+  salvas[i]=novo;
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+  carregarCategoriasSalvas();
+}
+
+
+function carregarCategoriasSalvas(){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  const select = document.getElementById("categoria");
+  const lista = document.getElementById("categoriasLista");
+
+  lista.innerHTML = "";
+
+  // categorias existentes no select
+  const existentes = [...select.options].map(o=>o.value);
+
+  const todas = [...new Set([...existentes, ...salvas])];
+
+  todas.forEach((nome, i) => {
+    const row = document.createElement("div");
+    row.className="cat-row";
+
+    row.innerHTML = `
+      <span>${nome}</span>
+      <div class="cat-actions">
+        <button onclick="editarCategoria('${nome}')">✏️</button>
+        <button onclick="excluirCategoria('${nome}')">🗑️</button>
+      </div>
+    `;
+    lista.appendChild(row);
+  });
+}
+
+function salvarNovaCategoria(){
+  const input = document.getElementById("novaCategoriaInput");
+  const nome = input.value.trim();
+  if(!nome) return;
+
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  if(!salvas.includes(nome)) salvas.push(nome);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+
+  const select = document.getElementById("categoria");
+  if(![...select.options].some(o=>o.value===nome)){
+    const opt = document.createElement("option");
+    opt.value = nome;
+    opt.textContent = nome;
+    select.appendChild(opt);
+  }
+
+  input.value="";
+  carregarCategoriasSalvas();
+}
+
+function excluirCategoria(nome){
+  let salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  salvas = salvas.filter(c=>c!==nome);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+
+  const select = document.getElementById("categoria");
+  [...select.options].forEach(o=>{
+    if(o.value===nome && !["Vendas","Outros"].includes(nome)) o.remove();
+  });
+
+  carregarCategoriasSalvas();
+}
+
+function editarCategoria(nome){
+  const novo = prompt("Editar categoria:", nome);
+  if(!novo) return;
+
+  excluirCategoria(nome);
+  salvarNovaCategoria(novo);
+}
+
+
+document.addEventListener("DOMContentLoaded", carregarCategoriasSalvas);
 </script></body>
 </html>
