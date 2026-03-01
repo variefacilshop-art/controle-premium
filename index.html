@@ -1068,7 +1068,8 @@
 
   async function captureTokenIfPresent(){
     if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
+      const { data, error } = await supa.auth.getSession();
+    if (error) console.error("Erro sessão:", error);
       history.replaceState({}, document.title, "/");
     }
   }
