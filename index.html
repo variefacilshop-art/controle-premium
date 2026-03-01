@@ -2379,6 +2379,9 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
     <input id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
     <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer">Salvar</button>
+<!-- LISTA DE CATEGORIAS -->
+<div id="categoriasLista" style="margin-top:12px;max-height:150px;overflow:auto"></div>
+
   </div>
 </div>
 <script>
@@ -2406,5 +2409,68 @@ function salvarNovaCategoria(){
   input.value="";
   closeCategoriasModal();
 }
+
+function carregarCategoriasSalvas(){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  const select = document.getElementById("categoria");
+  const lista = document.getElementById("categoriasLista");
+
+  lista.innerHTML = "";
+
+  salvas.forEach((nome, i) => {
+    // adiciona no select se não existir
+    if(![...select.options].some(o=>o.value===nome)){
+      const opt = document.createElement("option");
+      opt.value = nome;
+      opt.textContent = nome;
+      select.appendChild(opt);
+    }
+
+    const row = document.createElement("div");
+    row.style.display="flex";
+    row.style.justifyContent="space-between";
+    row.style.marginBottom="6px";
+
+    row.innerHTML = `
+      <span>${nome}</span>
+      <div>
+        <button onclick="editarCategoria(${i})" style="margin-right:6px">✏️</button>
+        <button onclick="excluirCategoria(${i})">🗑️</button>
+      </div>
+    `;
+    lista.appendChild(row);
+  });
+}
+
+function salvarNovaCategoria(){
+  const input = document.getElementById("novaCategoriaInput");
+  const nome = input.value.trim();
+  if(!nome) return;
+
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  salvas.push(nome);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+
+  input.value="";
+  carregarCategoriasSalvas();
+}
+
+function excluirCategoria(i){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  salvas.splice(i,1);
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+  carregarCategoriasSalvas();
+}
+
+function editarCategoria(i){
+  const salvas = JSON.parse(localStorage.getItem("categorias_extra") || "[]");
+  const novo = prompt("Editar categoria:", salvas[i]);
+  if(!novo) return;
+  salvas[i]=novo;
+  localStorage.setItem("categorias_extra", JSON.stringify(salvas));
+  carregarCategoriasSalvas();
+}
+
+document.addEventListener("DOMContentLoaded", carregarCategoriasSalvas);
 </script></body>
 </html>
