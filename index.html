@@ -325,14 +325,6 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  
-    .catRow{ display:flex; gap:10px; align-items:center; }
-    .catRow select{ flex: 1 1 auto; }
-    .selcol{ width: 44px; flex: 0 0 44px; display:flex; align-items:center; justify-content:center; }
-    .selcol input{ transform: scale(1.12); }
-    .btn-bulk{ padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 900; }
-    .btn-bulk.danger{ background: rgba(239,68,68,.10); border: 1px solid rgba(239,68,68,.22); color: #ffb4b4; }
-
   </style>
 </head>
 
@@ -425,10 +417,17 @@
           <div class="row">
             <div class="field">
               <label>Categoria</label>
-              <div class="catRow">
-                <select id="categoria"></select>
-                <button class="btn btn-ghost btn-icon" id="btnCategorias" type="button" title="Gerenciar categorias">＋</button>
-              </div>
+              <select id="categoria">
+                <option value="Vendas">Vendas</option>
+                <option value="Tráfego">Tráfego</option>
+                <option value="Fornecedor">Fornecedor</option>
+                <option value="Embalagem">Embalagem</option>
+                <option value="Frete/Logística">Frete/Logística</option>
+                <option value="Impostos/Taxas">Impostos/Taxas</option>
+                <option value="Mercado">Mercado</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Outros">Outros</option>
+              </select>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -487,7 +486,6 @@
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn btn-ghost" id="btnPdf" type="button">📄 Gerar PDF (Premium)</button>
             <button class="btn btn-ghost" id="btnExportar" type="button">⬇️ Exportar CSV</button>
-            <button class="btn btn-ghost btn-bulk danger" id="btnExcluirMult" type="button" disabled>🗑️ Excluir selecionados (0)</button>
           </div>
         </div>
         <div class="body" style="padding-top:12px">
@@ -804,7 +802,6 @@
   const descricaoEl = document.getElementById("descricao");
   const btnSalvar = document.getElementById("btnSalvar");
   const btnExportar = document.getElementById("btnExportar");
-  const btnExcluirMult = document.getElementById("btnExcluirMult");
   const btnPdf = document.getElementById("btnPdf");
   const listaEl = document.getElementById("lista");
   const buscaEl = document.getElementById("busca");
@@ -1071,7 +1068,8 @@
 
   async function captureTokenIfPresent(){
     if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
+      const { data, error } = await supa.auth.getSession();
+    if (error) console.error("Erro sessão:", error);
       history.replaceState({}, document.title, "/");
     }
   }
@@ -1190,18 +1188,14 @@
       return;
     }
 
-    updateBulkUI();
-
     listaEl.innerHTML = filtered.map(r => {
       const cls = r.valor >= 0 ? "pos" : "neg";
       const bCls = r.valor >= 0 ? "in" : "out";
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
-      const selChecked = selecionados.includes(String(r.id)) ? "checked" : "";
       return `
         <div class="item">
-          <div class="selcol"><input type="checkbox" ${selChecked} onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" /></div>
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
@@ -2077,7 +2071,7 @@
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.href }
+      options: { redirectTo: window.location.origin }
     });
     if (error) showToast("Login", error.message);
   });
@@ -2270,9 +2264,6 @@
     }
   });
 
-  // Excluir múltiplos
-  if (btnExcluirMult) btnExcluirMult.addEventListener("click", excluirSelecionados);
-
   // CSV
   btnImportar.addEventListener("click", () => fileCsv.click());
   fileCsv.addEventListener("change", async () => {
@@ -2439,8 +2430,6 @@
 
     try{ await atualizarMetasUI(currentMonth); }catch(e){}
 
-    updateBulkUI();
-
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
@@ -2481,6 +2470,8 @@
 
 
 <!-- ===== POPUP CATEGORIAS ===== -->
+<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
+
 <div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
   <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
@@ -2552,40 +2543,23 @@ function toggleSelecionado(id, el){
   } else {
     selecionados = selecionados.filter(i=>i!==id);
   }
-  updateBulkUI();
-}
-
-function updateBulkUI(){
-  const n = selecionados.length;
-  if (!btnExcluirMult) return;
-  btnExcluirMult.textContent = `🗑️ Excluir selecionados (${n})`;
-  btnExcluirMult.disabled = n === 0;
 }
 
 async function excluirSelecionados(){
-  if(!currentUser){ showToast("Excluir", "Faça login primeiro."); return; }
   if(selecionados.length===0){
-    showToast("Excluir", "Selecione pelo menos 1 lançamento.");
+    alert("Selecione lançamentos");
     return;
   }
-  if(!confirm(`Excluir ${selecionados.length} lançamento(s)?`)) return;
+  if(!confirm("Excluir selecionados?")) return;
 
-  const { error } = await supa
-    .from("registros")
-    .delete()
-    .in("id", selecionados)
-    .eq("user_id", currentUser.id);
-
+  const { error } = await supa.from("registros").delete().in("id", selecionados);
   if(error){
-    showToast("Excluir", error.message || "Erro ao excluir");
+    alert("Erro ao excluir");
     return;
   }
 
   selecionados=[];
-  updateBulkUI();
-  await refreshUI();
-  if (!dashboardBox.classList.contains("hidden")) await refreshDashboard();
-  showToast("Excluído ✅", "Lançamentos removidos.");
+  refreshUI();
 }
 </script>
 
