@@ -480,7 +480,7 @@
       <div class="card">
         <div class="head">
           <div>
-            <h2>Movimentações</h2><button onclick='excluirSelecionados()' class='btn btn-danger' style='margin-left:10px'>Excluir selecionados</button>
+            <h2>Movimentações</h2>
             <span>Buscar + Editar + Exportar</span>
           </div>
           <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
@@ -1205,7 +1205,7 @@
             </div>
           </div>
           <div class="rightcol">
-            <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount ${cls}">${brl(r.valor)}</div>
+            <div class="amount ${cls}">${brl(r.valor)}</div>
             <button class="btn btn-icon btn-icon-edit" type="button"
               title="Editar"
               data-edit="1"
@@ -1658,7 +1658,7 @@
           <div class="desc">${escapeHtml(x.cat)}</div>
           <div class="hint" style="margin:0">Entradas: ${brl(x.in)} • Saídas: ${brl(x.out)}</div>
         </div>
-        <input type="checkbox" onclick="toggleSelecionado(\'${escapeHtml(String(r.id))}\', this)" style="margin-right:8px"> <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
+        <div class="amount">${brl(x.out > 0 ? -x.out : x.in)}</div>
       </div>
     `).join("") : `<div class="empty">Sem dados neste mês.</div>`;
     dashHintCats.textContent = top.length ? "Top categorias carregadas." : "Sem dados.";
@@ -2534,32 +2534,35 @@ async function editarCategoria(id,nome){
 
 
 <script>
-let selecionados = [];
+document.addEventListener("DOMContentLoaded", () => {
+  const select = document.querySelector('select[name="categoria"], #categoria');
+  if(!select) return;
 
-function toggleSelecionado(id, el){
-  if(el.checked){
-    if(!selecionados.includes(id)) selecionados.push(id);
-  } else {
-    selecionados = selecionados.filter(i=>i!==id);
-  }
-}
+  const wrapper = document.createElement("div");
+  wrapper.style.display="flex";
+  wrapper.style.gap="6px";
+  wrapper.style.alignItems="center";
+  select.parentNode.insertBefore(wrapper, select);
+  wrapper.appendChild(select);
 
-async function excluirSelecionados(){
-  if(selecionados.length===0){
-    alert("Selecione lançamentos");
-    return;
-  }
-  if(!confirm("Excluir selecionados?")) return;
+  const btn = document.createElement("button");
+  btn.innerHTML="+";
+  btn.title="Gerenciar categorias";
+  btn.style.padding="6px 10px";
+  btn.style.borderRadius="8px";
+  btn.style.border="none";
+  btn.style.background="#00c2ff";
+  btn.style.color="#001018";
+  btn.style.fontWeight="bold";
+  btn.style.cursor="pointer";
 
-  const { error } = await supa.from("registros").delete().in("id", selecionados);
-  if(error){
-    alert("Erro ao excluir");
-    return;
-  }
+  btn.onclick=()=>{
+    document.getElementById("catOverlay").style.display="flex";
+    carregarCategorias();
+  };
 
-  selecionados=[];
-  refreshUI();
-}
+  wrapper.appendChild(btn);
+});
 </script>
 
 </body>
