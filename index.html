@@ -2469,6 +2469,7 @@
 
 
 <!-- ===== POPUP CATEGORIAS ===== -->
+<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
 
 <div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
   <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
@@ -2493,6 +2494,9 @@ const catAdd = document.getElementById("catAdd");
 btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
 catClose.onclick = ()=> catOverlay.style.display="none";
 catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape") catOverlay.style.display="none";
+});
 
 async function carregarCategorias(){
   if(!currentUser) return;
