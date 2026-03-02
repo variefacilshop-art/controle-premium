@@ -1,5 +1,67 @@
-<h1 stgyle="color:red">VERSÂO NOVA</h1>
-  <!DOCTYPE html>
+
+<style>
+#categoriasModal{
+  backdrop-filter: blur(4px);
+}
+.popup-card{
+  background:#0b1225;
+  border-radius:14px;
+  padding:18px;
+  width:320px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);
+  color:#e5e7eb;
+  animation:fadeIn .18s ease-out;
+}
+.popup-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  font-weight:600;
+}
+.popup-input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid rgba(148,163,184,.2);
+  background:#020617;
+  color:#fff;
+  margin-bottom:10px;
+}
+.popup-save{
+  width:100%;
+  padding:9px;
+  border-radius:8px;
+  border:none;
+  background:#38bdf8;
+  color:#001018;
+  font-weight:700;
+  cursor:pointer;
+}
+.popup-list{
+  margin-top:12px;
+  max-height:150px;
+  overflow:auto;
+}
+.popup-row{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  font-size:13px;
+}
+.popup-row button{
+  background:none;
+  border:none;
+  color:#94a3b8;
+  cursor:pointer;
+  margin-left:6px;
+}
+@keyframes fadeIn{
+ from{opacity:0; transform:translateY(6px)}
+ to{opacity:1; transform:translateY(0)}
+}
+</style>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -326,36 +388,7 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
-  
-    /* Categorias popup (Premium) */
-    #btnCategorias{
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      font-size: 18px;
-      font-weight: 900;
-      line-height: 1;
-    }
-    .catRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      padding: 12px 12px;
-      border-bottom: 1px solid rgba(148,163,184,.10);
-    }
-    .catRow:last-child{ border-bottom:none; }
-    .catName{
-      font-weight: 900;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .catActions{ display:flex; gap:8px; align-items:center; }
-    .catEditWrap{ display:flex; gap:8px; align-items:center; flex:1; min-width:0; }
-    .catEditInput{ flex:1; min-width: 140px; }
-
-</style>
+  </style>
 </head>
 
 <body>
@@ -446,9 +479,11 @@
 
           <div class="row">
             <div class="field">
-              <label>Categoria</label>
-              <div style="display:flex;gap:10px;align-items:center">
-  <select id="categoria">
+              <label style="display:flex;align-items:center;justify-content:space-between">
+  Categoria
+  <button type="button" id="btnAddCategoria" style="background:none;border:none;color:#38bdf8;font-size:18px;cursor:pointer">＋</button>
+</label>
+              <select id="categoria">
                 <option value="Vendas">Vendas</option>
                 <option value="Tráfego">Tráfego</option>
                 <option value="Fornecedor">Fornecedor</option>
@@ -459,8 +494,6 @@
                 <option value="Lazer">Lazer</option>
                 <option value="Outros">Outros</option>
               </select>
-  <button class="btn btn-ghost btn-icon" id="btnCategorias" type="button" title="Gerenciar categorias">＋</button>
-</div>
             </div>
             <div class="field">
               <label>Descrição</label>
@@ -719,7 +752,10 @@
         </div>
         <div class="row">
           <div class="field"><label>Valor (R$)</label><input id="editValor" type="number" /></div>
-          <div class="field"><label>Categoria</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
+          <div class="field"><label style="display:flex;align-items:center;justify-content:space-between">
+  Categoria
+  <button type="button" id="btnAddCategoria" style="background:none;border:none;color:#38bdf8;font-size:18px;cursor:pointer">＋</button>
+</label><input id="editCategoria" placeholder="Ex: Vendas, Mercado..." /></div>
         </div>
         <div class="field"><label>Banco</label><select id="editBancoSelect"></select></div>
         <div class="field"><label>Descrição</label><input id="editDescricao" /></div>
@@ -804,42 +840,6 @@
       </div>
     </div>
   </div>
-
-
-  <!-- Modal Categorias (Premium) -->
-  <div class="modalOverlay" id="catOverlay">
-    <div class="modal sm" style="max-width:720px">
-      <div class="modalHead">
-        <h3>Gerenciar categorias</h3>
-        <button class="btn btn-ghost btn-icon" id="btnCatClose" type="button">✕</button>
-      </div>
-
-      <div class="modalBody" style="padding:16px">
-        <div class="catManageTop" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
-          <div class="field" style="flex:1;min-width:220px;margin:0">
-            <label>Nova categoria</label>
-            <input id="catNome" placeholder="Ex: Anúncios, Marketplace, Embalagem..." />
-          </div>
-          <button class="btn btn-primary" id="btnCatAdd" type="button" style="height:44px">Adicionar</button>
-        </div>
-
-        <div class="hint" style="margin:10px 0 0 0">Dica: você pode editar ou excluir direto na lista.</div>
-
-        <div class="catBox" style="margin-top:12px;padding:0;overflow:hidden">
-          <div style="padding:12px 12px;border-bottom:1px solid rgba(148,163,184,.10);display:flex;justify-content:space-between;align-items:center;gap:10px">
-            <div style="font-weight:900">Suas categorias</div>
-            <div class="smallNote" id="catCount">0</div>
-          </div>
-          <div id="catList" class="empty" style="padding:12px">Carregando…</div>
-        </div>
-      </div>
-
-      <div class="modalFoot">
-        <button class="btn btn-ghost" id="btnCatFechar2" type="button">Fechar</button>
-      </div>
-    </div>
-  </div>
-
 
 <script>
   const SUPABASE_URL = "https://ssnabfzwfvcmwkgibvec.supabase.co";
@@ -977,169 +977,7 @@
   let editingItem = null;
 
   let banksCache = [];
-  
-  // ===== CATEGORIAS (Supabase) =====
-  let categoriesCache = [];
-
-  async function loadCategories(){
-    if (!currentUser) return;
-    const { data, error } = await supa
-      .from("categorias")
-      .select("id,nome")
-      .eq("user_id", currentUser.id)
-      .order("nome", { ascending: true });
-    if (error) throw error;
-    categoriesCache = (data || []).map(x => ({ id: x.id, nome: (x.nome || "").trim() })).filter(x => x.nome);
-  }
-
-  function getDefaultCategories(){
-    // fallback caso a tabela não exista ainda
-    return ["Vendas","Tráfego","Fornecedor","Embalagem","Frete/Logística","Impostos/Taxas","Mercado","Lazer","Outros"];
-  }
-
-  function fillCategorySelects(keepSelected){
-    const current = keepSelected || (categoriaEl?.value || "Outros");
-    const list = categoriesCache.length ? categoriesCache.map(x => x.nome) : getDefaultCategories();
-
-    // Select de Categoria (form)
-    if (categoriaEl){
-      const opts = list.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-      categoriaEl.innerHTML = opts;
-      // preserva seleção se existir
-      const has = list.includes(current);
-      categoriaEl.value = has ? current : (list.includes("Outros") ? "Outros" : list[0]);
-    }
-
-    // Filtro de categoria
-    if (filtroCategoriaEl){
-      const unique = Array.from(new Set(list));
-      unique.sort((a,b)=>a.localeCompare(b,"pt-BR"));
-      filtroCategoriaEl.innerHTML = `<option value="Todas">Todas</option>` + unique.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join("");
-      if (currentFiltroCategoria && (currentFiltroCategoria === "Todas" || unique.includes(currentFiltroCategoria))){
-        filtroCategoriaEl.value = currentFiltroCategoria;
-      } else {
-        filtroCategoriaEl.value = "Todas";
-        currentFiltroCategoria = "Todas";
-      }
-    }
-  }
-
-  // Popup categorias UI
-  const catOverlay = document.getElementById("catOverlay");
-  const btnCategorias = document.getElementById("btnCategorias");
-  const btnCatClose = document.getElementById("btnCatClose");
-  const btnCatFechar2 = document.getElementById("btnCatFechar2");
-  const catNome = document.getElementById("catNome");
-  const btnCatAdd = document.getElementById("btnCatAdd");
-  const catList = document.getElementById("catList");
-  const catCount = document.getElementById("catCount");
-
-  function openCatModal(){
-    if (!currentUser) return;
-    catOverlay.classList.add("show");
-    renderCatList();
-    setTimeout(()=>catNome?.focus(), 50);
-  }
-  function closeCatModal(){
-    catOverlay.classList.remove("show");
-    if (catNome) catNome.value = "";
-  }
-
-  function renderCatList(){
-    const list = categoriesCache.length ? categoriesCache : getDefaultCategories().map((n,i)=>({id:"d"+i, nome:n, _default:true}));
-    if (catCount) catCount.textContent = `${list.length}`;
-    if (!list.length){
-      catList.innerHTML = `<div class="empty">Nenhuma categoria ainda.</div>`;
-      return;
-    }
-    catList.innerHTML = list.map(c => `
-      <div class="catRow" data-cid="${escapeHtml(String(c.id))}" data-default="${c._default ? "1":"0"}">
-        <div class="catEditWrap">
-          <div class="catName" data-name>${escapeHtml(c.nome)}</div>
-          <input class="catEditInput hidden" data-input value="${escapeHtml(c.nome)}" />
-          <button class="btn btn-ghost btn-icon hidden" data-save type="button" title="Salvar" style="width:40px;height:40px">💾</button>
-          <button class="btn btn-ghost btn-icon hidden" data-cancel type="button" title="Cancelar" style="width:40px;height:40px">↩️</button>
-        </div>
-        <div class="catActions">
-          <button class="btn btn-icon btn-icon-edit" data-edit type="button" title="Editar">✏️</button>
-          <button class="btn btn-icon btn-icon-danger" data-del type="button" title="Excluir">🗑️</button>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  async function addCategory(){
-    if (!currentUser) return;
-    const nome = (catNome.value || "").trim();
-    if (!nome){ showToast("Categorias", "Digite o nome da categoria."); return; }
-    // evita duplicado por nome
-    const exists = categoriesCache.some(c => c.nome.toLowerCase() === nome.toLowerCase());
-    if (exists){ showToast("Categorias", "Essa categoria já existe."); return; }
-
-    btnCatAdd.disabled = true;
-    btnCatAdd.textContent = "Adicionando…";
-    try{
-      const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome });
-      if (error) throw error;
-      catNome.value = "";
-      await loadCategories();
-      fillCategorySelects();
-      renderCatList();
-      showToast("Categorias ✅", "Categoria adicionada.");
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }finally{
-      btnCatAdd.disabled = false;
-      btnCatAdd.textContent = "Adicionar";
-    }
-  }
-
-  async function deleteCategory(id, nome){
-    if (!currentUser) return;
-    const ok = confirm(`Excluir a categoria "${nome}"?`);
-    if (!ok) return;
-
-    try{
-      const { error } = await supa.from("categorias").delete().eq("id", id).eq("user_id", currentUser.id);
-      if (error) throw error;
-
-      // OBS: registros antigos ficam com o texto da categoria (não quebra nada).
-      await loadCategories();
-      fillCategorySelects();
-      renderCatList();
-      showToast("Categorias ✅", "Categoria excluída.");
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  }
-
-  async function renameCategory(id, oldName, newName){
-    if (!currentUser) return;
-    const nome = (newName || "").trim();
-    if (!nome){ showToast("Categorias", "Nome inválido."); return; }
-
-    const exists = categoriesCache.some(c => String(c.id) !== String(id) && c.nome.toLowerCase() === nome.toLowerCase());
-    if (exists){ showToast("Categorias", "Já existe uma categoria com esse nome."); return; }
-
-    try{
-      const { error } = await supa.from("categorias").update({ nome }).eq("id", id).eq("user_id", currentUser.id);
-      if (error) throw error;
-
-      // opcional: atualizar registros existentes que tinham a categoria antiga
-      // (mantemos seguro: só atualiza do usuário atual)
-      try{
-        await supa.from("registros").update({ categoria: nome }).eq("user_id", currentUser.id).eq("categoria", oldName);
-      }catch(_){}
-
-      await loadCategories();
-      fillCategorySelects(nome);
-      renderCatList();
-      showToast("Categorias ✅", "Categoria atualizada.");
-    }catch(e){
-      showToast("Categorias", e.message || String(e));
-    }
-  }
-let ofxRows = [];
+  let ofxRows = [];
 
   function showToast(title, msg){
     toastTitle.textContent = title;
@@ -1534,9 +1372,6 @@ let ofxRows = [];
     return v < 0 ? "-" + abs : abs;
   }
 
-  
-  // ===== PDF PREMIUM EXECUTIVO =====
-
   async function generatePDFClassic(){
     if (!lastFinCache || !currentUser){
       showToast("PDF", "Carregue um mês primeiro.");
@@ -1544,12 +1379,11 @@ let ofxRows = [];
     }
 
     const mk = currentMonth || getDefaultMonth();
-    const safeMonth = mk.replace("/", "_").toLowerCase();
+    const safeMonth = mk.replace("/", "-");
 
     const fin = lastFinCache;
     const rows = fin.rows || [];
 
-    // Meta (opcional)
     let meta = 0;
     try{ meta = await getMeta(currentUser.id, mk); }catch(e){ meta = 0; }
 
@@ -1564,223 +1398,101 @@ let ofxRows = [];
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "pt", format: "a4" });
 
-    const pageW = doc.internal.pageSize.width;    // 595
-    const pageH = doc.internal.pageSize.height;   // 842
+    const pageW = doc.internal.pageSize.width;    // ~595
+    const pageH = doc.internal.pageSize.height;   // ~842
 
-    // Margens e largura útil (centralizado)
-    const margin = 46;
+    // Centralização igual ao modelo (margens simétricas)
+    const margin = 54;
     const contentW = pageW - margin*2;
-    const x0 = margin;
+    const x0 = (pageW - contentW) / 2;
 
-    // Paleta (igual ao modelo aprovado)
-    const C = {
-      ink: [15, 23, 42],
-      muted: [100, 116, 139],
-      border: [229, 231, 235],
-      bg: [245, 247, 250],
-      card: [255, 255, 255],
-      brand: [0, 194, 255],
-      brand2: [65, 214, 255],
-      success: [34, 197, 94],
-      danger: [239, 68, 68]
-    };
-
-    // Helpers
-    const now = new Date();
-    const genDate = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}/${now.getFullYear()} ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-
-    function setFont(style, size){
-      doc.setFont("helvetica", style);
-      doc.setFontSize(size);
-    }
-    function txt(str, x, y, opt){
-      doc.text(String(str || ""), x, y, opt || {});
-    }
-    function rrect(x,y,w,h,r, fillRGB, strokeRGB, lw){
-      if (fillRGB){
-        doc.setFillColor(fillRGB[0], fillRGB[1], fillRGB[2]);
-      }
-      if (strokeRGB){
-        doc.setDrawColor(strokeRGB[0], strokeRGB[1], strokeRGB[2]);
-      }
-      doc.setLineWidth(lw ?? 1);
-      doc.roundedRect(x,y,w,h,r,r, fillRGB ? (strokeRGB ? "FD" : "F") : "S");
-    }
-    function shadowCard(x,y,w,h,r){
-      // Sombra leve (simulada)
-      doc.setFillColor(235, 238, 245);
-      doc.roundedRect(x+3, y+4, w, h, r, r, "F");
-      rrect(x,y,w,h,r, C.card, C.border, 1);
-    }
-    function chip(x,y,w,h,label){
-      doc.setFillColor(235, 248, 255);
-      doc.setDrawColor(186, 230, 253);
-      doc.setLineWidth(1);
-      doc.roundedRect(x, y, w, h, 999, 999, "FD");
-      setFont("bold", 9.5);
-      doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
-      txt(label, x + w/2, y + h/2 + 3, { align:"center" });
-      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    }
-
-    // Fundo da página
-    doc.setFillColor(C.bg[0], C.bg[1], C.bg[2]);
+    // Fundo branco
+    doc.setFillColor(255,255,255);
     doc.rect(0,0,pageW,pageH,"F");
+    doc.setTextColor(0,0,0);
 
-    // ===== Header (Executivo) =====
-    let y = 44;
+    let y = 64;
 
-    // barra/linha de marca
-    doc.setFillColor(C.brand2[0], C.brand2[1], C.brand2[2]);
-    doc.roundedRect(x0, y, 140, 4, 3, 3, "F");
-    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
-    doc.circle(x0 + 140, y + 2, 2, "F");
+    // Título (igual ao modelo)
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(24);
+    doc.text("Controle Premium", x0, y);
+    y += 22;
 
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(11.5);
+    doc.text(`Relatório (Finanças) • Mês: ${mk}`, x0, y);
+    y += 16;
+
+    doc.text(`Usuário: ${currentUser.email || ""}`, x0, y);
+    y += 30;
+
+    // Caixa KPIs (centralizada)
+    const boxX = x0;
+    const boxY = y;
+    const boxW = contentW;
+    const boxH = 92;
+
+    doc.setDrawColor(200,200,200);
+    doc.setLineWidth(1);
+    doc.roundedRect(boxX, boxY, boxW, boxH, 12, 12);
+
+    const colW = boxW / 4;
+
+    function kpi(i, label, value){
+      const cx = boxX + colW*i + colW/2;
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(10.5);
+      doc.text(label.toUpperCase(), cx, boxY + 30, { align: "center" });
+
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(12.5);
+      doc.text(value, cx, boxY + 60, { align: "center" });
+    }
+
+    kpi(0, "Entradas", moneyBRAbs(entradas));
+    kpi(1, "Saídas", moneyBRAbs(saidas));
+    kpi(2, "Saldo", moneyBR(saldo));
+    kpi(3, "Registros", String(qtd));
+
+    y = boxY + boxH + 30;
+
+    // Meta do mês
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Meta do mês", x0, y);
+    y += 16;
+
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10.5);
+    doc.text(
+      `Meta: ${moneyBRAbs(meta)} • Entradas: ${moneyBRAbs(entradas)} • Falta: ${moneyBRAbs(falta)} • Progresso: ${progresso.toFixed(1)}%`,
+      x0, y
+    );
     y += 20;
 
-    setFont("bold", 22);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Relatório Financeiro", x0, y);
+    // Barra de progresso (azul, grossa, centralizada)
+    const barX = x0;
+    const barY = y;
+    const barW = contentW;
+    const barH = 12;
 
-    setFont("normal", 10.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt(`Mês: ${mk} • Controle Premium`, x0, y + 16);
-
-    // meta info direita
-    const rightX = x0 + contentW;
-    setFont("normal", 9.5);
-    txt(`Gerado em: ${genDate}`, rightX, y - 2, { align:"right" });
-    // chip "Finanças"
-    chip(rightX - 78, y + 6, 78, 20, "Finanças");
-
-    y += 40;
-
-    // ===== KPI cards =====
-    const kpiGap = 12;
-    const kpiW = (contentW - 3*kpiGap) / 4;
-    const kpiH = 88;
-
-    function drawKPI(i, title, value, accent){
-      const x = x0 + i*(kpiW + kpiGap);
-      shadowCard(x, y, kpiW, kpiH, 14);
-
-      // bolinha de acento
-      if (accent){
-        doc.setFillColor(accent[0], accent[1], accent[2]);
-        doc.circle(x + kpiW - 16, y + 18, 4.5, "F");
-      }
-
-      setFont("normal", 9.5);
-      doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-      txt(title, x + 14, y + 28);
-
-      setFont("bold", 14.5);
-      doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-      txt(value, x + 14, y + 55);
-    }
-
-    drawKPI(0, "Entradas", moneyBRAbs(entradas), C.success);
-    drawKPI(1, "Saídas", moneyBRAbs(saidas), C.danger);
-    drawKPI(2, "Saldo", moneyBR(saldo), saldo >= 0 ? C.success : C.danger);
-    drawKPI(3, "Registros", String(qtd), C.brand);
-
-    y += kpiH + 16;
-
-    // ===== Meta + gráfico (2 colunas) =====
-    const colGap = 12;
-    const leftW = (contentW - colGap) * 0.54;
-    const rightW = contentW - colGap - leftW;
-    const cardH = 160;
-
-    // Meta card
-    shadowCard(x0, y, leftW, cardH, 16);
-
-    setFont("bold", 11.5);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Meta do mês", x0 + 14, y + 26);
-
-    setFont("normal", 9.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    const metaStr = moneyBRAbs(meta);
-    const entradasStr = moneyBRAbs(entradas);
-    const faltaStr = moneyBRAbs(falta);
-    txt(`Meta: ${metaStr}   •   Entradas: ${entradasStr}`, x0 + 14, y + 46);
-    txt(`Falta: ${faltaStr}   •   Progresso: ${progresso.toFixed(1)}%`, x0 + 14, y + 62);
-
-    // barra
-    const barX = x0 + 14;
-    const barY = y + 86;
-    const barW = leftW - 28;
-    const barH = 10;
-
-    doc.setFillColor(241, 245, 249);
-    doc.setDrawColor(226, 232, 240);
+    doc.setDrawColor(220,220,220);
     doc.setLineWidth(1);
-    doc.roundedRect(barX, barY, barW, barH, 999, 999, "FD");
+    doc.setFillColor(255,255,255);
+    doc.roundedRect(barX, barY, barW, barH, 8, 8);
 
-    const fillW = Math.max(0, Math.min(barW*(progresso/100), barW));
-    doc.setFillColor(C.brand[0], C.brand[1], C.brand[2]);
-    doc.roundedRect(barX, barY, fillW, barH, 999, 999, "F");
+    const fillW = Math.max(0, Math.min(barW * (progresso/100), barW));
+    doc.setFillColor(0, 194, 255);
+    doc.roundedRect(barX, barY, fillW, barH, 8, 8, "F");
 
-    // etiqueta
-    doc.setFillColor(235, 248, 255);
-    doc.setDrawColor(186, 230, 253);
-    doc.roundedRect(barX, barY + 16, 160, 20, 999, 999, "FD");
-    setFont("bold", 9.5);
-    doc.setTextColor(C.brand[0], C.brand[1], C.brand[2]);
-    txt(`${progresso.toFixed(1)}% da meta`, barX + 80, barY + 31, { align:"center" });
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
+    y = barY + barH + 30;
 
-    // Card gráfico (mock premium)
-    const gx = x0 + leftW + colGap;
-    shadowCard(gx, y, rightW, cardH, 16);
-
-    setFont("bold", 11.5);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Visão rápida", gx + 14, y + 26);
-
-    setFont("normal", 9.5);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt("Entradas vs Saídas (mês)", gx + 14, y + 44);
-
-    // mini gráfico (barras) proporcional
-    const chartX = gx + 14;
-    const chartY = y + 62;
-    const chartW = rightW - 28;
-    const chartH = 82;
-    rrect(chartX, chartY, chartW, chartH, 12, [248, 250, 252], C.border, 1);
-
-    const maxV = Math.max(entradas, saidas, 1);
-    const inW = (chartW - 34) * (entradas / maxV);
-    const outW = (chartW - 34) * (saidas / maxV);
-
-    // barras horizontais estilo "executivo"
-    doc.setFillColor(226, 232, 240);
-    doc.roundedRect(chartX + 12, chartY + 22, chartW - 24, 10, 999, 999, "F");
-    doc.roundedRect(chartX + 12, chartY + 48, chartW - 24, 10, 999, 999, "F");
-
-    doc.setFillColor(C.success[0], C.success[1], C.success[2]);
-    doc.roundedRect(chartX + 12, chartY + 22, Math.max(8, inW), 10, 999, 999, "F");
-
-    doc.setFillColor(C.danger[0], C.danger[1], C.danger[2]);
-    doc.roundedRect(chartX + 12, chartY + 48, Math.max(8, outW), 10, 999, 999, "F");
-
-    setFont("bold", 9.2);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Entradas", chartX + 12, chartY + 16);
-    txt("Saídas", chartX + 12, chartY + 42);
-
-    setFont("normal", 9.2);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt(moneyBRAbs(entradas), chartX + chartW - 12, chartY + 30, { align:"right" });
-    txt(moneyBRAbs(saidas), chartX + chartW - 12, chartY + 56, { align:"right" });
-
-    y += cardH + 18;
-
-    // ===== Tabela =====
-    setFont("bold", 12);
-    doc.setTextColor(C.ink[0], C.ink[1], C.ink[2]);
-    txt("Lançamentos do mês", x0, y);
+    // Lançamentos do mês
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(12.5);
+    doc.text("Lançamentos do mês", x0, y);
+    y += 10;
 
     const body = rows.map(r => {
       const tipo = (Number(r.valor || 0) >= 0) ? "Entrada" : "Saída";
@@ -1801,48 +1513,37 @@ let ofxRows = [];
       margin: { left: x0, right: x0 },
       styles: {
         font: "helvetica",
-        fontSize: 9.0,
+        fontSize: 9.2,
         cellPadding: 6,
         textColor: 30,
-        lineColor: 236
+        lineColor: 230
       },
       headStyles: {
-        fillColor: [12, 18, 38],
+        fillColor: [12, 18, 38],     // igual ao modelo (faixa escura)
         textColor: 255,
         fontStyle: "bold"
       },
-      alternateRowStyles: { fillColor: [248, 249, 251] },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
       columnStyles: {
         0: { cellWidth: 70 },
-        1: { cellWidth: 62 },
-        2: { cellWidth: 108 },
-        3: { cellWidth: contentW - (70+62+108+92) },
-        4: { cellWidth: 92, halign: "right" }
+        1: { cellWidth: 60 },
+        2: { cellWidth: 100 },
+        3: { cellWidth: contentW - (70+60+100+90) },
+        4: { cellWidth: 90, halign: "right" }
       },
       didParseCell: function (data) {
         if (data.section === "body" && data.column.index === 4){
-          const txtv = String(data.cell.raw || "");
-          if (txtv.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
+          const txt = String(data.cell.raw || "");
+          if (txt.startsWith("-R$")) data.cell.styles.textColor = [200, 0, 0];
         }
       }
     });
 
-    // Rodapé
-    const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : (pageH - 60);
-    doc.setDrawColor(C.border[0], C.border[1], C.border[2]);
-    doc.setLineWidth(1);
-    doc.line(x0, finalY + 18, x0 + contentW, finalY + 18);
-
-    setFont("normal", 9);
-    doc.setTextColor(C.muted[0], C.muted[1], C.muted[2]);
-    txt("Controle Premium • Relatório executivo", x0, finalY + 36);
-    txt(`Mês: ${mk}`, x0 + contentW, finalY + 36, { align:"right" });
-
-    doc.save(`relatorio_financeiro_${safeMonth}.pdf`);
-    showToast("PDF ✅", "Relatório gerado no padrão Premium.");
+    doc.save(`controle-premium_${safeMonth}.pdf`);
+    showToast("PDF ✅", `Gerado: controle-premium_${safeMonth}.pdf`);
   }
 
-// ===== DASHBOARD =====
+  // ===== DASHBOARD =====
   function makeChartCommonOptions(){
     return {
       responsive: true,
@@ -2608,82 +2309,7 @@ let ofxRows = [];
     await refreshDashboard();
   });
 
-  
-  // Categorias (popup)
-  if (btnCategorias){
-    btnCategorias.addEventListener("click", async () => {
-      if (!currentUser) return;
-      try{
-        await loadCategories();
-        fillCategorySelects();
-        openCatModal();
-      }catch(e){
-        // Se a tabela não existir ainda, continua com padrão
-        categoriesCache = [];
-        fillCategorySelects();
-        openCatModal();
-      }
-    });
-  }
-  if (btnCatClose) btnCatClose.addEventListener("click", closeCatModal);
-  if (btnCatFechar2) btnCatFechar2.addEventListener("click", closeCatModal);
-  if (catOverlay) catOverlay.addEventListener("click", (e) => { if (e.target === catOverlay) closeCatModal(); });
-  if (btnCatAdd) btnCatAdd.addEventListener("click", addCategory);
-  if (catNome) catNome.addEventListener("keydown", (e) => { if (e.key === "Enter") addCategory(); });
-
-  if (catList){
-    catList.addEventListener("click", async (e) => {
-      const row = e.target.closest(".catRow");
-      if (!row) return;
-      const isDefault = row.dataset.default === "1";
-      const id = row.dataset.cid;
-      const nameEl = row.querySelector("[data-name]");
-      const inputEl = row.querySelector("[data-input]");
-      const btnSave = row.querySelector("[data-save]");
-      const btnCancel = row.querySelector("[data-cancel]");
-
-      if (e.target.closest("[data-edit]")){
-        if (isDefault){
-          showToast("Categorias", "Para personalizar, primeiro crie suas categorias na tabela 'categorias'.");
-          return;
-        }
-        nameEl.classList.add("hidden");
-        inputEl.classList.remove("hidden");
-        btnSave.classList.remove("hidden");
-        btnCancel.classList.remove("hidden");
-        inputEl.focus();
-        inputEl.select();
-        return;
-      }
-
-      if (e.target.closest("[data-cancel]")){
-        nameEl.classList.remove("hidden");
-        inputEl.classList.add("hidden");
-        btnSave.classList.add("hidden");
-        btnCancel.classList.add("hidden");
-        inputEl.value = nameEl.textContent.trim();
-        return;
-      }
-
-      if (e.target.closest("[data-save]")){
-        const oldName = nameEl.textContent.trim();
-        const newName = inputEl.value;
-        await renameCategory(id, oldName, newName);
-        return;
-      }
-
-      if (e.target.closest("[data-del]")){
-        if (isDefault){
-          showToast("Categorias", "Categorias padrão não podem ser excluídas (crie suas próprias).");
-          return;
-        }
-        await deleteCategory(id, nameEl.textContent.trim());
-      }
-    });
-  }
-
-
-// ===== REFRESH UI =====
+  // ===== REFRESH UI =====
   async function refreshUI(){
     const { data } = await supa.auth.getSession();
     const session = data.session;
@@ -2708,14 +2334,7 @@ let ofxRows = [];
       ofxBancoSelect.innerHTML = `<option value="">— Sem banco (opcional) —</option>`;
     }
 
-    
-    try{
-      await loadCategories();
-    }catch(e){
-      categoriesCache = [];
-    }
-    fillCategorySelects();
-let months = [getDefaultMonth()];
+    let months = [getDefaultMonth()];
     try{
       months = months.concat(await fetchMonthsFromRegistros(currentUser.id));
     }catch(e){}
@@ -2779,5 +2398,134 @@ let months = [getDefaultMonth()];
     }
   });
 </script>
-</body>
+
+<script>
+function closeCategoriasModal(){
+  const modal = document.getElementById("categoriasModal");
+  if(modal){ modal.style.display = "none"; }
+}
+
+function openCategoriasModal(){
+  const modal = document.getElementById("categoriasModal");
+  if(modal){ modal.style.display = "flex"; }
+}
+</script>
+
+<script>
+// ===== NOVA CATEGORIA =====
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("btnAddCategoria");
+  const categoriaEl = document.getElementById("categoria");
+
+  if(btn && categoriaEl){
+    btn.onclick = () => { openCategoriasModal(); return;
+      const nome = prompt("Nova categoria:");
+      if (!nome || nome.trim() === "") return;
+
+      const nova = nome.trim();
+
+      const opt = document.createElement("option");
+      opt.value = nova;
+      opt.textContent = nova;
+      categoriaEl.appendChild(opt);
+      categoriaEl.value = nova;
+    };
+  }
+});
+</script>
+<!-- POPUP CATEGORIAS -->
+<div id="categoriasModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:9999">
+  <div class="popup-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <strong>Nova categoria</strong>
+      <button onclick="closeCategoriasModal()" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <input id="novaCategoriaInput" placeholder="Digite o nome" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(148,163,184,.2);background:#0b1225;color:#fff;margin-bottom:12px">
+    <button onclick="salvarNovaCategoria()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#38bdf8;color:#001018;font-weight:700;cursor:pointer">Salvar</button>
+  </div>
+</div>
+<script>
+function openCategoriasModal(){
+  document.getElementById("categoriasModal").style.display="flex";
+  document.getElementById("novaCategoriaInput").focus();
+}
+
+function closeCategoriasModal(){
+  document.getElementById("categoriasModal").style.display="none";
+}
+
+function salvarNovaCategoria(){
+  const input = document.getElementById("novaCategoriaInput");
+  const nome = input.value.trim();
+  if(!nome) return;
+
+  const select = document.getElementById("categoria");
+  const opt = document.createElement("option");
+  opt.value = nome;
+  opt.textContent = nome;
+  select.appendChild(opt);
+  select.value = nome;
+
+  input.value="";
+  closeCategoriasModal();
+}
+
+function carregarCategoriasSalvas(){
+  const lista = document.getElementById("categoriasLista");
+  const select = document.getElementById("categoria");
+  const extras = JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  const existentes=[...select.options].map(o=>o.value);
+  const todas=[...new Set([...existentes,...extras])];
+  lista.innerHTML="";
+
+  todas.forEach(nome=>{
+    const row=document.createElement("div");
+    row.className="popup-row";
+    row.innerHTML=`
+      <span>${nome}</span>
+      <div>
+        <button onclick="editarCategoria('${nome}')">✏️</button>
+        <button onclick="excluirCategoria('${nome}')">🗑</button>
+      </div>`;
+    lista.appendChild(row);
+  });
+}
+
+function salvarNovaCategoria(){
+  const input=document.getElementById("novaCategoriaInput");
+  const nome=input.value.trim();
+  if(!nome) return;
+
+  let extras=JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  if(!extras.includes(nome)) extras.push(nome);
+  localStorage.setItem("categorias_extra",JSON.stringify(extras));
+
+  const select=document.getElementById("categoria");
+  if(![...select.options].some(o=>o.value===nome)){
+    const opt=document.createElement("option");
+    opt.value=nome;
+    opt.textContent=nome;
+    select.appendChild(opt);
+  }
+
+  input.value="";
+  carregarCategoriasSalvas();
+}
+
+function excluirCategoria(nome){
+  let extras=JSON.parse(localStorage.getItem("categorias_extra")||"[]");
+  extras=extras.filter(c=>c!==nome);
+  localStorage.setItem("categorias_extra",JSON.stringify(extras));
+  carregarCategoriasSalvas();
+}
+
+function editarCategoria(nome){
+  const novo=prompt("Editar:",nome);
+  if(!novo) return;
+  excluirCategoria(nome);
+  salvarNovaCategoria(novo);
+}
+
+document.addEventListener("DOMContentLoaded", carregarCategoriasSalvas);
+</script></body>
 </html>
