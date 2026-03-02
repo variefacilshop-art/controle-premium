@@ -2469,6 +2469,7 @@
 
 
 <!-- ===== POPUP CATEGORIAS ===== -->
+<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
 
 <div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
   <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
@@ -2498,41 +2499,172 @@ document.addEventListener("keydown", (e)=>{
 });
 
 async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
-}
+    // Carrega categorias do Supabase e sincroniza:
+    // 1) lista dentro do modal
+    // 2) selects da tela Finanças (Categoria e Filtro de categoria)
+    if(!currentUser){ return; }
 
-catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
-}
+    const { data, error } = await supa
+      .from('categorias')
+      .select('id,nome')
+      .eq('user_id', currentUser.id)
+      .order('nome', { ascending: true });
 
-async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
-  await supa.from("categorias").delete().eq("id", id);
-  carregarCategorias();
-}
+    if(error){
+      console.error('Erro ao carregar categorias:', error);
+      showToast('Categorias', error.message || 'Erro ao carregar categorias');
+      return;
+    }
 
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
-}
+    const cats = Array.isArray(data) ? data : [];
+
+    // Render no modal
+    catLista.innerHTML = cats.map(c => `
+      <div class="catRow">
+        <span class="catName">${escapeHtml(c.nome)}</span>
+        <button class="catIconBtn" title="Editar" data-act="edit" data-id="${c.id}" data-nome="${escapeHtml(c.nome)}">✎</button>
+        <button class="catIconBtn danger" title="Excluir" data-act="del" data-id="${c.id}" data-nome="${escapeHtml(c.nome)}">🗑</button>
+      </div>
+    `).join('') || '<div style="opacity:.75;padding:6px 2px">Nenhuma categoria cadastrada.</div>';
+
+    // Sincroniza selects da tela (se existirem)
+    syncCategoriaSelects(cats);
+  }
+
+  function syncCategoriaSelects(cats){
+    const categoriaSel = document.getElementById('categoria');
+    const filtroSel = document.getElementById('filtroCategoria');
+
+    // Guarda seleção atual
+    const curCategoria = categoriaSel ? categoriaSel.value : null;
+    const curFiltro = filtroSel ? filtroSel.value : null;
+
+    if(categoriaSel){
+      categoriaSel.innerHTML = '';
+      cats.forEach(c=>{
+        const opt=document.createElement('option');
+        opt.value = c.nome;
+        opt.textContent = c.nome;
+        categoriaSel.appendChild(opt);
+      });
+      // Se a seleção anterior ainda existir, mantém
+      if(curCategoria && cats.some(c=>c.nome===curCategoria)){
+        categoriaSel.value = curCategoria;
+      }
+    }
+
+    if(filtroSel){
+      filtroSel.innerHTML = '';
+      const optAll=document.createElement('option');
+      optAll.value = 'Todas';
+      optAll.textContent = 'Todas';
+      filtroSel.appendChild(optAll);
+
+      cats.forEach(c=>{
+        const opt=document.createElement('option');
+        opt.value = c.nome;
+        opt.textContent = c.nome;
+        filtroSel.appendChild(opt);
+      });
+
+      if(curFiltro && (curFiltro==='Todas' || cats.some(c=>c.nome===curFiltro))){
+        filtroSel.value = curFiltro;
+      }
+    }
+  }
+
+
+  // Adicionar categoria
+  catAdd.type = "button";
+  catAdd.onclick = async (e)=>{
+    e?.preventDefault?.();
+    if(!currentUser){ showToast('Categorias','Você precisa estar logado.'); return; }
+
+    const nome = (catNova.value || '').trim();
+    if(!nome){
+      showToast('Categorias','Digite o nome da categoria.');
+      catNova.focus();
+      return;
+    }
+
+    try{
+      catAdd.disabled = true;
+      const { error } = await supa.from('categorias').insert({ user_id: currentUser.id, nome });
+      if(error) throw error;
+
+      catNova.value = '';
+      showToast('Categorias','Categoria adicionada!');
+      await carregarCategorias();
+    }catch(err){
+      console.error(err);
+      showToast('Categorias', err?.message || 'Erro ao adicionar categoria.');
+    }finally{
+      catAdd.disabled = false;
+    }
+  };
+
+  // Delegação de cliques (editar/excluir) dentro da lista
+  catLista.addEventListener('click', async (ev)=>{
+    const btn = ev.target?.closest?.('button[data-act]');
+    if(!btn) return;
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+    const nome = btn.dataset.nome || '';
+
+    if(act === 'edit'){
+      await editarCategoria(id, nome);
+    }else if(act === 'del'){
+      await excluirCategoria(id, nome);
+    }
+  });
+
+  // Editar categoria
+  async function editarCategoria(id, nomeAtual){
+    const novo = prompt("Editar categoria:", nomeAtual || "");
+    if(!novo) return;
+    const nome = novo.trim();
+    if(!nome) return;
+
+    try{
+      const { error } = await supa.from('categorias').update({ nome }).eq('id', id).eq('user_id', currentUser.id);
+      if(error) throw error;
+
+      showToast('Categorias','Categoria atualizada!');
+      await carregarCategorias();
+    }catch(err){
+      console.error(err);
+      showToast('Categorias', err?.message || 'Erro ao editar categoria.');
+    }
+  }
+
+  // Excluir categoria
+  async function excluirCategoria(id, nome){
+    const ok = confirm(`Excluir a categoria "${nome || ''}"?`);
+    if(!ok) return;
+
+    try{
+      const { error } = await supa.from('categorias').delete().eq('id', id).eq('user_id', currentUser.id);
+      if(error) throw error;
+
+      showToast('Categorias','Categoria excluída!');
+      await carregarCategorias();
+    }catch(err){
+      console.error(err);
+      showToast('Categorias', err?.message || 'Erro ao excluir categoria.');
+    }
+  }
+
+  function closeCategoriasModal(){
+    catOverlay.style.display = "none";
+  }
+
+  // Fechar modal (X e clique fora)
+  catClose.onclick = closeCategoriasModal;
+  catOverlay.addEventListener('click', (ev)=>{
+    if(ev.target === catOverlay) closeCategoriasModal();
+  });
 </script>
+
 
 
 <script>
