@@ -2543,10 +2543,7 @@ async function carregarCategorias() {
     lista.appendChild(row);
   });
 
-  atualizarSelectCategorias(data);
-}
-
-catAdd.onclick = async ()=>{
+ catAdd.onclick = async ()=>{
   const nome = catNova.value.trim();
   if(!nome) return;
   await supa.from("categorias").insert({user_id: currentUser.id, nome});
