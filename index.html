@@ -2514,11 +2514,10 @@ async function carregarCategorias() {
     return;
   }
 
-  const lista =
-    document.getElementById("Catlista");
+  const lista = document.getElementById("catlista");
   if (!lista) return;
 
-lista.innerHTML = "";
+  lista.innerHTML = "";
 
   data.forEach(cat => {
     const row = document.createElement("div");
@@ -2528,7 +2527,6 @@ lista.innerHTML = "";
     nomeSpan.textContent = cat.nome;
     nomeSpan.style.cursor = "pointer";
     nomeSpan.style.flex = "1";
-
     nomeSpan.onclick = () => ativarEdicaoInline(nomeSpan, cat);
 
     const icones = document.createElement("div");
@@ -2547,12 +2545,19 @@ lista.innerHTML = "";
     lista.appendChild(row);
   });
 
- catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
+  if (catAdd) {
+    catAdd.onclick = async () => {
+      const nome = catNova.value.trim();
+      if (!nome) return;
+
+      await supa
+        .from("categorias")
+        .insert({ user_id: currentUser.id, nome });
+
+      catNova.value = "";
+      carregarCategorias();
+    };
+  }
 }
 
 async function excluirCategoria(id) {
@@ -2576,13 +2581,7 @@ async function excluirCategoria(id) {
   carregarCategorias();
 }
 
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
-}
-  function ativarEdicaoInline(elemento, categoria) {
+function ativarEdicaoInline(elemento, categoria) {
   const input = document.createElement("input");
   input.value = categoria.nome;
   input.style.flex = "1";
@@ -2615,30 +2614,33 @@ async function editarCategoria(id,nome){
 
   input.onblur = () => carregarCategorias();
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   const select = document.querySelector('select[name="categoria"], #categoria');
-  if(!select) return;
+  if (!select) return;
 
   const wrapper = document.createElement("div");
-  wrapper.style.display="flex";
-  wrapper.style.gap="6px";
-  wrapper.style.alignItems="center";
+  wrapper.style.display = "flex";
+  wrapper.style.gap = "6px";
+  wrapper.style.alignItems = "center";
+
   select.parentNode.insertBefore(wrapper, select);
   wrapper.appendChild(select);
 
   const btn = document.createElement("button");
-  btn.innerHTML="+";
-  btn.title="Gerenciar categorias";
-  btn.style.padding="6px 10px";
-  btn.style.borderRadius="8px";
-  btn.style.border="none";
-  btn.style.background="#00c2ff";
-  btn.style.color="#001018";
-  btn.style.fontWeight="bold";
-  btn.style.cursor="pointer";
+  btn.innerHTML = "+";
+  btn.title = "Gerenciar categorias";
+  btn.style.padding = "6px 10px";
+  btn.style.borderRadius = "8px";
+  btn.style.border = "none";
+  btn.style.background = "#00c2ff";
+  btn.style.color = "#001018";
+  btn.style.fontWeight = "bold";
+  btn.style.cursor = "pointer";
 
-  btn.onclick=()=>{
-    document.getElementById("catOverlay").style.display="flex";
+  btn.onclick = () => {
+    const overlay = document.getElementById("catOverlay");
+    if (overlay) overlay.style.display = "flex";
     carregarCategorias();
   };
 
