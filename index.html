@@ -2482,9 +2482,26 @@ const catLista = document.getElementById("catLista");
 const catNova = document.getElementById("catNova");
 const catAdd = document.getElementById("catAdd");
 
-btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
-catClose.onclick = ()=> catOverlay.style.display="none";
-catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
+if (btnCategorias) {
+  btnCategorias.onclick = () => {
+    catOverlay.style.display = "flex";
+    carregarCategorias();
+  };
+}
+
+if (catClose) {
+  catClose.onclick = () => {
+    catOverlay.style.display = "none";
+  };
+}
+
+if (catOverlay) {
+  catOverlay.onclick = (e) => {
+    if (e.target === catOverlay) {
+      catOverlay.style.display = "none";
+    }
+  };
+}
 
 async function carregarCategorias(){
   if(!currentUser) return;
