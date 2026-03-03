@@ -2503,19 +2503,48 @@ if (catOverlay) {
   };
 }
 
-async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
+async function carregarCategorias() {
+  const { data, error } = await supa
+    .from("categorias")
+    .select("*")
+    .order("nome", { ascending: true });
+
+  if (error) {
+    console.error("Erro ao carregar categorias:", error);
+    return;
+  }
+
+  const lista = document.getElementById("listaCategorias");
+  lista.innerHTML = "";
+
+  data.forEach(cat => {
+    const row = document.createElement("div");
+    row.className = "catRow";
+
+    const nomeSpan = document.createElement("span");
+    nomeSpan.textContent = cat.nome;
+    nomeSpan.style.cursor = "pointer";
+    nomeSpan.style.flex = "1";
+
+    nomeSpan.onclick = () => ativarEdicaoInline(nomeSpan, cat);
+
+    const icones = document.createElement("div");
+    icones.className = "catIcons";
+
+    const btnExcluir = document.createElement("div");
+    btnExcluir.className = "catBtn";
+    btnExcluir.textContent = "🗑";
+    btnExcluir.onclick = () => excluirCategoria(cat.id);
+
+    icones.appendChild(btnExcluir);
+
+    row.appendChild(nomeSpan);
+    row.appendChild(icones);
+
+    lista.appendChild(row);
+  });
+
+  atualizarSelectCategorias(data);
 }
 
 catAdd.onclick = async ()=>{
@@ -2526,9 +2555,24 @@ catAdd.onclick = async ()=>{
   carregarCategorias();
 }
 
-async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
-  await supa.from("categorias").delete().eq("id", id);
+async function excluirCategoria(id) {
+  const confirmar = await mostrarConfirmacao(
+    "Excluir categoria?",
+    "Essa ação não pode ser desfeita."
+  );
+
+  if (!confirmar) return;
+
+  const { error } = await supa
+    .from("categorias")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao excluir:", error);
+    return;
+  }
+
   carregarCategorias();
 }
 
@@ -2537,6 +2581,39 @@ async function editarCategoria(id,nome){
   if(!novo) return;
   await supa.from("categorias").update({nome:novo}).eq("id", id);
   carregarCategorias();
+}
+  function ativarEdicaoInline(elemento, categoria) {
+  const input = document.createElement("input");
+  input.value = categoria.nome;
+  input.style.flex = "1";
+  input.style.background = "#1f2937";
+  input.style.border = "none";
+  input.style.borderRadius = "6px";
+  input.style.padding = "4px 6px";
+  input.style.color = "white";
+
+  elemento.replaceWith(input);
+  input.focus();
+
+  input.onkeydown = async (e) => {
+    if (e.key === "Enter") {
+      const novoNome = input.value.trim();
+      if (!novoNome) return;
+
+      await supa
+        .from("categorias")
+        .update({ nome: novoNome })
+        .eq("id", categoria.id);
+
+      carregarCategorias();
+    }
+
+    if (e.key === "Escape") {
+      carregarCategorias();
+    }
+  };
+
+  input.onblur = () => carregarCategorias();
 }
 </script>
 
