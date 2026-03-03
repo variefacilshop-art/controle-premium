@@ -2511,7 +2511,7 @@ async function carregarCategorias(){
     <div style="display:flex;justify-content:space-between;margin:6px 0">
       <span>${c.nome}</span>
       <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
+        <span style="cursor:pointer;margin-right:6px" onclick="ativarEdicaoInline('${c.id}','${c.nome.replace(/'/g,"&#39;")}')">✏️</span>
         <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
       </span>
     </div>
@@ -2532,11 +2532,49 @@ async function excluirCategoria(id){
   carregarCategorias();
 }
 
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
+async function ativarEdicaoInline(id, nome){
+
+  const linhas = catLista.querySelectorAll("div");
+
+  linhas.forEach(linha=>{
+    if(linha.innerHTML.includes(id)){
+
+      const nomeSpan = linha.querySelector("span:first-child");
+      const input = document.createElement("input");
+
+      input.value = nome;
+      input.style.flex = "1";
+      input.style.background = "#1f2937";
+      input.style.border = "none";
+      input.style.borderRadius = "6px";
+      input.style.padding = "4px 6px";
+      input.style.color = "white";
+
+      nomeSpan.replaceWith(input);
+      input.focus();
+
+      input.onkeydown = async (e)=>{
+
+        if(e.key === "Enter"){
+          const novo = input.value.trim();
+          if(!novo) return;
+
+          await supa
+            .from("categorias")
+            .update({nome:novo})
+            .eq("id", id);
+
+          carregarCategorias();
+        }
+
+        if(e.key === "Escape"){
+          carregarCategorias();
+        }
+      };
+
+      input.onblur = ()=> carregarCategorias();
+    }
+  });
 }
 </script>
 
