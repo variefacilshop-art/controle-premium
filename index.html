@@ -2514,7 +2514,11 @@ async function carregarCategorias() {
     return;
   }
 
-  catLista.innerHTML = "";
+  const lista =
+    document.getElementById("Catlista");
+  if (!lista) return;
+
+lista.innerHTML = "";
 
   data.forEach(cat => {
     const row = document.createElement("div");
