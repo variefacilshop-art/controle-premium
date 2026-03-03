@@ -166,8 +166,6 @@
   border-bottom:1px solid rgba(148,163,184,.10);
   align-items:center;
 
-  position: relative;
-  padding-left: 40px;
 }
     .item:last-child{ border-bottom:none; }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
@@ -1191,11 +1189,11 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
-      return `
-        <div class="item">
-        <input type="checkbox" class="chkDelete" value="${r.id}" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);">
+     return `
+  <div style="display:flex;align-items:center;">
+    <input type="checkbox" class="chkDelete" value="${r.id}" style="margin-right:12px;">
+    <div class="item" style="flex:1;">
     <div class="leftcol">
-          <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
               <span class="badge ${bCls}">${bTxt}</span>
@@ -1226,6 +1224,7 @@
               data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
             >🗑️</button>
           </div>
+        </div>
         </div>
       `;
     }).join("");
