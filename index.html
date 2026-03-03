@@ -159,15 +159,16 @@
 
     .list{ max-height: 520px; overflow:auto; }
     .item{
-      .chkDelet{
-        margin-right:8px;
-        transform: scale(1.2);
-      }
       display:flex; gap:12px;
       padding: 14px 16px;
       border-bottom: 1px solid rgba(148,163,184,.10);
       align-items:flex-start;
     }
+
+    .chkDelete{
+        margin-right:8px;
+        transform: scale(1.2);
+      }
     .item:last-child{ border-bottom:none; }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
