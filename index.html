@@ -1066,14 +1066,7 @@
     metasBox.classList.add("hidden");
   }
 
-  async function captureTokenIfPresent(){
-    if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
-      history.replaceState({}, document.title, "/");
-    }
-  }
-
-  // ===== BANCOS =====
+    // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
     const { data, error } = await supa
@@ -2436,8 +2429,7 @@
 
   // Init
   (async () => {
-    await captureTokenIfPresent();
-    if (!dataEl.value) dataEl.value = getTodayBR();
+       if (!dataEl.value) dataEl.value = getTodayBR();
     currentFiltroCategoria = "Todas";
     currentSearch = "";
     currentMonth = getDefaultMonth();
