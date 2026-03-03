@@ -159,16 +159,22 @@
 
     .list{ max-height: 520px; overflow:auto; }
     .item{
+      .chkDelet{
+        margin-right:8px;
+        transform: scale(1.2);
+      }
       display:flex; gap:12px;
       padding: 14px 16px;
       border-bottom: 1px solid rgba(148,163,184,.10);
-      align-items:center;
+      align-items:flex-start;
     }
     .item:last-child{ border-bottom:none; }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
     .badge{
+
+      
       font-size: 11px; color: rgba(226,232,240,.75);
       padding: 4px 8px; border-radius: 999px;
       border: 1px solid rgba(148,163,184,.14);
