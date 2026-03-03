@@ -1190,43 +1190,27 @@
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
      return `
-  <div style="display:flex;align-items:center;">
+  <div class="item">
     <input type="checkbox" class="chkDelete" value="${r.id}" style="margin-right:12px;">
-    <div class="item" style="flex:1;">
+
     <div class="leftcol">
-            <div class="desc">${escapeHtml(r.descricao)}</div>
-            <div class="meta">
-              <span class="badge ${bCls}">${bTxt}</span>
-              <span class="badge cat">${escapeHtml(catTxt)}</span>
-              <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
-              ${bankName ? `<span class="badge">🏦 ${escapeHtml(bankName)}</span>` : ``}
-            </div>
-          </div>
-          <div class="rightcol">
-            <div class="amount ${cls}">${brl(r.valor)}</div>
-            <button class="btn btn-icon btn-icon-edit" type="button"
-              title="Editar"
-              data-edit="1"
-              data-id="${escapeHtml(String(r.id))}"
-              data-desc="${escapeHtml(r.descricao)}"
-              data-valor="${escapeHtml(String(r.valor))}"
-              data-data="${escapeHtml(String(r.dataISO))}"
-              data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
-              data-bankid="${escapeHtml(String(r.banco_id || ""))}"
-            >✏️</button>
-            <button class="btn btn-icon btn-icon-danger" type="button"
-              title="Excluir"
-              data-del="1"
-              data-id="${escapeHtml(String(r.id))}"
-              data-desc="${escapeHtml(r.descricao)}"
-              data-valor="${escapeHtml(String(r.valor))}"
-              data-data="${escapeHtml(String(r.dataISO))}"
-              data-cat="${escapeHtml(String(r.categoria || "Outros"))}"
-            >🗑️</button>
-          </div>
-        </div>
-        </div>
-      `;
+      <div class="desc">${escapeHtml(r.descricao)}</div>
+      <div class="meta">
+        <span class="badge ${bCls}">${bTxt}</span>
+        <span class="badge cat">${escapeHtml(catTxt)}</span>
+        <span class="badge">${escapeHtml(formatISOToBR(r.dataISO))}</span>
+        ${bankName ? <span class="badge">🏦 ${escapeHtml(bankName)}</span> : ``}
+      </div>
+    </div>
+
+    <div class="rightcol">
+      <div class="amount ${cls}">${brl(r.valor)}</div>
+
+      <button class="btn btn-icon btn-icon-edit" type="button" ...>✏️</button>
+      <button class="btn btn-icon btn-icon-danger" type="button" ...>🗑️</button>
+    </div>
+  </div>
+`;
     }).join("");
   }
 
