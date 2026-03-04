@@ -5,294 +5,12 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-
-const tabVendas = document.getElementById("tabVendas");
-const vendasBox = document.getElementById("vendasBox");
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <!-- PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root{
@@ -424,6 +142,11 @@ if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
 
     .row{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 520px){ .row{ grid-template-columns: 1fr; } }
+
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 520px){ .grid2{ grid-template-columns: 1fr; } }
+
 
     .hint{ font-size: 12px; color: rgba(226,232,240,.55); margin-top: 4px; }
 
@@ -1068,10 +791,12 @@ if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
   const dashboardBox = document.getElementById("dashboardBox");
+  const vendasBox = document.getElementById("vendasBox");
   const tabs = document.getElementById("tabs");
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
   const tabDash = document.getElementById("tabDash");
+  const tabVendas = document.getElementById("tabVendas");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -1327,7 +1052,7 @@ if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
     forceShowFinancas();
   }
   function setActiveTab(active){
-    for (const el of [tabFin, tabMeta, tabDash]) el.classList.remove("active");
+    for (const el of [tabFin, tabMeta, tabDash, tabVendas]) el.classList.remove("active");
     active.classList.add("active");
   }
   function forceShowFinancas(){
@@ -2744,76 +2469,246 @@ if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
     }
   });
 
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
+  // ===== VENDAS (aba) =====
+  const v_data = document.getElementById("v_data");
+  const v_canal = document.getElementById("v_canal");
+  const v_produto = document.getElementById("v_produto");
+  const v_qtd = document.getElementById("v_qtd");
+  const v_custo = document.getElementById("v_custo");
+  const v_valor = document.getElementById("v_valor");
+  const v_comissao = document.getElementById("v_comissao");
+  const v_frete = document.getElementById("v_frete");
+  const v_tipo_frete = document.getElementById("v_tipo_frete");
+  const v_outros = document.getElementById("v_outros");
+  const v_lucro = document.getElementById("v_lucro");
+  const v_markup = document.getElementById("v_markup");
+  const btnSalvarVenda = document.getElementById("btnSalvarVenda");
 
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
+  function showVendas(){
+    setActiveTab(tabVendas);
+    vendasBox.classList.remove("hidden");
+    financasBox.classList.add("hidden");
+    metasBox.classList.add("hidden");
+    dashboardBox.classList.add("hidden");
+  }
+  if (tabVendas) tabVendas.addEventListener("click", showVendas);
+
+  function calcularVenda(){
+    if (!v_qtd) return;
+    const qtd = Number(v_qtd.value || 0);
+    const custo = Number(v_custo.value || 0);
+    const valor = Number(v_valor.value || 0);
+    const comissao = Number(v_comissao.value || 0);
+    const frete = Number(v_frete.value || 0);
+    const outros = Number(v_outros.value || 0);
+
+    let freteCalc = frete;
+    if ((v_tipo_frete?.value || "+") === "-") freteCalc = -Math.abs(frete);
+
+    const lucro = (valor * qtd) - (custo * qtd) - comissao - outros + freteCalc;
+    const markup = custo ? (valor / custo) : 0;
+
+    if (v_lucro) v_lucro.value = (Number.isFinite(lucro) ? lucro : 0).toFixed(2);
+    if (v_markup) v_markup.value = (Number.isFinite(markup) ? markup : 0).toFixed(2);
+  }
+
+  document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+    .forEach(el => el.addEventListener("input", calcularVenda));
+
+  if (btnSalvarVenda){
+    btnSalvarVenda.addEventListener("click", async () => {
+      if (!currentUser){ showToast("Vendas", "Faça login primeiro."); return; }
+
+      const dataISO = (v_data?.value || "").trim(); // YYYY-MM-DD
+      const canal = (v_canal?.value || "").trim();
+      const produto = (v_produto?.value || "").trim();
+      const qtd = Number(v_qtd?.value || 0);
+      const custo = Number(v_custo?.value || 0);
+      const valor = Number(v_valor?.value || 0);
+      const comissao = Number(v_comissao?.value || 0);
+      const frete = Number(v_frete?.value || 0);
+      const tipoFrete = (v_tipo_frete?.value || "+");
+      const outros = Number(v_outros?.value || 0);
+
+      if (!dataISO){ showToast("Vendas", "Preencha a data."); return; }
+      if (!produto){ showToast("Vendas", "Preencha o produto."); return; }
+      if (!Number.isFinite(qtd) || qtd <= 0){ showToast("Vendas", "Quantidade inválida."); return; }
+      if (!Number.isFinite(valor) || valor <= 0){ showToast("Vendas", "Valor da venda inválido."); return; }
+      if (!Number.isFinite(custo) || custo < 0){ showToast("Vendas", "Custo inválido."); return; }
+
+      calcularVenda();
+      const lucro = Number(v_lucro?.value || 0);
+      const markup = Number(v_markup?.value || 0);
+
+      try{
+        const { error } = await supa.from("vendas_produtos").insert([{
+          user_id: currentUser.id,
+          data_venda: dataISO,
+          canal,
+          produto,
+          quantidade: qtd,
+          custo_produto: custo,
+          valor_venda: valor,
+          comissao,
+          frete,
+          tipo_frete: tipoFrete,
+          outros_custos: outros,
+          lucro,
+          markup
+        }]);
+        if (error) throw error;
+
+        showToast("Venda ✅", "Venda salva com sucesso.");
+        if (v_produto) v_produto.value = "";
+        if (v_valor) v_valor.value = "";
+        if (v_custo) v_custo.value = "";
+        if (v_comissao) v_comissao.value = "";
+        if (v_frete) v_frete.value = "";
+        if (v_outros) v_outros.value = "";
+        if (v_qtd) v_qtd.value = "1";
+        calcularVenda();
+      }catch(e){
+        showToast("Vendas", e.message || String(e));
+      }
+    });
+  }
+
+  // ===== CATEGORIAS (popup) =====
+  const catOverlay = document.getElementById("catOverlay");
+  const catClose = document.getElementById("catClose");
+  const catLista = document.getElementById("catLista");
+  const catNova = document.getElementById("catNova");
+  const catAdd = document.getElementById("catAdd");
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("categoria");
+    if(!select || !catOverlay) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.style.display="flex";
+    wrapper.style.gap="6px";
+    wrapper.style.alignItems="center";
+    select.parentNode.insertBefore(wrapper, select);
+    wrapper.appendChild(select);
+
+    const btn = document.createElement("button");
+    btn.innerHTML="+";
+    btn.title="Gerenciar categorias";
+    btn.style.padding="6px 10px";
+    btn.style.borderRadius="8px";
+    btn.style.border="none";
+    btn.style.background="#00c2ff";
+    btn.style.color="#001018";
+    btn.style.fontWeight="bold";
+    btn.style.cursor="pointer";
+    btn.onclick=()=>{
+      catOverlay.style.display="flex";
+      carregarCategorias();
+    };
+    wrapper.appendChild(btn);
   });
-}
 
+  if (catClose) catClose.onclick = () => { catOverlay.style.display = "none"; };
+  if (catOverlay) catOverlay.onclick = (e) => { if (e.target === catOverlay) catOverlay.style.display = "none"; };
 
+  async function carregarCategorias(){
+    if(!currentUser || !catLista) return;
+    const {data, error} = await supa.from("categorias").select("id,nome").eq("user_id", currentUser.id).order("nome");
+    if (error){ showToast("Categorias", error.message); return; }
+    if(!data?.length){ catLista.innerHTML="<div class='empty'>Nenhuma categoria</div>"; return; }
 
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
+    catLista.innerHTML = data.map(c=>`
+      <div data-cat-id="${c.id}" style="display:flex;justify-content:space-between;margin:6px 0;gap:8px;align-items:center">
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(c.nome)}</span>
+        <span style="display:flex;gap:10px;align-items:center">
+          <span style="cursor:pointer" title="Editar" data-cat-edit="${c.id}">✏️</span>
+          <span style="cursor:pointer" title="Excluir" data-cat-del="${c.id}">🗑️</span>
+        </span>
+      </div>
+    `).join("");
+  }
 
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
+  async function mostrarConfirmacao(){
+    return new Promise((resolve)=>{
+      const overlay = document.getElementById("confirmOverlay");
+      const btnOk = document.getElementById("confirmOk");
+      const btnCancel = document.getElementById("confirmCancel");
+      if (!overlay || !btnOk || !btnCancel){ resolve(confirm("Excluir categoria?")); return; }
 
+      overlay.style.display="flex";
+      btnOk.onclick = ()=>{ overlay.style.display="none"; resolve(true); };
+      btnCancel.onclick = ()=>{ overlay.style.display="none"; resolve(false); };
+      overlay.onclick = (e)=>{ if (e.target === overlay){ overlay.style.display="none"; resolve(false); } };
+    });
+  }
 
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
+  async function excluirCategoria(id){
+    const confirmar = await mostrarConfirmacao();
+    if(!confirmar) return;
+    const { error } = await supa.from("categorias").delete().eq("id", id).eq("user_id", currentUser.id);
+    if (error){ showToast("Categorias", error.message); return; }
+    await carregarCategorias();
+  }
 
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
+  async function salvarCategoria(id, novoNome){
+    const nome = (novoNome || "").trim();
+    if (!nome) return;
+    const { error } = await supa.from("categorias").update({ nome }).eq("id", id).eq("user_id", currentUser.id);
+    if (error){ showToast("Categorias", error.message); return; }
+    await carregarCategorias();
+  }
 
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
+  function ativarEdicaoInline(id, nome){
+    const row = catLista?.querySelector(`[data-cat-id="${id}"]`);
+    if (!row) return;
+    const span = row.querySelector("span");
+    if (!span) return;
 
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
+    const input = document.createElement("input");
+    input.value = nome || "";
+    input.style.flex = "1";
+    input.style.background = "#1f2937";
+    input.style.border = "1px solid rgba(148,163,184,.18)";
+    input.style.borderRadius = "8px";
+    input.style.padding = "6px 8px";
+    input.style.color = "white";
+    span.replaceWith(input);
+    input.focus();
 
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
+    input.onkeydown = async (e)=>{
+      if(e.key === "Enter") await salvarCategoria(id, input.value);
+      if(e.key === "Escape") await carregarCategorias();
+    };
+    input.onblur = () => carregarCategorias();
+  }
 
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
+  if (catAdd){
+    catAdd.onclick = async ()=>{
+      if(!currentUser) return;
+      const nome = (catNova?.value || "").trim();
+      if(!nome) return;
+      const { error } = await supa.from("categorias").insert({ user_id: currentUser.id, nome });
+      if (error){ showToast("Categorias", error.message); return; }
+      catNova.value="";
+      await carregarCategorias();
+    };
+  }
 
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
+  if (catLista){
+    catLista.addEventListener("click", async (e)=>{
+      const del = e.target.closest("[data-cat-del]");
+      const edt = e.target.closest("[data-cat-edit]");
+      if (del) await excluirCategoria(del.getAttribute("data-cat-del"));
+      if (edt){
+        const id = edt.getAttribute("data-cat-edit");
+        const name = edt.parentElement?.parentElement?.querySelector("span")?.textContent || "";
+        ativarEdicaoInline(id, name);
+      }
+    });
+  }
 
 </script>
+
 
 
 <!-- ===== POPUP CATEGORIAS ===== -->
@@ -2830,304 +2725,10 @@ if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
   </div>
 </div>
 
-<script>
-const catOverlay = document.getElementById("catOverlay");
-const btnCategorias = document.getElementById("btnCategorias");
-const catClose = document.getElementById("catClose");
-const catLista = document.getElementById("catLista");
-const catNova = document.getElementById("catNova");
-const catAdd = document.getElementById("catAdd");
-
-if (btnCategorias) {
-  btnCategorias.onclick = () => {
-    catOverlay.style.display = "flex";
-    carregarCategorias();
-  };
-}
-
-if (catClose) {
-  catClose.onclick = () => {
-    catOverlay.style.display = "none";
-  };
-}
-
-if (catOverlay) {
-  catOverlay.onclick = (e) => {
-    if (e.target === catOverlay) {
-      catOverlay.style.display = "none";
-    }
-  };
-}
-
-async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="ativarEdicaoInline('${c.id}','${c.nome.replace(/'/g,"&#39;")}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
-}
-
-catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
-}
-function mostrarConfirmacao(){
-  return new Promise((resolve)=>{
-
-    const overlay = document.getElementById("confirmOverlay");
-    const btnOk = document.getElementById("confirmOk");
-    const btnCancel = document.getElementById("confirmCancel");
-
-    overlay.style.display="flex";
-
-    btnOk.onclick = ()=>{
-      overlay.style.display="none";
-      resolve(true);
-    };
-
-    btnCancel.onclick = ()=>{
-      overlay.style.display="none";
-      resolve(false);
-    };
-  });
-}
-async function excluirCategoria(id){
-
-  const confirmar = await mostrarConfirmacao();
-  if(!confirmar) return;
-
-  await supa.from("categorias").delete().eq("id", id);
-  carregarCategorias();
-}
-
-async function ativarEdicaoInline(id, nome){
-
-  const linhas = catLista.querySelectorAll("div");
-
-  linhas.forEach(linha=>{
-    if(linha.innerHTML.includes(id)){
-
-      const nomeSpan = linha.querySelector("span:first-child");
-      const input = document.createElement("input");
-
-      input.value = nome;
-      input.style.flex = "1";
-      input.style.background = "#1f2937";
-      input.style.border = "none";
-      input.style.borderRadius = "6px";
-      input.style.padding = "4px 6px";
-      input.style.color = "white";
-
-      nomeSpan.replaceWith(input);
-      input.focus();
-
-      input.onkeydown = async (e)=>{
-
-        if(e.key === "Enter"){
-          const novo = input.value.trim();
-          if(!novo) return;
-
-          await supa
-            .from("categorias")
-            .update({nome:novo})
-            .eq("id", id);
-
-          carregarCategorias();
-        }
-
-        if(e.key === "Escape"){
-          carregarCategorias();
-        }
-      };
-
-      input.onblur = ()=> carregarCategorias();
-    }
-  });
-}
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
 
 
 
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
 
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const select = document.querySelector('select[name="categoria"], #categoria');
-  if(!select) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.style.display="flex";
-  wrapper.style.gap="6px";
-  wrapper.style.alignItems="center";
-  select.parentNode.insertBefore(wrapper, select);
-  wrapper.appendChild(select);
-
-  const btn = document.createElement("button");
-  btn.innerHTML="+";
-  btn.title="Gerenciar categorias";
-  btn.style.padding="6px 10px";
-  btn.style.borderRadius="8px";
-  btn.style.border="none";
-  btn.style.background="#00c2ff";
-  btn.style.color="#001018";
-  btn.style.fontWeight="bold";
-  btn.style.cursor="pointer";
-
-  btn.onclick=()=>{
-    document.getElementById("catOverlay").style.display="flex";
-    carregarCategorias();
-  };
-
-  wrapper.appendChild(btn);
-});
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
- tabVendas.addEventListener("click",()=>{showVendas();});
-}
-
-
-function calcularVenda(){
-const qtd=Number(v_qtd.value||0)
-const custo=Number(v_custo.value||0)
-const valor=Number(v_valor.value||0)
-const comissao=Number(v_comissao.value||0)
-const frete=Number(v_frete.value||0)
-const outros=Number(v_outros.value||0)
-
-let freteCalc=frete
-if(v_tipo_frete.value=="-"){freteCalc=-frete}
-
-const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
-const markup=custo?valor/custo:0
-
-v_lucro.value=lucro.toFixed(2)
-v_markup.value=markup.toFixed(2)
-}
-
-document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
-.forEach(el=>el.addEventListener("input",calcularVenda))
-
-btnSalvarVenda.onclick=async()=>{
-const {error}=await supa.from("vendas_produtos").insert([{
-data_venda:v_data.value,
-canal:v_canal.value,
-produto:v_produto.value,
-quantidade:v_qtd.value,
-custo_produto:v_custo.value,
-valor_venda:v_valor.value,
-comissao:v_comissao.value,
-frete:v_frete.value,
-tipo_frete:v_tipo_frete.value,
-outros_custos:v_outros.value,
-lucro:v_lucro.value,
-markup:v_markup.value
-}])
-
-if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
-}
-
-</script>
 <div id="confirmOverlay" style="
 position:fixed;
 inset:0;
