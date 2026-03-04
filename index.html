@@ -2122,6 +2122,7 @@ const vendasBox = document.getElementById("vendasBox");
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
+tabVendas.addEventListener("click", ()=>{ showVendas(); });
 
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
