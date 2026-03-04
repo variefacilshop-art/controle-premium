@@ -652,39 +652,60 @@
     </div>
   </div>
 
-  <div class="card hidden" id="vendasBox">
+  <div class="card">
+  <div class="head">
+    <h2>Vendas</h2>
+    <span>Controle de vendas</span>
+  </div>
 
-<div class="head">
-<h2>Vendas</h2>
-<span>Controle de vendas</span>
-</div>
+  <div class="body">
 
-<div class="body">
+    <div class="grid2">
 
-<div style="display:grid;gap:12px">
+      <div class="field">
+        <label>Data</label>
+        <input type="date" id="dataVenda">
+      </div>
 
-<input type="date" id="dataVenda">
+      <div class="field">
+        <label>Canal</label>
+        <input type="text" id="canalVenda" placeholder="Shopee, Amazon, Mercado Livre...">
+      </div>
 
-<input type="text" id="canalVenda" placeholder="Canal (Shopee, Mercado Livre, Amazon...)">
+      <div class="field">
+        <label>Produto</label>
+        <input type="text" id="produtoVenda">
+      </div>
 
-<input type="text" id="produtoVenda" placeholder="Produto">
+      <div class="field">
+        <label>Valor da venda</label>
+        <input type="number" id="valorVenda">
+      </div>
 
-<input type="number" id="valorVenda" placeholder="Valor da venda">
+      <div class="field">
+        <label>Comissão</label>
+        <input type="number" id="comissaoVenda">
+      </div>
 
-<input type="number" id="comissaoVenda" placeholder="Comissão">
+      <div class="field">
+        <label>Frete</label>
+        <input type="number" id="freteVenda">
+      </div>
 
-<input type="number" id="freteVenda" placeholder="Frete">
+      <div class="field">
+        <label>Outros custos</label>
+        <input type="number" id="custosVenda">
+      </div>
 
-<input type="number" id="custosVenda" placeholder="Outros custos">
+    </div>
 
-<button class="btn btn-primary">
-Salvar venda
-</button>
+    <br>
 
-</div>
+    <button class="btn btn-primary">
+      Salvar venda
+    </button>
 
-</div>
-
+  </div>
 </div>
 
   <!-- Modal excluir -->
