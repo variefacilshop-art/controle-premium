@@ -5,12 +5,72 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+</script>
 
   <!-- PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+</script>
 
   <style>
     :root{
@@ -350,6 +410,7 @@
       <button class="tab active" id="tabFin" type="button">Finanças</button>
       <button class="tab" id="tabMeta" type="button">Metas</button>
       <button class="tab" id="tabDash" type="button">Dashboard</button>
+      <button class="tab" id="tabVendas" type="button">Vendas</button>
     </div>
 
     <!-- LOGIN -->
@@ -789,6 +850,8 @@
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
   const tabDash = document.getElementById("tabDash");
+const tabVendas = document.getElementById("tabVendas");
+const vendasBox = document.getElementById("vendasBox");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -2457,6 +2520,21 @@
       showToast("Meta", e.message || String(e));
     }
   });
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
 </script>
 
 
@@ -2598,6 +2676,21 @@ async function ativarEdicaoInline(id, nome){
     }
   });
 }
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
 </script>
 
 
@@ -2631,6 +2724,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wrapper.appendChild(btn);
 });
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
 </script>
 <div id="confirmOverlay" style="
 position:fixed;
@@ -2678,5 +2786,51 @@ z-index:9999;
     </div>
   </div>
 </div>
+
+<!-- VENDAS -->
+<div class="hidden" id="vendasBox">
+  <div class="card">
+    <div class="head">
+      <h2>Vendas</h2>
+      <span>Registro de vendas</span>
+    </div>
+    <div class="body">
+
+      <div class="row">
+        <div class="field">
+          <label>Data</label>
+          <input id="vendaData" placeholder="DD/MM/AAAA">
+        </div>
+
+        <div class="field">
+          <label>Produto</label>
+          <input id="vendaProduto" placeholder="Produto">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Quantidade</label>
+          <input id="vendaQtd" type="number">
+        </div>
+
+        <div class="field">
+          <label>Valor</label>
+          <input id="vendaValor" type="number">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btnSalvarVenda">Salvar venda</button>
+
+      <div style="height:20px"></div>
+
+      <div id="listaVendas" class="list">
+        <div class="empty">Nenhuma venda registrada.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
