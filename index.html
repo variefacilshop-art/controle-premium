@@ -5,12 +5,294 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+const tabVendas = document.getElementById("tabVendas");
+const vendasBox = document.getElementById("vendasBox");
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
+</script>
 
   <!-- PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
+</script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js">
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
+</script>
 
   <style>
     :root{
@@ -350,7 +632,8 @@
       <button class="tab active" id="tabFin" type="button">Finanças</button>
       <button class="tab" id="tabMeta" type="button">Metas</button>
       <button class="tab" id="tabDash" type="button">Dashboard</button>
-    </div>
+      <button class="tab" id="tabVendas" type="button">Vendas</button>
+          </div>
 
     <!-- LOGIN -->
     <div class="card" id="loginBox">
@@ -1052,28 +1335,24 @@
     financasBox.classList.remove("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
   }
   function showMetas(){
     setActiveTab(tabMeta);
     metasBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+     vendasBox.classList.add("hidden");
   }
   function showDashboard(){
     setActiveTab(tabDash);
     dashboardBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
+     vendasBox.classList.add("hidden");
   }
 
-  async function captureTokenIfPresent(){
-    if (window.location.hash && window.location.hash.includes("access_token=")) {
-      await supa.auth.getSessionFromUrl({ storeSession: true });
-      history.replaceState({}, document.title, "/");
-    }
-  }
-
-  // ===== BANCOS =====
+    // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
     const { data, error } = await supa
@@ -2436,8 +2715,7 @@
 
   // Init
   (async () => {
-    await captureTokenIfPresent();
-    if (!dataEl.value) dataEl.value = getTodayBR();
+       if (!dataEl.value) dataEl.value = getTodayBR();
     currentFiltroCategoria = "Todas";
     currentSearch = "";
     currentMonth = getDefaultMonth();
@@ -2465,11 +2743,80 @@
       showToast("Meta", e.message || String(e));
     }
   });
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
 </script>
 
 
 <!-- ===== POPUP CATEGORIAS ===== -->
-<button id="btnCategorias" style="position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 14px;border-radius:12px;border:none;background:#00c2ff;color:#001018;font-weight:bold;cursor:pointer;box-shadow:0 10px 25px rgba(0,0,0,.4)">Categorias</button>
 
 <div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
   <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
@@ -2491,9 +2838,26 @@ const catLista = document.getElementById("catLista");
 const catNova = document.getElementById("catNova");
 const catAdd = document.getElementById("catAdd");
 
-btnCategorias.onclick = ()=>{catOverlay.style.display="flex"; carregarCategorias();}
-catClose.onclick = ()=> catOverlay.style.display="none";
-catOverlay.onclick = e => { if(e.target===catOverlay) catOverlay.style.display="none"; };
+if (btnCategorias) {
+  btnCategorias.onclick = () => {
+    catOverlay.style.display = "flex";
+    carregarCategorias();
+  };
+}
+
+if (catClose) {
+  catClose.onclick = () => {
+    catOverlay.style.display = "none";
+  };
+}
+
+if (catOverlay) {
+  catOverlay.onclick = (e) => {
+    if (e.target === catOverlay) {
+      catOverlay.style.display = "none";
+    }
+  };
+}
 
 async function carregarCategorias(){
   if(!currentUser) return;
@@ -2503,7 +2867,7 @@ async function carregarCategorias(){
     <div style="display:flex;justify-content:space-between;margin:6px 0">
       <span>${c.nome}</span>
       <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
+        <span style="cursor:pointer;margin-right:6px" onclick="ativarEdicaoInline('${c.id}','${c.nome.replace(/'/g,"&#39;")}')">✏️</span>
         <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
       </span>
     </div>
@@ -2517,19 +2881,149 @@ catAdd.onclick = async ()=>{
   catNova.value="";
   carregarCategorias();
 }
+function mostrarConfirmacao(){
+  return new Promise((resolve)=>{
 
+    const overlay = document.getElementById("confirmOverlay");
+    const btnOk = document.getElementById("confirmOk");
+    const btnCancel = document.getElementById("confirmCancel");
+
+    overlay.style.display="flex";
+
+    btnOk.onclick = ()=>{
+      overlay.style.display="none";
+      resolve(true);
+    };
+
+    btnCancel.onclick = ()=>{
+      overlay.style.display="none";
+      resolve(false);
+    };
+  });
+}
 async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
+
+  const confirmar = await mostrarConfirmacao();
+  if(!confirmar) return;
+
   await supa.from("categorias").delete().eq("id", id);
   carregarCategorias();
 }
 
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
+async function ativarEdicaoInline(id, nome){
+
+  const linhas = catLista.querySelectorAll("div");
+
+  linhas.forEach(linha=>{
+    if(linha.innerHTML.includes(id)){
+
+      const nomeSpan = linha.querySelector("span:first-child");
+      const input = document.createElement("input");
+
+      input.value = nome;
+      input.style.flex = "1";
+      input.style.background = "#1f2937";
+      input.style.border = "none";
+      input.style.borderRadius = "6px";
+      input.style.padding = "4px 6px";
+      input.style.color = "white";
+
+      nomeSpan.replaceWith(input);
+      input.focus();
+
+      input.onkeydown = async (e)=>{
+
+        if(e.key === "Enter"){
+          const novo = input.value.trim();
+          if(!novo) return;
+
+          await supa
+            .from("categorias")
+            .update({nome:novo})
+            .eq("id", id);
+
+          carregarCategorias();
+        }
+
+        if(e.key === "Escape"){
+          carregarCategorias();
+        }
+      };
+
+      input.onblur = ()=> carregarCategorias();
+    }
+  });
 }
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
+
+
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
+
+
+function calcularVenda(){
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
+
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
+
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
+
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
+}
+
+document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
+.forEach(el=>el.addEventListener("input",calcularVenda))
+
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
 </script>
 
 
@@ -2563,128 +3057,221 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wrapper.appendChild(btn);
 });
-</script>
+
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
+
+if(tabVendas){
+  tabVendas.addEventListener("click", ()=>{
+    showVendas();
+  });
+}
 
 
-<!-- VENDAS -->
-<div id="vendasBox" class="hidden">
-  <div class="card">
-    <div class="head">
-      <h2>Vendas</h2>
-      <span>Registro de vendas</span>
-    </div>
-    <div class="body">
 
-      <div class="grid2">
-        <div class="field">
-          <label>Data</label>
-          <input type="date" id="v_data">
-        </div>
+function showVendas(){
+  setActiveTab(tabVendas);
+  vendasBox.classList.remove("hidden");
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+}
 
-        <div class="field">
-          <label>Canal</label>
-          <input id="v_canal" placeholder="Shopee, Amazon...">
-        </div>
-      </div>
+if(tabVendas){
+ tabVendas.addEventListener("click",()=>{showVendas();});
+}
 
-      <div class="field">
-        <label>Produto</label>
-        <input id="v_produto">
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Quantidade</label>
-          <input id="v_qtd" type="number" value="1">
-        </div>
-
-        <div class="field">
-          <label>Custo produto</label>
-          <input id="v_custo" type="number">
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Valor venda</label>
-          <input id="v_valor" type="number">
-        </div>
-
-        <div class="field">
-          <label>Comissão</label>
-          <input id="v_comissao" type="number">
-        </div>
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Frete</label>
-          <input id="v_frete" type="number">
-        </div>
-
-        <div class="field">
-          <label>Tipo frete</label>
-          <select id="v_tipo_frete">
-            <option value="+">Receita (+)</option>
-            <option value="-">Custo (-)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>Outros custos</label>
-        <input id="v_outros" type="number">
-      </div>
-
-      <div class="grid2">
-        <div class="field">
-          <label>Lucro</label>
-          <input id="v_lucro" disabled>
-        </div>
-
-        <div class="field">
-          <label>Markup</label>
-          <input id="v_markup" disabled>
-        </div>
-      </div>
-
-      <button id="btnSalvarVenda" class="btn btn-primary">Salvar venda</button>
-
-    </div>
-  </div>
-</div>
-
-
-<script>
 
 function calcularVenda(){
-  const qtd = Number(v_qtd.value||0)
-  const custo = Number(v_custo.value||0)
-  const valor = Number(v_valor.value||0)
-  const comissao = Number(v_comissao.value||0)
-  const frete = Number(v_frete.value||0)
-  const outros = Number(v_outros.value||0)
+const qtd=Number(v_qtd.value||0)
+const custo=Number(v_custo.value||0)
+const valor=Number(v_valor.value||0)
+const comissao=Number(v_comissao.value||0)
+const frete=Number(v_frete.value||0)
+const outros=Number(v_outros.value||0)
 
-  let freteCalc = frete
-  if(v_tipo_frete.value === "-"){ freteCalc = -frete }
+let freteCalc=frete
+if(v_tipo_frete.value=="-"){freteCalc=-frete}
 
-  const lucro =
-    (valor*qtd)
-    - (custo*qtd)
-    - comissao
-    - outros
-    + freteCalc
+const lucro=(valor*qtd)-(custo*qtd)-comissao-outros+freteCalc
+const markup=custo?valor/custo:0
 
-  const markup = custo ? (valor/custo) : 0
-
-  v_lucro.value = lucro.toFixed(2)
-  v_markup.value = markup.toFixed(2)
+v_lucro.value=lucro.toFixed(2)
+v_markup.value=markup.toFixed(2)
 }
 
 document.querySelectorAll("#v_qtd,#v_custo,#v_valor,#v_comissao,#v_frete,#v_outros,#v_tipo_frete")
 .forEach(el=>el.addEventListener("input",calcularVenda))
 
+btnSalvarVenda.onclick=async()=>{
+const {error}=await supa.from("vendas_produtos").insert([{
+data_venda:v_data.value,
+canal:v_canal.value,
+produto:v_produto.value,
+quantidade:v_qtd.value,
+custo_produto:v_custo.value,
+valor_venda:v_valor.value,
+comissao:v_comissao.value,
+frete:v_frete.value,
+tipo_frete:v_tipo_frete.value,
+outros_custos:v_outros.value,
+lucro:v_lucro.value,
+markup:v_markup.value
+}])
+
+if(error){alert("Erro ao salvar venda")}else{alert("Venda salva!")}
+}
+
 </script>
+<div id="confirmOverlay" style="
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+">
+  <div style="
+  background:#0f172a;
+  padding:24px;
+  border-radius:14px;
+  width:320px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  text-align:center;
+  ">
+    <h3 style="margin-bottom:10px;font-size:18px;">Excluir categoria?</h3>
+    <p style="opacity:.7;font-size:14px;margin-bottom:20px;">
+      Essa ação não pode ser desfeita.
+    </p>
+
+    <div style="display:flex;gap:10px;">
+      <button id="confirmCancel" style="
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      border:none;
+      background:#1f2937;
+      color:white;
+      cursor:pointer;
+      ">Cancelar</button>
+
+      <button id="confirmOk" style="
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      border:none;
+      background:#ef4444;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      ">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- VENDAS -->
+
+<div class="hidden" id="vendasBox">
+<div class="card">
+<div class="head">
+<h2>Vendas</h2>
+<span>Registro de vendas</span>
+</div>
+
+<div class="body">
+
+<div class="grid2">
+<div class="field">
+<label>Data</label>
+<input type="date" id="v_data">
+</div>
+
+<div class="field">
+<label>Canal</label>
+<select id="v_canal">
+<option>Shopee</option>
+<option>Amazon</option>
+<option>Mercado Livre</option>
+<option>Site</option>
+</select>
+</div>
+</div>
+
+<div class="field">
+<label>Produto</label>
+<input id="v_produto">
+</div>
+
+<div class="grid2">
+<div class="field">
+<label>Quantidade</label>
+<input id="v_qtd" type="number" value="1">
+</div>
+
+<div class="field">
+<label>Custo produto</label>
+<input id="v_custo" type="number">
+</div>
+</div>
+
+<div class="grid2">
+<div class="field">
+<label>Valor venda</label>
+<input id="v_valor" type="number">
+</div>
+
+<div class="field">
+<label>Comissão</label>
+<input id="v_comissao" type="number">
+</div>
+</div>
+
+<div class="grid2">
+<div class="field">
+<label>Frete</label>
+<input id="v_frete" type="number">
+</div>
+
+<div class="field">
+<label>Tipo frete</label>
+<select id="v_tipo_frete">
+<option value="+">Receita (+)</option>
+<option value="-">Custo (-)</option>
+</select>
+</div>
+</div>
+
+<div class="field">
+<label>Outros custos</label>
+<input id="v_outros" type="number">
+</div>
+
+<div class="grid2">
+<div class="field">
+<label>Lucro</label>
+<input id="v_lucro" disabled>
+</div>
+
+<div class="field">
+<label>Markup</label>
+<input id="v_markup" disabled>
+</div>
+</div>
+
+<button class="btn btn-primary" id="btnSalvarVenda">Salvar venda</button>
+
+</div>
+</div>
+</div>
+
+  </div>
+</div>
 
 </body>
 </html>
