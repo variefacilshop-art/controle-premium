@@ -2511,7 +2511,7 @@ async function carregarCategorias(){
     <div style="display:flex;justify-content:space-between;margin:6px 0">
       <span>${c.nome}</span>
       <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="editarCategoria('${c.id}','${c.nome}')">✏️</span>
+        <span style="cursor:pointer;margin-right:6px" onclick="ativarEdicaoInline('${c.id}','${c.nome.replace(/'/g,"&#39;")}')">✏️</span>
         <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
       </span>
     </div>
@@ -2525,18 +2525,78 @@ catAdd.onclick = async ()=>{
   catNova.value="";
   carregarCategorias();
 }
+function mostrarConfirmacao(){
+  return new Promise((resolve)=>{
 
+    const overlay = document.getElementById("confirmOverlay");
+    const btnOk = document.getElementById("confirmOk");
+    const btnCancel = document.getElementById("confirmCancel");
+
+    overlay.style.display="flex";
+
+    btnOk.onclick = ()=>{
+      overlay.style.display="none";
+      resolve(true);
+    };
+
+    btnCancel.onclick = ()=>{
+      overlay.style.display="none";
+      resolve(false);
+    };
+  });
+}
 async function excluirCategoria(id){
-  if(!confirm("Excluir categoria?")) return;
+
+  const confirmar = await mostrarConfirmacao();
+  if(!confirmar) return;
+
   await supa.from("categorias").delete().eq("id", id);
   carregarCategorias();
 }
 
-async function editarCategoria(id,nome){
-  const novo = prompt("Editar:", nome);
-  if(!novo) return;
-  await supa.from("categorias").update({nome:novo}).eq("id", id);
-  carregarCategorias();
+async function ativarEdicaoInline(id, nome){
+
+  const linhas = catLista.querySelectorAll("div");
+
+  linhas.forEach(linha=>{
+    if(linha.innerHTML.includes(id)){
+
+      const nomeSpan = linha.querySelector("span:first-child");
+      const input = document.createElement("input");
+
+      input.value = nome;
+      input.style.flex = "1";
+      input.style.background = "#1f2937";
+      input.style.border = "none";
+      input.style.borderRadius = "6px";
+      input.style.padding = "4px 6px";
+      input.style.color = "white";
+
+      nomeSpan.replaceWith(input);
+      input.focus();
+
+      input.onkeydown = async (e)=>{
+
+        if(e.key === "Enter"){
+          const novo = input.value.trim();
+          if(!novo) return;
+
+          await supa
+            .from("categorias")
+            .update({nome:novo})
+            .eq("id", id);
+
+          carregarCategorias();
+        }
+
+        if(e.key === "Escape"){
+          carregarCategorias();
+        }
+      };
+
+      input.onblur = ()=> carregarCategorias();
+    }
+  });
 }
 </script>
 
@@ -2572,6 +2632,51 @@ document.addEventListener("DOMContentLoaded", () => {
   wrapper.appendChild(btn);
 });
 </script>
+<div id="confirmOverlay" style="
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.6);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+">
+  <div style="
+  background:#0f172a;
+  padding:24px;
+  border-radius:14px;
+  width:320px;
+  box-shadow:0 20px 40px rgba(0,0,0,0.5);
+  text-align:center;
+  ">
+    <h3 style="margin-bottom:10px;font-size:18px;">Excluir categoria?</h3>
+    <p style="opacity:.7;font-size:14px;margin-bottom:20px;">
+      Essa ação não pode ser desfeita.
+    </p>
 
+    <div style="display:flex;gap:10px;">
+      <button id="confirmCancel" style="
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      border:none;
+      background:#1f2937;
+      color:white;
+      cursor:pointer;
+      ">Cancelar</button>
+
+      <button id="confirmOk" style="
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      border:none;
+      background:#ef4444;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      ">Excluir</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
