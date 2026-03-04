@@ -5,72 +5,12 @@
   <title>Controle Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <!-- PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js">
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root{
@@ -410,7 +350,7 @@ if(tabVendas){
       <button class="tab active" id="tabFin" type="button">Finanças</button>
       <button class="tab" id="tabMeta" type="button">Metas</button>
       <button class="tab" id="tabDash" type="button">Dashboard</button>
-      <button class="tab" id="tabVendas" type="button">Vendas</button>
+    <button class="tab" id="tabVendas" type="button">Vendas</button>
     </div>
 
     <!-- LOGIN -->
@@ -704,6 +644,88 @@ if(tabVendas){
 
   </div>
 
+    <!-- VENDAS -->
+    <div class="grid hidden" id="vendasBox">
+      <div class="card">
+        <div class="head">
+          <div>
+            <h2>Registrar venda</h2>
+            <span>Controle de vendas</span>
+          </div>
+        </div>
+        <div class="body">
+          <div class="row">
+            <div class="field">
+              <label>Data</label>
+              <input id="vData" placeholder="DD/MM/AAAA" />
+            </div>
+            <div class="field">
+              <label>Canal</label>
+              <input id="vCanal" placeholder="Shopee, Amazon, Mercado..." />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Produto</label>
+            <input id="vProduto" placeholder="Nome do produto" />
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Valor da venda (R$)</label>
+              <input id="vValor" type="number" placeholder="Ex: 199.90" />
+            </div>
+            <div class="field">
+              <label>Comissão (R$)</label>
+              <input id="vComissao" type="number" placeholder="Ex: 20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>Frete (R$)</label>
+              <input id="vFrete" type="number" placeholder="Ex: 15" />
+            </div>
+            <div class="field">
+              <label>Outros custos (R$)</label>
+              <input id="vOutros" type="number" placeholder="Ex: 5" />
+            </div>
+          </div>
+
+          <div class="summary" style="margin-top:8px">
+            <div class="kpi"><div class="k">Lucro</div><div class="v green" id="vLucroKpi">R$ 0,00</div></div>
+            <div class="kpi"><div class="k">Margem</div><div class="v" id="vMargemKpi">0%</div></div>
+          </div>
+
+          <div style="height:12px"></div>
+          <button class="btn btn-primary" id="btnSalvarVenda" type="button">Salvar venda</button>
+          <div class="hint">Dica: lucro = venda - (comissão + frete + outros).</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="head">
+          <div>
+            <h2>Vendas</h2>
+            <span>Últimas 100</span>
+          </div>
+          <div class="headActions" style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" id="btnRecarregarVendas" type="button">↻ Recarregar</button>
+          </div>
+        </div>
+        <div class="body" style="padding-top:12px">
+          <div class="searchBox">
+            <input id="vBusca" placeholder="🔎 Buscar por canal/produto" />
+            <div class="smallNote" id="vBuscaInfo">Mostrando tudo</div>
+          </div>
+        </div>
+        <div class="list" id="vLista">
+          <div class="empty">Sem vendas ainda.</div>
+        </div>
+      </div>
+    </div>
+
+
   <div class="toast" id="toast">
     <div>⚠️</div>
     <div>
@@ -846,12 +868,12 @@ if(tabVendas){
   const financasBox = document.getElementById("financasBox");
   const metasBox = document.getElementById("metasBox");
   const dashboardBox = document.getElementById("dashboardBox");
+  const vendasBox = document.getElementById("vendasBox");
   const tabs = document.getElementById("tabs");
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
   const tabDash = document.getElementById("tabDash");
-const tabVendas = document.getElementById("tabVendas");
-const vendasBox = document.getElementById("vendasBox");
+  const tabVendas = document.getElementById("tabVendas");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -956,6 +978,22 @@ const vendasBox = document.getElementById("vendasBox");
   const dashHintComparacao = document.getElementById("dashHintComparacao");
   const dashAlerts = document.getElementById("dashAlerts");
   const dashHintAlerts = document.getElementById("dashHintAlerts");
+  // Vendas refs
+  const vDataEl = document.getElementById("vData");
+  const vCanalEl = document.getElementById("vCanal");
+  const vProdutoEl = document.getElementById("vProduto");
+  const vValorEl = document.getElementById("vValor");
+  const vComissaoEl = document.getElementById("vComissao");
+  const vFreteEl = document.getElementById("vFrete");
+  const vOutrosEl = document.getElementById("vOutros");
+  const vLucroKpi = document.getElementById("vLucroKpi");
+  const vMargemKpi = document.getElementById("vMargemKpi");
+  const btnSalvarVenda = document.getElementById("btnSalvarVenda");
+  const btnRecarregarVendas = document.getElementById("btnRecarregarVendas");
+  const vListaEl = document.getElementById("vLista");
+  const vBuscaEl = document.getElementById("vBusca");
+  const vBuscaInfo = document.getElementById("vBuscaInfo");
+
 
   let chartDiario = null;
   let chartComparacao = null;
@@ -1096,6 +1134,7 @@ const vendasBox = document.getElementById("vendasBox");
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
     btnSair.classList.add("hidden");
     pillEmail.textContent = "Não logado";
   }
@@ -1107,7 +1146,7 @@ const vendasBox = document.getElementById("vendasBox");
     forceShowFinancas();
   }
   function setActiveTab(active){
-    for (const el of [tabFin, tabMeta, tabDash]) el.classList.remove("active");
+    for (const el of [tabFin, tabMeta, tabDash, tabVendas]) el.classList.remove("active");
     active.classList.add("active");
   }
   function forceShowFinancas(){
@@ -1115,12 +1154,14 @@ const vendasBox = document.getElementById("vendasBox");
     financasBox.classList.remove("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
   }
   function showMetas(){
     setActiveTab(tabMeta);
     metasBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
   }
   function showDashboard(){
     setActiveTab(tabDash);
@@ -1129,7 +1170,14 @@ const vendasBox = document.getElementById("vendasBox");
     metasBox.classList.add("hidden");
   }
 
-    // ===== BANCOS =====
+  async function captureTokenIfPresent(){
+    if (window.location.hash && window.location.hash.includes("access_token=")) {
+      await supa.auth.getSessionFromUrl({ storeSession: true });
+      history.replaceState({}, document.title, "/");
+    }
+  }
+
+  // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
     const { data, error } = await supa
@@ -1853,6 +1901,162 @@ const vendasBox = document.getElementById("vendasBox");
     }
   }
 
+  // ===== VENDAS =====
+  let vendasCache = [];
+  let vendasSearch = "";
+
+  function calcVenda(){
+    const valor = Number(vValorEl?.value || 0);
+    const comissao = Number(vComissaoEl?.value || 0);
+    const frete = Number(vFreteEl?.value || 0);
+    const outros = Number(vOutrosEl?.value || 0);
+    const lucro = (Number.isFinite(valor) ? valor : 0)
+      - (Number.isFinite(comissao) ? comissao : 0)
+      - (Number.isFinite(frete) ? frete : 0)
+      - (Number.isFinite(outros) ? outros : 0);
+    const margem = (valor > 0) ? (lucro / valor) * 100 : 0;
+    if (vLucroKpi) vLucroKpi.textContent = brl(lucro);
+    if (vMargemKpi) vMargemKpi.textContent = `${margem.toFixed(1)}%`;
+  }
+
+  async function fetchVendas(){
+    // Tabela esperada: vendas (RLS pode estar desativado, então não filtramos por usuário)
+    const { data, error } = await supa
+      .from("vendas")
+      .select("*")
+      .order("data_venda", { ascending: false })
+      .limit(100);
+    if (error) throw error;
+
+    return (data || []).map(v => {
+      const valor = Number(v.valor_venda ?? v.valor ?? 0);
+      const comissao = Number(v.comissao ?? 0);
+      const frete = Number(v.frete ?? 0);
+      const outros = Number(v.outros_custos ?? v.outros ?? 0);
+      const lucro = valor - comissao - frete - outros;
+      const margem = (valor > 0) ? (lucro / valor) * 100 : 0;
+
+      return {
+        id: v.id,
+        dataISO: v.data_venda || v.data || null,
+        canal: v.canal || "",
+        produto: v.produto || "",
+        valor, comissao, frete, outros,
+        lucro, margem
+      };
+    });
+  }
+
+  function renderVendas(){
+    if (!vListaEl) return;
+    const q = (vendasSearch || "").trim().toLowerCase();
+
+    let rows = vendasCache;
+    if (q){
+      rows = rows.filter(r =>
+        (r.canal || "").toLowerCase().includes(q) ||
+        (r.produto || "").toLowerCase().includes(q)
+      );
+      if (vBuscaInfo) vBuscaInfo.textContent = `Filtrando: "${vendasSearch}" • ${rows.length} itens`;
+    } else {
+      if (vBuscaInfo) vBuscaInfo.textContent = "Mostrando tudo";
+    }
+
+    if (!rows.length){
+      vListaEl.innerHTML = `<div class="empty">Nenhuma venda encontrada.</div>`;
+      return;
+    }
+
+    vListaEl.innerHTML = rows.map(r => `
+      <div class="item">
+        <div class="leftcol">
+          <div class="desc">${escapeHtml(r.produto || "Venda")}</div>
+          <div class="meta">
+            <span class="badge cat">${escapeHtml(r.canal || "Canal")}</span>
+            <span class="badge">${escapeHtml(formatISOToBR(r.dataISO || ""))}</span>
+            <span class="badge">Lucro: ${escapeHtml(brl(r.lucro))}</span>
+            <span class="badge">Margem: ${escapeHtml((r.margem || 0).toFixed(1))}%</span>
+          </div>
+        </div>
+        <div class="rightcol">
+          <div class="amount pos">${brl(r.valor)}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  async function refreshVendas(){
+    if (!currentUser){
+      return;
+    }
+    try{
+      vendasCache = await fetchVendas();
+      renderVendas();
+    }catch(e){
+      if (vListaEl) vListaEl.innerHTML = `<div class="empty">Falha ao carregar vendas.</div>`;
+      showToast("Vendas", e.message || String(e));
+    }
+  }
+
+  async function salvarVenda(){
+    if (!currentUser){ showLogin(); return; }
+
+    const dataISO = parseBRDateToISO((vDataEl?.value || "").trim());
+    const canal = (vCanalEl?.value || "").trim();
+    const produto = (vProdutoEl?.value || "").trim();
+
+    const valor = Number(vValorEl?.value || 0);
+    const comissao = Number(vComissaoEl?.value || 0);
+    const frete = Number(vFreteEl?.value || 0);
+    const outros = Number(vOutrosEl?.value || 0);
+
+    if (!dataISO){ showToast("Vendas", "Data inválida. Use DD/MM/AAAA."); return; }
+    if (!canal){ showToast("Vendas", "Preencha o canal."); return; }
+    if (!produto){ showToast("Vendas", "Preencha o produto."); return; }
+    if (!Number.isFinite(valor) || valor <= 0){ showToast("Vendas", "Informe um valor de venda válido."); return; }
+    if (!Number.isFinite(comissao) || comissao < 0){ showToast("Vendas", "Comissão inválida."); return; }
+    if (!Number.isFinite(frete) || frete < 0){ showToast("Vendas", "Frete inválido."); return; }
+    if (!Number.isFinite(outros) || outros < 0){ showToast("Vendas", "Outros custos inválidos."); return; }
+
+    const lucro = valor - comissao - frete - outros;
+    const margem = valor > 0 ? (lucro / valor) * 100 : 0;
+
+    btnSalvarVenda.disabled = true;
+    btnSalvarVenda.textContent = "Salvando…";
+    try{
+      const payload = {
+        data_venda: dataISO,
+        canal,
+        produto,
+        valor_venda: valor,
+        comissao,
+        frete,
+        outros_custos: outros,
+        lucro,
+        margem
+      };
+
+      const { error } = await supa.from("vendas").insert(payload);
+      if (error) throw error;
+
+      showToast("Vendas ✅", "Venda salva.");
+      vProdutoEl.value = "";
+      vValorEl.value = "";
+      vComissaoEl.value = "";
+      vFreteEl.value = "";
+      vOutrosEl.value = "";
+      calcVenda();
+      await refreshVendas();
+    }catch(e){
+      showToast("Vendas", e.message || String(e));
+    }finally{
+      btnSalvarVenda.disabled = false;
+      btnSalvarVenda.textContent = "Salvar venda";
+    }
+  }
+
+
+
   // ===== OFX =====
   function normalizeOfxText(raw){
     let t = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -2122,7 +2326,7 @@ const vendasBox = document.getElementById("vendasBox");
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
-tabVendas.addEventListener("click", ()=>{ showVendas(); });
+  tabVendas.addEventListener("click", async () => { showVendas(); await refreshVendas(); });
 
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
@@ -2153,6 +2357,17 @@ tabVendas.addEventListener("click", ()=>{ showVendas(); });
     currentSearch = buscaEl.value;
     if (lastFinCache) renderFinancas(lastFinCache);
   });
+
+  // Vendas listeners
+  if (vDataEl && !vDataEl.value) vDataEl.value = getTodayBR();
+  for (const el of [vValorEl, vComissaoEl, vFreteEl, vOutrosEl]){
+    if (el) el.addEventListener("input", calcVenda);
+  }
+  if (btnSalvarVenda) btnSalvarVenda.addEventListener("click", salvarVenda);
+  if (btnRecarregarVendas) btnRecarregarVendas.addEventListener("click", refreshVendas);
+  if (vBuscaEl) vBuscaEl.addEventListener("input", () => { vendasSearch = vBuscaEl.value; renderVendas(); });
+  calcVenda();
+
 
   btnSalvar.addEventListener("click", async () => {
     if (!currentUser){ showLogin(); return; }
@@ -2489,11 +2704,15 @@ tabVendas.addEventListener("click", ()=>{ showVendas(); });
     if (!dashboardBox.classList.contains("hidden")){
       await refreshDashboard();
     }
+    if (!vendasBox.classList.contains("hidden")){
+      await refreshVendas();
+    }
   }
 
   // Init
   (async () => {
-       if (!dataEl.value) dataEl.value = getTodayBR();
+    await captureTokenIfPresent();
+    if (!dataEl.value) dataEl.value = getTodayBR();
     currentFiltroCategoria = "Todas";
     currentSearch = "";
     currentMonth = getDefaultMonth();
@@ -2521,317 +2740,6 @@ tabVendas.addEventListener("click", ()=>{ showVendas(); });
       showToast("Meta", e.message || String(e));
     }
   });
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
 </script>
-
-
-<!-- ===== POPUP CATEGORIAS ===== -->
-
-<div id="catOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:9999">
-  <div style="background:#020617;padding:20px;border-radius:16px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:white">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <strong>Categorias</strong>
-      <span id="catClose" style="cursor:pointer">✕</span>
-    </div>
-    <div id="catLista" style="margin-bottom:10px"></div>
-    <input id="catNova" placeholder="Nova categoria" style="width:100%;padding:8px;border-radius:8px;border:1px solid #334155;background:#020617;color:#fff">
-    <button id="catAdd" style="margin-top:8px;width:100%;padding:8px;border-radius:10px;border:none;background:#00c2ff;color:#001018;font-weight:bold">Adicionar</button>
-  </div>
-</div>
-
-<script>
-const catOverlay = document.getElementById("catOverlay");
-const btnCategorias = document.getElementById("btnCategorias");
-const catClose = document.getElementById("catClose");
-const catLista = document.getElementById("catLista");
-const catNova = document.getElementById("catNova");
-const catAdd = document.getElementById("catAdd");
-
-if (btnCategorias) {
-  btnCategorias.onclick = () => {
-    catOverlay.style.display = "flex";
-    carregarCategorias();
-  };
-}
-
-if (catClose) {
-  catClose.onclick = () => {
-    catOverlay.style.display = "none";
-  };
-}
-
-if (catOverlay) {
-  catOverlay.onclick = (e) => {
-    if (e.target === catOverlay) {
-      catOverlay.style.display = "none";
-    }
-  };
-}
-
-async function carregarCategorias(){
-  if(!currentUser) return;
-  const {data} = await supa.from("categorias").select("*").eq("user_id", currentUser.id).order("nome");
-  if(!data?.length){ catLista.innerHTML="Nenhuma categoria"; return; }
-  catLista.innerHTML = data.map(c=>`
-    <div style="display:flex;justify-content:space-between;margin:6px 0">
-      <span>${c.nome}</span>
-      <span>
-        <span style="cursor:pointer;margin-right:6px" onclick="ativarEdicaoInline('${c.id}','${c.nome.replace(/'/g,"&#39;")}')">✏️</span>
-        <span style="cursor:pointer" onclick="excluirCategoria('${c.id}')">🗑️</span>
-      </span>
-    </div>
-  `).join("");
-}
-
-catAdd.onclick = async ()=>{
-  const nome = catNova.value.trim();
-  if(!nome) return;
-  await supa.from("categorias").insert({user_id: currentUser.id, nome});
-  catNova.value="";
-  carregarCategorias();
-}
-function mostrarConfirmacao(){
-  return new Promise((resolve)=>{
-
-    const overlay = document.getElementById("confirmOverlay");
-    const btnOk = document.getElementById("confirmOk");
-    const btnCancel = document.getElementById("confirmCancel");
-
-    overlay.style.display="flex";
-
-    btnOk.onclick = ()=>{
-      overlay.style.display="none";
-      resolve(true);
-    };
-
-    btnCancel.onclick = ()=>{
-      overlay.style.display="none";
-      resolve(false);
-    };
-  });
-}
-async function excluirCategoria(id){
-
-  const confirmar = await mostrarConfirmacao();
-  if(!confirmar) return;
-
-  await supa.from("categorias").delete().eq("id", id);
-  carregarCategorias();
-}
-
-async function ativarEdicaoInline(id, nome){
-
-  const linhas = catLista.querySelectorAll("div");
-
-  linhas.forEach(linha=>{
-    if(linha.innerHTML.includes(id)){
-
-      const nomeSpan = linha.querySelector("span:first-child");
-      const input = document.createElement("input");
-
-      input.value = nome;
-      input.style.flex = "1";
-      input.style.background = "#1f2937";
-      input.style.border = "none";
-      input.style.borderRadius = "6px";
-      input.style.padding = "4px 6px";
-      input.style.color = "white";
-
-      nomeSpan.replaceWith(input);
-      input.focus();
-
-      input.onkeydown = async (e)=>{
-
-        if(e.key === "Enter"){
-          const novo = input.value.trim();
-          if(!novo) return;
-
-          await supa
-            .from("categorias")
-            .update({nome:novo})
-            .eq("id", id);
-
-          carregarCategorias();
-        }
-
-        if(e.key === "Escape"){
-          carregarCategorias();
-        }
-      };
-
-      input.onblur = ()=> carregarCategorias();
-    }
-  });
-}
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const select = document.querySelector('select[name="categoria"], #categoria');
-  if(!select) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.style.display="flex";
-  wrapper.style.gap="6px";
-  wrapper.style.alignItems="center";
-  select.parentNode.insertBefore(wrapper, select);
-  wrapper.appendChild(select);
-
-  const btn = document.createElement("button");
-  btn.innerHTML="+";
-  btn.title="Gerenciar categorias";
-  btn.style.padding="6px 10px";
-  btn.style.borderRadius="8px";
-  btn.style.border="none";
-  btn.style.background="#00c2ff";
-  btn.style.color="#001018";
-  btn.style.fontWeight="bold";
-  btn.style.cursor="pointer";
-
-  btn.onclick=()=>{
-    document.getElementById("catOverlay").style.display="flex";
-    carregarCategorias();
-  };
-
-  wrapper.appendChild(btn);
-});
-
-function showVendas(){
-  setActiveTab(tabVendas);
-  vendasBox.classList.remove("hidden");
-  financasBox.classList.add("hidden");
-  metasBox.classList.add("hidden");
-  dashboardBox.classList.add("hidden");
-}
-
-if(tabVendas){
-  tabVendas.addEventListener("click", ()=>{
-    showVendas();
-  });
-}
-
-</script>
-<div id="confirmOverlay" style="
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.6);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999;
-">
-  <div style="
-  background:#0f172a;
-  padding:24px;
-  border-radius:14px;
-  width:320px;
-  box-shadow:0 20px 40px rgba(0,0,0,0.5);
-  text-align:center;
-  ">
-    <h3 style="margin-bottom:10px;font-size:18px;">Excluir categoria?</h3>
-    <p style="opacity:.7;font-size:14px;margin-bottom:20px;">
-      Essa ação não pode ser desfeita.
-    </p>
-
-    <div style="display:flex;gap:10px;">
-      <button id="confirmCancel" style="
-      flex:1;
-      padding:8px;
-      border-radius:8px;
-      border:none;
-      background:#1f2937;
-      color:white;
-      cursor:pointer;
-      ">Cancelar</button>
-
-      <button id="confirmOk" style="
-      flex:1;
-      padding:8px;
-      border-radius:8px;
-      border:none;
-      background:#ef4444;
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-      ">Excluir</button>
-    </div>
-  </div>
-</div>
-
-<!-- VENDAS -->
-<div class="hidden" id="vendasBox">
-  <div class="card">
-    <div class="head">
-      <h2>Vendas</h2>
-      <span>Registro de vendas</span>
-    </div>
-    <div class="body">
-
-      <div class="row">
-        <div class="field">
-          <label>Data</label>
-          <input id="vendaData" placeholder="DD/MM/AAAA">
-        </div>
-
-        <div class="field">
-          <label>Produto</label>
-          <input id="vendaProduto" placeholder="Produto">
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label>Quantidade</label>
-          <input id="vendaQtd" type="number">
-        </div>
-
-        <div class="field">
-          <label>Valor</label>
-          <input id="vendaValor" type="number">
-        </div>
-      </div>
-
-      <button class="btn btn-primary" id="btnSalvarVenda">Salvar venda</button>
-
-      <div style="height:20px"></div>
-
-      <div id="listaVendas" class="list">
-        <div class="empty">Nenhuma venda registrada.</div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
