@@ -350,6 +350,7 @@
       <button class="tab active" id="tabFin" type="button">Finanças</button>
       <button class="tab" id="tabMeta" type="button">Metas</button>
       <button class="tab" id="tabDash" type="button">Dashboard</button>
+     <button class="tab" id="tabVendas" type="button">Vendas</button>
     </div>
 
     <!-- LOGIN -->
@@ -651,6 +652,41 @@
     </div>
   </div>
 
+  <div class="card hidden" id="vendasBox">
+
+<div class="head">
+<h2>Vendas</h2>
+<span>Controle de vendas</span>
+</div>
+
+<div class="body">
+
+<div style="display:grid;gap:12px">
+
+<input type="date" id="dataVenda">
+
+<input type="text" id="canalVenda" placeholder="Canal (Shopee, Mercado Livre, Amazon...)">
+
+<input type="text" id="produtoVenda" placeholder="Produto">
+
+<input type="number" id="valorVenda" placeholder="Valor da venda">
+
+<input type="number" id="comissaoVenda" placeholder="Comissão">
+
+<input type="number" id="freteVenda" placeholder="Frete">
+
+<input type="number" id="custosVenda" placeholder="Outros custos">
+
+<button class="btn btn-primary">
+Salvar venda
+</button>
+
+</div>
+
+</div>
+
+</div>
+
   <!-- Modal excluir -->
   <div class="modalOverlay" id="modalOverlay">
     <div class="modal sm">
@@ -789,6 +825,7 @@
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
   const tabDash = document.getElementById("tabDash");
+  const tabVendas = document.getElementById("tabVendas");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
@@ -1044,7 +1081,7 @@
     forceShowFinancas();
   }
   function setActiveTab(active){
-    for (const el of [tabFin, tabMeta, tabDash]) el.classList.remove("active");
+    for (const el of [tabFin, tabMeta, tabDash, tabVendas]) el.classList.remove("active");
     active.classList.add("active");
   }
   function forceShowFinancas(){
@@ -1065,7 +1102,13 @@
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
   }
-
+function showVendas(){
+  setActiveTab(tabVendas);
+  financasBox.classList.add("hidden");
+  metasBox.classList.add("hidden");
+  dashboardBox.classList.add("hidden");
+  vendasBox.classList.remove("hidden");
+}
     // ===== BANCOS =====
   async function loadBanks(){
     if (!currentUser) return;
@@ -2059,6 +2102,7 @@
   tabFin.addEventListener("click", () => forceShowFinancas());
   tabMeta.addEventListener("click", async () => { showMetas(); await atualizarMetasUI(currentMonth); });
   tabDash.addEventListener("click", async () => { showDashboard(); await refreshDashboard(); });
+  tabVendas.addEventListener("click", () => showVendas());
 
   btnLogin.addEventListener("click", async () => {
     const { error } = await supa.auth.signInWithOAuth({
