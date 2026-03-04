@@ -164,6 +164,9 @@
       border-bottom: 1px solid rgba(148,163,184,.10);
       align-items:center;
     }
+    .chkDelete{
+  margin-right:10px;
+}
     .item:last-child{ border-bottom:none; }
     .leftcol{ display:flex; flex-direction:column; gap:6px; min-width:0; flex:1; }
     .desc{ font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1186,8 +1189,9 @@
       const bTxt = r.valor >= 0 ? "Entrada" : "Saída";
       const catTxt = r.categoria || "Outros";
       const bankName = r.banco_id ? (banksCache.find(x => String(x.id) === String(r.banco_id))?.nome || "Banco") : "";
-      return `
-        <div class="item">
+     return `
+  <div class="item">
+    <input type="checkbox" class="chkDelete" value="${r.id}">
           <div class="leftcol">
             <div class="desc">${escapeHtml(r.descricao)}</div>
             <div class="meta">
