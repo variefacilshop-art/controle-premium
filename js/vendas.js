@@ -91,7 +91,7 @@ const taxaFixa = document.getElementById("vendaTaxaFixa").value
 const baseComissao = document.getElementById("vendaBaseComissao").value
 const outrosCustos = document.getElementById("vendaOutrosCustos").value
 
-const { data: resultado, error } = await supabase
+const { data: resultado, error } = await supabaseCliente
 .from("vendas")
 .insert([
 {
