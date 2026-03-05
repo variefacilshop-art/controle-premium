@@ -189,6 +189,45 @@
       </div>
     </div>
 
+    <!-- VENDAS -->
+<div id="vendasBox" class="grid hidden">
+
+  <div class="card">
+    <h2>Vendas</h2>
+
+    <div class="form-grid">
+
+      <input id="vendaData" type="date" placeholder="Data">
+
+      <input id="vendaCanal" placeholder="Canal de venda">
+
+      <input id="vendaProduto" placeholder="Produto">
+
+      <input id="vendaValor" type="number" placeholder="Valor venda">
+
+      <input id="vendaCusto" type="number" placeholder="Custo produto">
+
+      <input id="vendaComissao" type="number" placeholder="Comissão %">
+
+      <select id="vendaFreteTipo">
+        <option value="menos">Frete - custo</option>
+        <option value="mais">Frete + receita</option>
+      </select>
+
+      <input id="vendaFreteValor" type="number" placeholder="Valor frete">
+
+      <input id="vendaOutros" type="number" placeholder="Outros custos">
+
+    </div>
+
+    <button id="btnSalvarVenda" class="btn btn-primary">
+      Salvar venda
+    </button>
+
+  </div>
+
+</div>
+
     <!-- METAS -->
     <div class="hidden" id="metasBox">
       <div class="card">
