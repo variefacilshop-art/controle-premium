@@ -27,7 +27,7 @@ if(tabVendas){
 async function carregarCanais() {
 
 const { data, error } = await supabase
-.from("canais_venda")
+.from("canais_vendas")
 .select("*")
 
 if (error) {
