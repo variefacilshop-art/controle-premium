@@ -60,3 +60,18 @@ async function carregarCanais(){
 }
 
 carregarCanais()
+
+document.getElementById("vendaCanal")
+.addEventListener("change", function(){
+
+  const opt = this.selectedOptions[0]
+
+  if(!opt.dataset.percentual) return
+
+  document.getElementById("vendaComissao").value =
+  opt.dataset.percentual
+
+  document.getElementById("vendaTaxaFixa").value =
+  opt.dataset.fixa
+
+})
