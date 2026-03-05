@@ -91,14 +91,13 @@ const taxaFixa = document.getElementById("vendaTaxaFixa").value
 const baseComissao = document.getElementById("vendaBaseComissao").value
 const outrosCustos = Number(document.getElementById("vendaOutrosCustos").value) || 0
 console.log("clicou salvar venda")
-const { data: resultado, error } = await supa
-.from("vendas_produtos")
-
   if(!data || !canal || !produto || !quantidade || !custoProduto || !valorVenda){
 alert("Preencha os campos obrigatórios")
 return
 }
-    
+  
+const { data: resultado, error } = await supa
+.from("vendas_produtos")
 .insert([
 {
 data_venda: data,
