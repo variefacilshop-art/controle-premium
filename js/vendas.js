@@ -17,7 +17,6 @@ if(tabVendas){
     document.getElementById("financasBox")?.classList.add("hidden");
     document.getElementById("metasBox")?.classList.add("hidden");
     document.getElementById("dashboardBox")?.classList.add("hidden");
-
     document.getElementById("vendasBox")?.classList.remove("hidden");
 
   });
@@ -46,7 +45,6 @@ const option = document.createElement("option")
 
 option.value = canal.id
 option.textContent = canal.nome
-
 option.dataset.percentual = canal.comissao_percentual
 option.dataset.fixa = canal.comissao_fixa
 option.dataset.tipo = canal.tipo_comissao
@@ -72,5 +70,8 @@ document.getElementById("vendaCanal")
 
   document.getElementById("vendaTaxaFixa").value =
   opt.dataset.fixa
+  
+  document.getElementById("vendaBaseComissao").value =
+  opt.dataset.base
 
 })
