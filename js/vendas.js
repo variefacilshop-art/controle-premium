@@ -126,3 +126,37 @@ alert("Venda salva com sucesso!")
   carregarVendas()
 
 })
+
+async function carregarVendas(){
+
+const { data, error } = await supa
+.from("vendas_produtos")
+.select("*")
+.order("data_venda", { ascending:false })
+
+if(error){
+console.error("Erro ao carregar vendas", error)
+return
+}
+
+const tabela = document.getElementById("historicoVendas")
+
+tabela.innerHTML = ""
+
+data.forEach(venda => {
+
+const linha = `
+<tr>
+<td>${venda.data_venda}</td>
+<td>${venda.canal}</td>
+<td>${venda.produto}</td>
+<td>${venda.quantidade}</td>
+<td>R$ ${venda.valor_venda}</td>
+</tr>
+`
+
+tabela.innerHTML += linha
+
+})
+
+}
