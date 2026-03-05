@@ -1,24 +1,19 @@
-// ============================
+// ======================
 // MODULO VENDAS
-// ============================
+// ======================
 
 const tabVendas = document.getElementById("tabVendas");
-const vendasBox = document.getElementById("vendasBox");
 
-const financasBox = document.getElementById("financasBox");
-const metasBox = document.getElementById("metasBox");
-const dashboardBox = document.getElementById("dashboardBox");
+if(tabVendas){
 
-if (tabVendas) {
+  tabVendas.addEventListener("click", ()=>{
 
-  tabVendas.onclick = () => {
+    document.getElementById("financasBox")?.classList.add("hidden");
+    document.getElementById("metasBox")?.classList.add("hidden");
+    document.getElementById("dashboardBox")?.classList.add("hidden");
 
-    if (financasBox) financasBox.classList.add("hidden");
-    if (metasBox) metasBox.classList.add("hidden");
-    if (dashboardBox) dashboardBox.classList.add("hidden");
+    document.getElementById("vendasBox")?.classList.remove("hidden");
 
-    if (vendasBox) vendasBox.classList.remove("hidden");
-
-  };
+  });
 
 }
