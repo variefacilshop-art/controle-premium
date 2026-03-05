@@ -26,7 +26,7 @@ if(tabVendas){
 
 async function carregarCanais() {
 
-const { data, error } = await supabase
+const { data, error } = await supa
 .from("canais_vendas")
 .select("*")
 
