@@ -103,7 +103,7 @@ custo_produt: custoProduto,
 valor_venda: valorVenda,
 frete_receita: freteReceita,
 frete_custo: freteCusto,
-comissao_por: comissao,
+comissao_percentual: comissao,
 taxa_fixa: taxaFixa,
 base_comissao: baseComissao,
 outros_custo: outrosCustos
