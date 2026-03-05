@@ -23,3 +23,40 @@ if(tabVendas){
   });
 
 }
+
+async function carregarCanais(){
+
+  const { data, error } = await supa
+  .from("canais_venda")
+  .select("*")
+  .order("nome")
+
+  if(error){
+    console.log(error)
+    return
+  }
+
+  const select = document.getElementById("vendaCanal")
+
+  if(!select) return
+
+  select.innerHTML = '<option value="">Selecione o canal</option>'
+
+  data.forEach(canal => {
+
+    const option = document.createElement("option")
+    option.value = canal.id
+    option.textContent = canal.nome
+
+    option.dataset.percentual = canal.comissao_percentual
+    option.dataset.fixa = canal.taxa_fixa
+    option.dataset.tipo = canal.tipo_comissao
+    option.dataset.base = canal.base_comissao
+
+    select.appendChild(option)
+
+  })
+
+}
+
+carregarCanais()
