@@ -29,6 +29,7 @@ async function carregarCanais() {
 const { data, error } = await supa
 .from("canais_vendas")
 .select("*")
+  console.log(data)
 
 if (error) {
 console.error(error)
