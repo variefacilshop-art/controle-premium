@@ -91,14 +91,14 @@ const taxaFixa = document.getElementById("vendaTaxaFixa").value
 const baseComissao = document.getElementById("vendaBaseComissao").value
 const outrosCustos = document.getElementById("vendaOutrosCustos").value
 
-const { data: resultado, error } = await supabaseCliente
+const { data: resultado, error } = await supabase
 .from("vendas")
 .insert([
 {
-data,
+data: data
 canal,
-produto,
-quantidade,
+produto: produto
+quantidade: quantidade
 custo_produto: custoProduto,
 valor_venda: valorVenda,
 frete_receita: freteReceita,
