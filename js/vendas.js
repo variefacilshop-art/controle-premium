@@ -43,7 +43,7 @@ data.forEach(canal => {
 
 const option = document.createElement("option")
 
-option.value = canal.nome
+option.value = canal.id
 option.textContent = canal.nome
 
 option.dataset.percentual = canal.comissao_percentual
