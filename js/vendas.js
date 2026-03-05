@@ -90,7 +90,7 @@ const comissao = document.getElementById("vendaComissaoPercentual").value
 const taxaFixa = document.getElementById("vendaTaxaFixa").value
 const baseComissao = document.getElementById("vendaBaseComissao").value
 const outrosCustos = document.getElementById("vendaOutrosCustos").value
-
+console.log("clicou salvar venda")
 const { data: resultado, error } = await supa
 .from("vendas_produtos")
 .insert([
