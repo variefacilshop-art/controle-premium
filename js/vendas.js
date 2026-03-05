@@ -67,7 +67,7 @@ document.getElementById("vendaCanal")
 
   if(!opt.dataset.percentual) return
 
-  document.getElementById("vendaComissao").value =
+  document.getElementById("vendaComissaoPercentual").value =
   opt.dataset.percentual
 
   document.getElementById("vendaTaxaFixa").value =
