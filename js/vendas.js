@@ -24,38 +24,36 @@ if(tabVendas){
 
 }
 
-async function carregarCanais(){
+async function carregarCanais() {
 
-  const { data, error } = await supa
-  .from("canais_venda")
-  .select("*")
-  .order("nome")
+const { data, error } = await supabase
+.from("canais_venda")
+.select("*")
 
-  if(error){
-    console.log(error)
-    return
-  }
+if (error) {
+console.error(error)
+return
+}
 
-  const select = document.getElementById("vendaCanal")
+const select = document.getElementById("vendaCanal")
 
-  if(!select) return
+select.innerHTML = '<option value="">Canal de venda</option>'
 
-  select.innerHTML = '<option value="">Selecione o canal</option>'
+data.forEach(canal => {
 
-  data.forEach(canal => {
+const option = document.createElement("option")
 
-    const option = document.createElement("option")
-    option.value = canal.id
-    option.textContent = canal.nome
+option.value = canal.nome
+option.textContent = canal.nome
 
-    option.dataset.percentual = canal.comissao_percentual
-    option.dataset.fixa = canal.taxa_fixa
-    option.dataset.tipo = canal.tipo_comissao
-    option.dataset.base = canal.base_comissao
+option.dataset.percentual = canal.comissao_percentual
+option.dataset.fixa = canal.taxa_fixa
+option.dataset.tipo = canal.tipo_comissao
+option.dataset.base = canal.base_comissao
 
-    select.appendChild(option)
+select.appendChild(option)
 
-  })
+})
 
 }
 
