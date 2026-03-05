@@ -139,7 +139,7 @@ console.error("Erro ao carregar vendas", error)
 return
 }
 
-const tabela = document.getElementById("historicoVendas")
+const tabela = document.getElementById("listaVendas")
 
 tabela.innerHTML = ""
 
