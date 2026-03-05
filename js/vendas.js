@@ -84,15 +84,21 @@ const produto = document.getElementById("vendaProduto").value
 const quantidade = document.getElementById("vendaQuantidade").value
 const custoProduto = document.getElementById("vendaCustoProduto").value
 const valorVenda = document.getElementById("vendaValorVenda").value
-const freteReceita = document.getElementById("vendaFreteReceita").value
-const freteCusto = document.getElementById("vendaFreteCusto").value
+const freteReceita = Number(document.getElementById("vendaFreteReceita").value) || 0
+const freteCusto = Number(document.getElementById("vendaFreteCusto").value) || 0
 const comissao = document.getElementById("vendaComissaoPercentual").value
 const taxaFixa = document.getElementById("vendaTaxaFixa").value
 const baseComissao = document.getElementById("vendaBaseComissao").value
-const outrosCustos = document.getElementById("vendaOutrosCustos").value
+const outrosCustos = Number(document.getElementById("vendaOutrosCustos").value) || 0
 console.log("clicou salvar venda")
 const { data: resultado, error } = await supa
 .from("vendas_produtos")
+
+  if(!data || !canal || !produto || !quantidade || !custoProduto || !valorVenda){
+alert("Preencha os campos obrigatórios")
+return
+}
+    
 .insert([
 {
 data_venda: data,
@@ -117,5 +123,7 @@ return
 }
 
 alert("Venda salva com sucesso!")
+
+  carregarVendas()
 
 })
