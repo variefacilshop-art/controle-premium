@@ -106,7 +106,7 @@ frete_custo: freteCusto,
 comissao_percentual: comissao,
 taxa_fixa: taxaFixa,
 base_comissao: baseComissao,
-outros_custo: outrosCustos
+outros_custos: outrosCustos
 }
 ])
 
