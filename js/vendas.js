@@ -75,3 +75,47 @@ document.getElementById("vendaCanal")
   opt.dataset.base
 
 })
+document.getElementById("btnSalvarVenda")
+.addEventListener("click", async function(){
+
+const data = document.getElementById("vendaData").value
+const canal = document.getElementById("vendaCanal").value
+const produto = document.getElementById("vendaProduto").value
+const quantidade = document.getElementById("vendaQuantidade").value
+const custoProduto = document.getElementById("vendaCustoProduto").value
+const valorVenda = document.getElementById("vendaValorVenda").value
+const freteReceita = document.getElementById("vendaFreteReceita").value
+const freteCusto = document.getElementById("vendaFreteCusto").value
+const comissao = document.getElementById("vendaComissaoPercentual").value
+const taxaFixa = document.getElementById("vendaTaxaFixa").value
+const baseComissao = document.getElementById("vendaBaseComissao").value
+const outrosCustos = document.getElementById("vendaOutrosCustos").value
+
+const { data: resultado, error } = await supabase
+.from("vendas")
+.insert([
+{
+data,
+canal,
+produto,
+quantidade,
+custo_produto: custoProduto,
+valor_venda: valorVenda,
+frete_receita: freteReceita,
+frete_custo: freteCusto,
+comissao_percentual: comissao,
+taxa_fixa: taxaFixa,
+base_comissao: baseComissao,
+outros_custos: outrosCustos
+}
+])
+
+if(error){
+console.error("Erro ao salvar venda", error)
+alert("Erro ao salvar venda")
+return
+}
+
+alert("Venda salva com sucesso!")
+
+})
