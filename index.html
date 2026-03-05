@@ -197,37 +197,38 @@
 
 <h2>Registrar venda</h2>
 
-<input id="vendaData" type="date">
+<input id="vendaData" type="date" />
 
-<select id="vendaCanal"></select>
-
-<input id="vendaProduto" placeholder="Produto">
-
-<input id="vendaQuantidade" type="number" placeholder="Quantidade">
-
-<input id="vendaCustoProduto" type="number" placeholder="Custo produto">
-
-<input id="vendaValorVenda" type="number" placeholder="Valor venda">
-
-<input id="vendaComissao" type="number" placeholder="Comissão %">
-  
-<input id="vendaTaxaFixa" type="number" placeholder="Taxa fixa">
-
-<select id="vendaTipoFrete">
-<option value="menos">Frete - custo</option>
-<option value="mais">Frete + receita</option>
+<select id="vendaCanal">
+<option value="">Canal de venda</option>
 </select>
 
-<input id="vendaFrete" type="number" placeholder="Valor frete">
+<input id="vendaProduto" placeholder="Produto" />
 
-<input id="vendaOutrosCustos" type="number" placeholder="Outros custos">
+<input id="vendaQuantidade" type="number" placeholder="Quantidade" />
 
-<div id="previewVenda"></div>
+<input id="vendaCustoProduto" type="number" placeholder="Custo produto" />
+
+<input id="vendaValorVenda" type="number" placeholder="Valor venda" />
+
+<input id="vendaFreteReceita" type="number" placeholder="Frete receita" />
+
+<input id="vendaFreteCusto" type="number" placeholder="Frete custo" />
+
+<input id="vendaComissaoPercentual" type="number" placeholder="Comissão %" />
+
+<input id="vendaTaxaFixa" type="number" placeholder="Taxa fixa" />
+
+<select id="vendaBaseComissao">
+<option value="produto">Comissão sobre produto</option>
+<option value="produto_frete">Comissão sobre produto + frete</option>
+</select>
+
+<input id="vendaOutrosCustos" type="number" placeholder="Outros custos" />
 
 <button id="btnSalvarVenda" class="btn btn-primary">
 Salvar venda
 </button>
-
 </div>
 
 <div class="card">
