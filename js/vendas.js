@@ -57,7 +57,7 @@ select.appendChild(option)
 
 }
 
-carregarCanais()
+document.addEventListener("DOMContentLoaded", carregarCanais)
 
 document.getElementById("vendaCanal")
 .addEventListener("change", function(){
