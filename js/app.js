@@ -270,6 +270,7 @@
     financasBox.classList.remove("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    initFinancas()
   }
   function showMetas(){
     setActiveTab(tabMeta);
