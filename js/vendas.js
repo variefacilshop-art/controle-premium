@@ -48,7 +48,7 @@ option.value = canal.id
 option.textContent = canal.nome
 
 option.dataset.percentual = canal.comissao_percentual
-option.dataset.fixa = canal.taxa_fixa
+option.dataset.fixa = canal.comissao_fixa
 option.dataset.tipo = canal.tipo_comissao
 option.dataset.base = canal.base_comissao
 
