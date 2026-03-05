@@ -191,44 +191,54 @@
     </div>
 
     <!-- VENDAS -->
-<div class="grid hidden" id="vendasBox">
+<div id="vendasBox" class="grid hidden">
 
-  <div class="card">
-    <h2>Vendas</h2>
+<div class="card">
 
-    <div class="form-grid">
+<h2>Registrar venda</h2>
 
-      <input id="vendaData" type="date" placeholder="Data">
+<input id="vendaData" type="date">
 
-      <input id="vendaCanal" placeholder="Canal de venda">
+<input id="vendaCanal" placeholder="Canal de venda">
 
-      <input id="vendaProduto" placeholder="Produto">
+<input id="vendaProduto" placeholder="Produto">
 
-      <input id="vendaValor" type="number" placeholder="Valor venda">
+<input id="vendaQuantidade" type="number" placeholder="Quantidade">
 
-      <input id="vendaCusto" type="number" placeholder="Custo produto">
+<input id="vendaCustoProduto" type="number" placeholder="Custo produto">
 
-      <input id="vendaComissao" type="number" placeholder="Comissão %">
+<input id="vendaValorVenda" type="number" placeholder="Valor venda">
 
-      <select id="vendaFreteTipo">
-        <option value="menos">Frete - custo</option>
-        <option value="mais">Frete + receita</option>
-      </select>
+<input id="vendaComissao" type="number" placeholder="Comissão %">
 
-      <input id="vendaFreteValor" type="number" placeholder="Valor frete">
+<select id="vendaTipoFrete">
+<option value="menos">Frete - custo</option>
+<option value="mais">Frete + receita</option>
+</select>
 
-      <input id="vendaOutros" type="number" placeholder="Outros custos">
+<input id="vendaFrete" type="number" placeholder="Valor frete">
 
-    </div>
+<input id="vendaOutrosCustos" type="number" placeholder="Outros custos">
 
-    <button id="btnSalvarVenda" class="btn btn-primary">
-      Salvar venda
-    </button>
+<div id="previewVenda"></div>
 
-  </div>
+<button id="btnSalvarVenda" class="btn btn-primary">
+Salvar venda
+</button>
 
 </div>
 
+<div class="card">
+
+<h2>Histórico de vendas</h2>
+
+<div id="listaVendas">
+Nenhuma venda registrada
+</div>
+
+</div>
+
+</div>
     <!-- METAS -->
     <div class="hidden" id="metasBox">
       <div class="card">
