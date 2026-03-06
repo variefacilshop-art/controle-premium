@@ -191,56 +191,70 @@
     </div>
 
     <!-- VENDAS -->
-<div id="vendasBox" class="grid hidden">
+<!-- VENDAS -->
+<div class="grid hidden" id="vendasBox">
 
-<div class="card">
+  <div class="card">
 
-<h2>Registrar venda</h2>
+    <div class="head">
+      <h2>Registrar venda</h2>
+    </div>
 
-<input id="vendaData" type="date" />
+    <div class="body">
 
-<select id="vendaCanal">
-<option value="">Canal de venda</option>
-</select>
+      <input id="vendaData" type="date" />
 
-<input id="vendaProduto" placeholder="Produto" />
+      <select id="vendaCanal">
+        <option value="">Canal de venda</option>
+      </select>
 
-<input id="vendaQuantidade" type="number" placeholder="Quantidade" />
+      <input id="vendaProduto" placeholder="Produto" />
 
-<input id="vendaCustoProduto" type="number" placeholder="Custo produto" />
+      <input id="vendaQuantidade" type="number" placeholder="Quantidade" />
 
-<input id="vendaValorVenda" type="number" placeholder="Valor venda" />
+      <input id="vendaCustoProduto" type="number" placeholder="Custo produto" />
 
-<input id="vendaFreteReceita" type="number" placeholder="Frete receita" />
+      <input id="vendaValorVenda" type="number" placeholder="Valor venda" />
 
-<input id="vendaFreteCusto" type="number" placeholder="Frete custo" />
+      <input id="vendaFreteReceita" type="number" placeholder="Frete receita" />
 
-<input id="vendaComissaoPercentual" type="number" placeholder="Comissão %" />
+      <input id="vendaFreteCusto" type="number" placeholder="Frete custo" />
 
-<input id="vendaTaxaFixa" type="number" placeholder="Taxa fixa" />
+      <input id="vendaComissaoPercentual" type="number" placeholder="Comissão %" />
 
-<select id="vendaBaseComissao">
-<option value="">Base da comissao</option>
-<option value="produto">Comissão sobre produto</option>
-<option value="produto_frete">Comissão sobre produto + frete</option>
-</select>
+      <input id="vendaTaxaFixa" type="number" placeholder="Taxa fixa" />
 
-<input id="vendaOutrosCustos" type="number" placeholder="Outros custos" />
+      <select id="vendaBaseComissao">
+        <option value="">Base da comissão</option>
+        <option value="produto">Comissão sobre produto</option>
+        <option value="produto_frete">Comissão sobre produto + frete</option>
+      </select>
 
-<button id="btnSalvarVenda" class="btn btn-primary">
-Salvar venda
-</button>
-</div>
+      <input id="vendaOutrosCustos" type="number" placeholder="Outros custos" />
 
-<div class="card">
+      <button id="btnSalvarVenda" class="btn btn-primary">
+        Salvar venda
+      </button>
 
-<h2>Histórico de vendas</h2>
+    </div>
 
-<div id="listaVendas">
-Nenhuma venda registrada
-</div>
+  </div>
 
-</div>
+  <div class="card">
+
+    <div class="head">
+      <h2>Histórico de vendas</h2>
+    </div>
+
+    <div class="body">
+
+      <div id="listaVendas">
+        Nenhuma venda registrada
+      </div>
+
+    </div>
+
+  </div>
 
 </div>
     <!-- METAS -->
