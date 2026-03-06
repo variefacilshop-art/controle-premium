@@ -7,6 +7,7 @@
   const tabFin = document.getElementById("tabFin");
   const tabMeta = document.getElementById("tabMeta");
   const tabDash = document.getElementById("tabDash");
+  const vendasBox = document.getElementById("vendasBox");
   const pillEmail = document.getElementById("pillEmail");
   const btnSair = document.getElementById("btnSair");
   const btnLogin = document.getElementById("btnLogin");
