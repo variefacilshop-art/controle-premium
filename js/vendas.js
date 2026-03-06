@@ -129,102 +129,42 @@ alert("Venda salva com sucesso!")
 
 async function carregarVendas(){
 
-  // Helpers de formatação (somente visual)
-  const fmtBRL = (v) => {
-    const n = Number(v);
-    if (!isFinite(n)) return "—";
-    return ${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%;
-  };
+const { data, error } = await supa
+.from("vendas_produtos")
+.select("*")
+.order("data_venda", { ascending:false })
 
-  const fmtPct = (v) => {
-    const n = Number(v);
-    if (!isFinite(n)) return "—";
-    return ${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%;
-  };
-
-  // 1) Carrega canais para mostrar NOME no histórico (sem mudar banco)
-  const { data: canaisData, error: canaisError } = await supa
-    .from("canais_vendas")
-    .select("id, nome");
-
-  if (canaisError) {
-    console.error("Erro ao carregar canais (histórico)", canaisError);
-  }
-
-   const canaisMap = {};
-  (canaisData || []).forEach(c => { canaisMap[String(c.id)] = c.nome; });
-
-  // 2) Carrega vendas
-  const { data, error } = await supa
-    .from("vendas_produtos")
-    .select("*")
-    .order("data_venda", { ascending:false });
-
-  if(error){
-    console.error("Erro ao carregar vendas", error);
-    return;
-  }
-
-  const tabela = document.getElementById("listaVendas");
-  tabela.innerHTML = "";
-
-  // Vazio
-  if(!data || data.length === 0){
-    tabela.innerHTML = <div class="empty">Nenhuma venda registrada</div>;
-    return;
-  }
-
-  // Header
-  tabela.innerHTML += `
-    <div class="salesRow salesHeader">
-      <div class="salesCell salesHideMobile">Data</div>
-      <div class="salesCell">Canal</div>
-      <div class="salesCell">Produto</div>
-      <div class="salesCell salesNum">Qtd</div>
-      <div class="salesCell salesNum">Venda</div>
-      <div class="salesCell salesNum">Lucro</div>
-      <div class="salesCell salesNum">Markup</div>
-    </div>
-  `;
-
-  // Linhas
-  data.forEach(venda => {
-    const canalNome = canaisMap[String(venda.canal)] || venda.canal || "—";
-
-    const lucroNum = Number(venda.lucro);
-    const lucroClass = isFinite(lucroNum) ? (lucroNum >= 0 ? "salesPos" : "salesNeg") : "";
-
-    // markup no banco pode estar como número (ex: 35.5) ou null
-    const markupTxt = (venda.markup === null || venda.markup === undefined || venda.markup === "")
-      ? "—"
-      : fmtPct(venda.markup);
-
-    tabela.innerHTML += `
-      <div class="salesRow">
-        <div class="salesCell salesHideMobile">${venda.data_venda || "—"}</div>
-
-        <div class="salesCell">
-          <span class="badge cat">${canalNome}</span>
-        </div>
-
-        <div class="salesCell salesProduto" title="${venda.produto || ""}">
-          ${venda.produto || "—"}
-        </div>
-
-        <div class="salesCell salesNum">${venda.quantidade ?? "—"}</div>
-
-        <div class="salesCell salesNum">${fmtBRL(venda.valor_venda)}</div>
-
-        <div class="salesCell salesNum ${lucroClass}">
-          ${fmtBRL(venda.lucro)}
-        </div>
-
-        <div class="salesCell salesNum salesMarkup">${markupTxt}</div>
-      </div>
-    `;
-  });
-
+if(error){
+console.error("Erro ao carregar vendas", error)
+return
 }
+
+const tabela = document.getElementById("listaVendas")
+
+tabela.innerHTML = ""
+
+data.forEach(venda => {
+
+const linha = `
+<div style="
+display:flex;
+gap:20px;
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+">
+
+<div style="width:120px">${venda.data_venda}</div>
+
+<div style="width:120px">${venda.canal}</div>
+
+<div style="flex:1">${venda.produto}</div>
+
+<div style="width:60px">${venda.quantidade}</div>
+
+<div style="width:100px">R$ ${venda.valor_venda}</div>
+
+</div>
+`
 
 tabela.innerHTML += linha
 
