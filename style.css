@@ -310,3 +310,76 @@
     .ofxMoney{ width: 120px; }
     .ofxDate{ width: 140px; }
     .ofxCheck{ width: 44px; text-align: center; }
+
+/* =========================
+   HISTÓRICO DE VENDAS (SaaS)
+   ========================= */
+.salesTable{
+  max-height: 520px;
+  overflow: auto;
+}
+
+.salesRow{
+  display: grid;
+  grid-template-columns: 110px 140px 1fr 70px 130px 130px 90px;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(148,163,184,.10);
+}
+
+.salesRow:last-child{ border-bottom: none; }
+
+.salesRow:hover{
+  background: rgba(2,6,23,.25);
+}
+
+.salesHeader{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(2,6,23,.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(148,163,184,.14);
+}
+
+.salesHeader .salesCell{
+  font-size: 11px;
+  color: rgba(226,232,240,.65);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.salesCell{
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.salesProduto{
+  font-weight: 800;
+  color: rgba(226,232,240,.92);
+}
+
+.salesNum{
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.salesPos{ color: var(--green); font-weight: 900; }
+.salesNeg{ color: #ff8080; font-weight: 900; }
+
+.salesMarkup{
+  font-weight: 900;
+  color: rgba(226,232,240,.85);
+}
+
+@media (max-width: 860px){
+  .salesRow{
+    grid-template-columns: 130px 1fr 60px 120px;
+  }
+  .salesHideMobile{ display:none; }
+}
