@@ -129,42 +129,51 @@ alert("Venda salva com sucesso!")
 
 async function carregarVendas(){
 
-const { data, error } = await supa
-.from("vendas_produtos")
-.select("*")
-.order("data_venda", { ascending:false })
+  const { data, error } = await supa
+    .from("vendas_produtos")
+    .select("*")
+    .order("data_venda", { ascending:false });
 
-if(error){
-console.error("Erro ao carregar vendas", error)
-return
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  const lista = document.getElementById("listaVendas");
+
+  if(!lista) return;
+
+  lista.innerHTML = "";
+
+  if(!data || data.length === 0){
+    lista.innerHTML = "Nenhuma venda registrada";
+    return;
+  }
+
+  data.forEach(venda => {
+
+    lista.innerHTML += `
+      <div style="
+        display:flex;
+        gap:20px;
+        padding:10px;
+        border-bottom:1px solid #333;
+      ">
+
+        <div>${venda.data_venda}</div>
+        <div>${venda.canal}</div>
+        <div>${venda.produto}</div>
+        <div>${venda.quantidade}</div>
+        <div>R$ ${venda.valor_venda}</div>
+
+      </div>
+    `;
+
+  });
+
 }
 
-const tabela = document.getElementById("listaVendas")
-
-tabela.innerHTML = ""
-
-data.forEach(venda => {
-
-const linha = `
-<div style="
-display:flex;
-gap:20px;
-padding:10px;
-border-bottom:1px solid rgba(255,255,255,0.1);
-">
-
-<div style="width:120px">${venda.data_venda}</div>
-
-<div style="width:120px">${venda.canal}</div>
-
-<div style="flex:1">${venda.produto}</div>
-
-<div style="width:60px">${venda.quantidade}</div>
-
-<div style="width:100px">R$ ${venda.valor_venda}</div>
-
-</div>
-`
+carregarVendas();
 
 tabela.innerHTML += linha
 
