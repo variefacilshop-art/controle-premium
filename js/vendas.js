@@ -8,11 +8,7 @@ if(tabVendas){
 
   tabVendas.addEventListener("click", ()=>{
 
-    document.querySelectorAll(".tab").forEach(t=>{
-      t.classList.remove("active");
-    });
-
-    tabVendas.classList.add("active");
+    setActiveTab(tabVendas);
 
     document.getElementById("financasBox")?.classList.add("hidden");
     document.getElementById("metasBox")?.classList.add("hidden");
