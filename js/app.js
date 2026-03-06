@@ -252,6 +252,7 @@
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
     btnSair.classList.add("hidden");
     pillEmail.textContent = "Não logado";
   }
@@ -271,6 +272,7 @@
     financasBox.classList.remove("hidden");
     metasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
     initFinancas()
   }
   function showMetas(){
@@ -278,12 +280,14 @@
     metasBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
     dashboardBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
   }
   function showDashboard(){
     setActiveTab(tabDash);
     dashboardBox.classList.remove("hidden");
     financasBox.classList.add("hidden");
     metasBox.classList.add("hidden");
+    vendasBox.classList.add("hidden");
   }
 
     // ===== BANCOS =====
