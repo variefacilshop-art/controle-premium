@@ -264,7 +264,7 @@
     forceShowFinancas();
   }
   function setActiveTab(active){
-    for (const el of [tabFin, tabMeta, tabDash]) el.classList.remove("active");
+    for (const el of [tabFin, tabMeta, tabDash, tabVendas]) el.classList.remove("active");
     active.classList.add("active");
   }
   function forceShowFinancas(){
