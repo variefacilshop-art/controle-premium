@@ -133,7 +133,7 @@ async function carregarVendas(){
   const fmtBRL = (v) => {
     const n = Number(v);
     if (!isFinite(n)) return "—";
-    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    return ${n.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%;
   };
 
   const fmtPct = (v) => {
@@ -151,7 +151,7 @@ async function carregarVendas(){
     console.error("Erro ao carregar canais (histórico)", canaisError);
   }
 
-  const canaisMap = {};
+   const canaisMap = {};
   (canaisData || []).forEach(c => { canaisMap[String(c.id)] = c.nome; });
 
   // 2) Carrega vendas
