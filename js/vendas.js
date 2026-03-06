@@ -146,13 +146,24 @@ tabela.innerHTML = ""
 data.forEach(venda => {
 
 const linha = `
-<tr>
-<td>${venda.data_venda}</td>
-<td>${venda.canal}</td>
-<td>${venda.produto}</td>
-<td>${venda.quantidade}</td>
-<td>R$ ${venda.valor_venda}</td>
-</tr>
+<div style="
+display:flex;
+gap:20px;
+padding:10px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+">
+
+<div style="width:120px">${venda.data_venda}</div>
+
+<div style="width:120px">${venda.canal}</div>
+
+<div style="flex:1">${venda.produto}</div>
+
+<div style="width:60px">${venda.quantidade}</div>
+
+<div style="width:100px">R$ ${venda.valor_venda}</div>
+
+</div>
 `
 
 tabela.innerHTML += linha
